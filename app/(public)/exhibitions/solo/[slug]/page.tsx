@@ -1,15 +1,16 @@
 type SoloExhibitionPageProps = {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
-export default function SoloExhibitionPage({
+export default async function SoloExhibitionPage({
   params,
 }: SoloExhibitionPageProps) {
+  const { slug } = await params
   return (
     <div className="space-y-4 pt-6">
       <h1 className="text-lg font-medium">Solo Exhibition</h1>
       <p className="text-sm text-muted-foreground">
-        Exhibition: {params.slug}
+        Exhibition: {slug}
       </p>
     </div>
   )

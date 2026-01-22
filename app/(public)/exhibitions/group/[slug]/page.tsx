@@ -1,15 +1,16 @@
 type GroupExhibitionPageProps = {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
-export default function GroupExhibitionPage({
+export default async function GroupExhibitionPage({
   params,
 }: GroupExhibitionPageProps) {
+  const { slug } = await params
   return (
     <div className="space-y-4 pt-6">
       <h1 className="text-lg font-medium">Group Exhibition</h1>
       <p className="text-sm text-muted-foreground">
-        Exhibition: {params.slug}
+        Exhibition: {slug}
       </p>
     </div>
   )
