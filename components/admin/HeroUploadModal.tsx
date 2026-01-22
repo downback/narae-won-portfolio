@@ -20,8 +20,6 @@ type HeroUploadModalProps = {
   title?: string
   description?: string
   onImageSelect?: (file: File | null) => void
-  animationEnabled?: boolean
-  onAnimationToggle?: (enabled: boolean) => void
   onConfirm?: () => void
   confirmLabel?: string
   isConfirmDisabled?: boolean
@@ -35,8 +33,6 @@ export default function HeroUploadModal({
   title = "Update Content",
   description = "Upload an image or update text content.",
   onImageSelect,
-  animationEnabled = true,
-  onAnimationToggle,
   onConfirm,
   confirmLabel = "Confirm change",
   isConfirmDisabled = false,
@@ -45,7 +41,6 @@ export default function HeroUploadModal({
 }: HeroUploadModalProps) {
   const [selectedImageName, setSelectedImageName] = useState("")
   const [imagePreviewUrl, setImagePreviewUrl] = useState("")
-  const [isAnimationEnabled, setIsAnimationEnabled] = useState(animationEnabled)
 
   const handleImageDrop = (event: React.DragEvent<HTMLLabelElement>) => {
     event.preventDefault()
@@ -70,7 +65,6 @@ export default function HeroUploadModal({
       setSelectedImageName("")
       setImagePreviewUrl("")
       onImageSelect?.(null)
-      setIsAnimationEnabled(animationEnabled)
     }
 
     onOpenChange(nextOpen)
@@ -132,23 +126,6 @@ export default function HeroUploadModal({
                 />
               </div>
             ) : null}
-          </div>
-          <Label>Image animation toggle</Label>
-          <div className="flex items-center justify-between rounded-md border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
-            <Button
-              type="button"
-              variant={isAnimationEnabled ? "default" : "secondary"}
-              size="sm"
-              className={isAnimationEnabled ? "bg-zinc-900 text-zinc-50" : ""}
-              onClick={() => {
-                const nextValue = !isAnimationEnabled
-                setIsAnimationEnabled(nextValue)
-                onAnimationToggle?.(nextValue)
-              }}
-            >
-              {isAnimationEnabled ? "On" : "Off"}
-            </Button>
-            <span className="text-xs text-muted-foreground">*there {isAnimationEnabled ? "will" : "won't"} be an animation on the hero image</span>
           </div>
         </div>
 
