@@ -8,9 +8,10 @@ import {
   X,
   LogOut,
   LayoutDashboard,
-  Image,
   FolderOpen,
   UserCircle,
+  FileText,
+  Calendar,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -19,9 +20,10 @@ import { useToast } from "@/components/ui/use-toast"
 
 const adminNavLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/main-page", label: "Main Page", icon: Image },
   { href: "/admin/works", label: "Works", icon: FolderOpen },
-  { href: "/admin/biography", label: "Biography", icon: UserCircle },
+  { href: "/admin/exhibitions", label: "Exhibitions", icon: Calendar },
+  { href: "/admin/cv", label: "CV", icon: UserCircle },
+  { href: "/admin/text", label: "Text", icon: FileText },
 ]
 
 export default function AdminSidebar() {

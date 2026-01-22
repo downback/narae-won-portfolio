@@ -1,0 +1,127 @@
+"use client"
+
+import { useState } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+
+export type TextFormValues = {
+  title: string
+  year: string
+  body: string
+}
+
+type TextUploadModalProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title?: string
+  description?: string
+  onSave?: (values: TextFormValues) => void
+  confirmLabel?: string
+  isConfirmDisabled?: boolean
+  isSubmitting?: boolean
+  errorMessage?: string
+}
+
+const defaultTextValues: TextFormValues = {
+  title: "",
+  year: "",
+  body: "",
+}
+
+export default function TextUploadModal({
+  open,
+  onOpenChange,
+  title = "Add text",
+  description = "Create a new text entry for the public texts page.",
+  onSave,
+  confirmLabel = "Save text",
+  isConfirmDisabled = false,
+  isSubmitting = false,
+  errorMessage,
+}: TextUploadModalProps) {
+  const [formValues, setFormValues] = useState<TextFormValues>(defaultTextValues)
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setFormValues(defaultTextValues)
+    }
+    onOpenChange(nextOpen)
+  }
+
+  const updateField = (key: keyof TextFormValues, value: string) => {
+    setFormValues((prev) => ({ ...prev, [key]: value }))
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-md md:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="text-title">Title</Label>
+            <Input
+              id="text-title"
+              value={formValues.title}
+              onChange={(event) => updateField("title", event.target.value)}
+              placeholder="Text title"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="text-year">Year</Label>
+            <Input
+              id="text-year"
+              value={formValues.year}
+              onChange={(event) => updateField("year", event.target.value)}
+              placeholder="2025"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="text-body">Body</Label>
+            <Textarea
+              id="text-body"
+              value={formValues.body}
+              onChange={(event) => updateField("body", event.target.value)}
+              placeholder="Full text content"
+              className="min-h-[160px]"
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-0">
+          {errorMessage ? (
+            <p className="text-sm text-rose-600">{errorMessage}</p>
+          ) : null}
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => handleOpenChange(false)}
+          >
+            Dismiss
+          </Button>
+          <Button
+            type="button"
+            variant="highlight"
+            onClick={() => onSave?.(formValues)}
+            disabled={isConfirmDisabled || isSubmitting}
+          >
+            {isSubmitting ? "Saving..." : confirmLabel}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}

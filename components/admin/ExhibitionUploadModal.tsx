@@ -15,69 +15,78 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 
-export type WorkFormValues = {
-  imageFile: File | null
+export type ExhibitionCategory = "solo-exhibitions" | "group-exhibitions"
+
+export type ExhibitionFormValues = {
+  mainImageFile: File | null
+  category: ExhibitionCategory
   year: string
   caption: string
   description: string
+  additionalImages: File[]
 }
 
-type WorkUploadModalProps = {
+type ExhibitionUploadModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   title?: string
   description?: string
-  onSave?: (values: WorkFormValues) => void
+  onSave?: (values: ExhibitionFormValues) => void
   confirmLabel?: string
   isConfirmDisabled?: boolean
   isSubmitting?: boolean
   errorMessage?: string
 }
 
-export default function WorkUploadModal({
+export default function ExhibitionUploadModal({
   open,
   onOpenChange,
-  title = "Update Content",
-  description = "Upload a work image and add metadata.",
+  title = "Add exhibition",
+  description = "Upload exhibition images and add metadata.",
   onSave,
-  confirmLabel = "Confirm change",
+  confirmLabel = "Save exhibition",
   isConfirmDisabled = false,
   isSubmitting = false,
   errorMessage,
-}: WorkUploadModalProps) {
-  const [selectedImageName, setSelectedImageName] = useState("")
-  const [imagePreviewUrl, setImagePreviewUrl] = useState("")
-  const [imageFile, setImageFile] = useState<File | null>(null)
+}: ExhibitionUploadModalProps) {
+  const [selectedMainImageName, setSelectedMainImageName] = useState("")
+  const [mainImagePreviewUrl, setMainImagePreviewUrl] = useState("")
+  const [mainImageFile, setMainImageFile] = useState<File | null>(null)
+  const [category, setCategory] =
+    useState<ExhibitionCategory>("solo-exhibitions")
   const [year, setYear] = useState("")
   const [caption, setCaption] = useState("")
   const [details, setDetails] = useState("")
+  const [additionalImages, setAdditionalImages] = useState<File[]>([])
 
-  const handleImageDrop = (event: React.DragEvent<HTMLLabelElement>) => {
+  const handleMainImageDrop = (event: React.DragEvent<HTMLLabelElement>) => {
     event.preventDefault()
     const file = event.dataTransfer.files?.[0]
     if (file) {
-      setSelectedImageName(file.name)
-      setImageFile(file)
-      setImagePreviewUrl(URL.createObjectURL(file))
+      setSelectedMainImageName(file.name)
+      setMainImageFile(file)
+      setMainImagePreviewUrl(URL.createObjectURL(file))
     }
   }
 
   useEffect(() => {
     return () => {
-      if (imagePreviewUrl) {
-        URL.revokeObjectURL(imagePreviewUrl)
+      if (mainImagePreviewUrl) {
+        URL.revokeObjectURL(mainImagePreviewUrl)
       }
     }
-  }, [imagePreviewUrl])
+  }, [mainImagePreviewUrl])
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
-      setSelectedImageName("")
-      setImagePreviewUrl("")
-      setImageFile(null)
+      setSelectedMainImageName("")
+      setMainImagePreviewUrl("")
+      setMainImageFile(null)
+      setCategory("solo-exhibitions")
       setYear("")
       setCaption("")
       setDetails("")
+      setAdditionalImages([])
     }
 
     onOpenChange(nextOpen)
@@ -97,40 +106,40 @@ export default function WorkUploadModal({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="upload-image">Image upload</Label>
+            <Label htmlFor="upload-main-image">Main image upload</Label>
             <label
-              htmlFor="upload-image"
+              htmlFor="upload-main-image"
               className="flex min-h-[120px] w-full cursor-pointer items-center justify-center rounded-md border border-dashed border-border bg-muted/20 px-4 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
-              onDrop={handleImageDrop}
+              onDrop={handleMainImageDrop}
               onDragOver={handleDragOver}
             >
               <span>
                 Drop image or click to upload
-                {selectedImageName ? (
+                {selectedMainImageName ? (
                   <span className="mt-2 block text-xs text-muted-foreground">
-                    Selected: {selectedImageName}
+                    Selected: {selectedMainImageName}
                   </span>
                 ) : null}
               </span>
             </label>
             <Input
-              id="upload-image"
+              id="upload-main-image"
               type="file"
               accept="image/*"
               className="sr-only"
               onChange={(event) => {
                 const file = event.target.files?.[0]
                 if (file) {
-                  setSelectedImageName(file.name)
-                  setImageFile(file)
-                  setImagePreviewUrl(URL.createObjectURL(file))
+                  setSelectedMainImageName(file.name)
+                  setMainImageFile(file)
+                  setMainImagePreviewUrl(URL.createObjectURL(file))
                 }
               }}
             />
-            {imagePreviewUrl ? (
+            {mainImagePreviewUrl ? (
               <div className="overflow-hidden rounded-md border border-border">
                 <Image
-                  src={imagePreviewUrl}
+                  src={mainImagePreviewUrl}
                   alt="Selected preview"
                   width={800}
                   height={400}
@@ -141,9 +150,23 @@ export default function WorkUploadModal({
             ) : null}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="work-year">Year (required)</Label>
+            <Label htmlFor="exhibition-category">Category</Label>
+            <select
+              id="exhibition-category"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={category}
+              onChange={(event) =>
+                setCategory(event.target.value as ExhibitionCategory)
+              }
+            >
+              <option value="solo-exhibitions">Solo exhibitions</option>
+              <option value="group-exhibitions">Group exhibitions</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="exhibition-year">Year (required)</Label>
             <Input
-              id="work-year"
+              id="exhibition-year"
               type="number"
               inputMode="numeric"
               value={year}
@@ -152,23 +175,47 @@ export default function WorkUploadModal({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="work-caption">Caption (required)</Label>
+            <Label htmlFor="exhibition-caption">Caption (required)</Label>
             <Input
-              id="work-caption"
+              id="exhibition-caption"
               value={caption}
               onChange={(event) => setCaption(event.target.value)}
               placeholder="Caption text"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="work-description">Description (optional)</Label>
+            <Label htmlFor="exhibition-description">
+              Description (optional)
+            </Label>
             <Textarea
-              id="work-description"
+              id="exhibition-description"
               value={details}
               onChange={(event) => setDetails(event.target.value)}
               placeholder="Optional description"
               className="min-h-[120px]"
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="upload-additional-images">
+              Additional images (optional)
+            </Label>
+            <Input
+              id="upload-additional-images"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(event) => {
+                const files = Array.from(event.target.files ?? [])
+                setAdditionalImages(files)
+              }}
+            />
+            {additionalImages.length > 0 ? (
+              <div className="space-y-1 text-xs text-muted-foreground">
+                {additionalImages.map((file) => (
+                  <p key={`${file.name}-${file.size}`}>{file.name}</p>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -188,10 +235,12 @@ export default function WorkUploadModal({
             variant="highlight"
             onClick={() =>
               onSave?.({
-                imageFile,
+                mainImageFile,
+                category,
                 year,
                 caption,
                 description: details,
+                additionalImages,
               })
             }
             disabled={isConfirmDisabled || isSubmitting}

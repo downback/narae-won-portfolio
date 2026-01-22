@@ -1,92 +1,343 @@
-- [x]Step 1 — Create Storage bucket
+DBA Product Requirements Document
 
-  - Go to Storage → Buckets → New bucket
-  - Name: `site-assets`
-  - Choose:
-    - Public bucket (simpler public read), or
-    - Private bucket (more secure; requires signed URLs)
-  - Save
+**Project:** Artist Portfolio Website (Image + Text Based)
+**Audience:** DBA / Backend Engineering
+**Role Scope:** Database schema design, storage structure, access control, data integrity
+**Out of Scope:** UI/UX, frontend logic, application architecture
 
-- [x]Step 2 — Create tables (Table Editor)
+---
 
-  - Create these tables in Database → Table Editor:
-    - `app_admin` (singleton)
-    - `assets`
-    - `site_content` (singleton)
-    - `bio_exhibitions`
-    - `bio_education`
-  - As you create each table:
-    - Add the columns exactly as listed above
-    - Add constraints:
-      - singleton checks
-      - NOT NULLs
-      - CHECKs (dates/years/order)
-      - UNIQUE (`bucket`, `path`)
-    - Add foreign keys:
-      - `assets.created_by` → `auth.users(id)`
-      - `site_content.updated_by` → `auth.users(id)`
-      - `site_content.hero_asset_id` → `assets(id)` (RESTRICT delete)
-      - `site_content.works_pdf_asset_id` → `assets(id)` (RESTRICT delete)
-      - list tables’ `updated_by` → `auth.users(id)`
+## 1. Project Context
 
-- [x]Step 3 — Turn on RLS
+This project is an artist portfolio website that reuses an existing UI and admin login experience.
+All content is managed exclusively via **Supabase Database** and **Supabase Storage**.
 
-  - For each table:
-    - Go to Database → Tables → (table) → RLS
-    - Enable Row Level Security
-  - Tables:
-    - `app_admin`
-    - `assets`
-    - `site_content`
-    - `bio_exhibitions`
-    - `bio_education`
+The database and storage layers together act as a **lightweight CMS**, optimized for:
 
-- [x]Step 4 — Create RLS policies
+* editorial control
+* predictable structure
+* long-term maintainability
+* minimal schema complexity
 
-  - For each content table (`site_content`, `assets`, `bio_exhibitions`, `bio_education`):
-    - Add a SELECT policy allowing public read
-    - Add INSERT / UPDATE / DELETE policies allowing only:
-      - authenticated users AND
-      - user id matches `app_admin.admin_user_id`
-  - For `app_admin` (recommended):
-    - Allow SELECT only to authenticated users (or only admin)
-    - Allow UPDATE only via service role, or lock it down after setup
+---
 
-- [ ]Step 5 — Add Storage policies
+## 2. Core Characteristics
 
-  - Go to Storage → Policies for bucket `site-assets`
-  - Read policy:
-    - allow public reads (or authenticated reads if bucket is private)
-  - Write policy:
-    - allow upload / update / delete only if uploader is the single admin user
-    - use the same admin check as DB RLS via `app_admin`
+* **Single admin user**
+* **Public read / admin write** access model
+* **Image-based works and exhibitions**
+* **Text-based editorial pages**
+* **Structured biographical (CV) information**
+* **Explicit, semantic storage paths**
+* **No hero image**
+* **No PDF-based portfolio**
+* **No drafts, versions, or soft deletes**
 
-- [ ]Step 6 — Create the admin user
+---
 
-  - Go to Authentication → Users
-  - Create or sign up the admin account
-  - Copy the admin user UUID
+## 3. Storage Requirements (Supabase Storage)
 
-- [ ]Step 7 — Initialize `app_admin`
+### 3.1 Bucket
 
-  - Insert the singleton row into `app_admin`:
-    - `singleton_id = true`
-    - `admin_user_id = <admin UUID>`
-  - Treat future admin changes as a controlled operation (ideally service-role only)
+* **Bucket name:** `site-assets`
+* **Access model:**
 
-- [ ]Step 8 — Seed initial content and asset references
+  * Public read access
+  * Authenticated admin write access only
 
-  - Upload hero media and works PDF to the bucket
-  - Create corresponding rows in `assets` with correct `asset_kind` and metadata
-  - Insert the singleton row in `site_content`:
-    - `singleton_id = true`
-    - set `hero_asset_id` and `works_pdf_asset_id`
-    - set `intro_text` and `statement_text`
-    - set `updated_by` to the admin UUID
+---
 
-- [ ]Step 9 — Verify safety behaviors
-  - Anonymous reads should succeed
-  - Anonymous writes should fail
-  - Authenticated non-admin writes should fail
-  - Deleting an asset referenced by `site_content` should fail (RESTRICT)
-  - Setting `site_content.hero_asset_id` to a nonexistent id should fail (FK)
+### 3.2 Folder Structure
+
+Storage contains **images only**.
+
+```
+site-assets/
+├── works/
+├── solo-exhibitions/
+└── group-exhibitions/
+```
+
+**Rules**
+
+* No placeholder files
+* No empty folders
+* Folders exist only if they contain real images
+* Year folders under `works/` are created dynamically when images are uploaded
+* Exhibition folders use **semantic slugs**, not IDs
+* Storage paths must remain **stable after creation**
+* Future years or exhibitions must **not** require schema changes
+
+---
+
+### 3.3 Storage Constraints
+
+* Images are allowed **only** in:
+
+  * `works/`
+  * `solo-exhibitions/`
+  * `group-exhibitions/`
+* One storage object corresponds to one database record
+* Storage is not treated as a source of truth; the database is authoritative
+
+---
+
+## 4. Database Domains
+
+The database is responsible for:
+
+1. Image metadata and captions
+2. Text-based editorial pages
+3. Structured biographical (CV) data
+4. Activity logging for admin actions
+5. Referential integrity between DB records and storage objects
+
+---
+
+## 5. Artwork & Exhibition Images
+
+### Table: `artworks`
+
+Represents **all images displayed on the site**, including:
+
+* Works
+* Solo exhibition images
+* Group exhibition images
+
+**One row = one image file in storage**
+
+#### Columns
+
+* `id` — primary key
+* `storage_path` — string, required, unique
+* `category` — enum-like text:
+
+  * `works`
+  * `solo-exhibitions`
+  * `group-exhibitions`
+* `year` — integer, nullable
+  (used for works only)
+* `exhibition_slug` — string, nullable
+  (used for exhibitions only)
+* `caption` — text, required (may be empty)
+* `description` — text, nullable
+* `display_order` — integer
+* `created_at`
+* `updated_at`
+
+#### Rules
+
+* Each image must have exactly one `artworks` row
+* Ordering must be deterministic within:
+
+  * `(category, year)` for works
+  * `(category, exhibition_slug)` for exhibitions
+* Storage paths are immutable once referenced
+
+---
+
+## 6. Biography / CV Data (Structured)
+
+Biography data is **structured, editorial, and text-only**.
+Each table is independent and ordered.
+
+All bio tables:
+
+* Allow empty states
+* Store plain text only
+* Support deterministic ordering
+
+---
+
+### 6.1 `bio_solo_exhibitions`
+
+* `id`
+* `year`
+* `description`
+* `display_order`
+* `created_at`
+
+---
+
+### 6.2 `bio_group_exhibitions`
+
+* `id`
+* `year`
+* `description`
+* `display_order`
+* `created_at`
+
+---
+
+### 6.3 `bio_education`
+
+* `id`
+* `year` (text, free-form; e.g. “2018–2022”)
+* `description`
+* `display_order`
+* `created_at`
+
+---
+
+### 6.4 `bio_residency`
+
+* `id`
+* `year`
+* `description`
+* `display_order`
+* `created_at`
+
+---
+
+### 6.5 `bio_awards`
+
+* `id`
+* `year`
+* `description`
+* `display_order`
+* `created_at`
+
+---
+
+### 6.6 `bio_collections`
+
+* `id`
+* `year` (nullable)
+* `description`
+* `display_order`
+* `created_at`
+
+---
+
+## 7. Text Pages
+
+### Table: `texts`
+
+Represents long-form editorial content, including:
+
+* Essays
+* Statements
+* Writings
+* Press texts
+
+#### Columns
+
+* `id`
+* `slug` (unique, URL-safe)
+* `title`
+* `year`
+* `body`
+* `created_at`
+* `updated_at`
+
+#### Notes
+
+* Text content is plain text or markdown
+* All records are publicly readable
+* No draft or publish state
+* Ordering is handled externally or implicitly
+
+---
+
+## 8. Activity Logging
+
+### Table: `activity_log`
+
+Tracks admin actions for accountability and debugging.
+
+#### Columns
+
+* `id`
+* `admin_id`
+* `action_type` (e.g. create, update, delete)
+* `entity_type` (e.g. artwork, text, bio)
+* `entity_id`
+* `metadata` (JSON)
+* `created_at`
+
+#### Rules
+
+* Append-only
+* No updates
+* No deletes
+* Admin-only write access
+
+---
+
+## 9. Access Control & Security
+
+### 9.1 Read Access
+
+Public read access is allowed for:
+
+* Artworks
+* Texts
+* Biography tables
+
+---
+
+### 9.2 Write Access
+
+Only the authenticated admin may:
+
+* Insert, update, or delete DB records
+* Upload, update, or delete storage files
+* Create activity log entries
+
+---
+
+### 9.3 Safeguards
+
+* No anonymous writes
+* No multi-role system
+* Database-level enforcement via RLS
+* Storage-level enforcement via Storage Policies
+* Storage paths must not be modified after DB reference
+
+---
+
+## 10. Non-Requirements (Explicit)
+
+The system does **not** require:
+
+* Version history
+* Drafts or revisions
+* Soft deletes
+* Search or tagging
+* Localization
+* Analytics
+* Generic CMS abstractions
+
+---
+
+## 11. DBA Responsibilities
+
+The DBA is responsible for:
+
+1. Maintaining schema integrity
+2. Enforcing RLS policies
+3. Defining storage access policies
+4. Preventing invalid or broken content states
+5. Ensuring long-term schema stability
+
+---
+
+## 12. Product Intent (Guiding Principles)
+
+* **Structure > flexibility**
+* **Editorial control > automation**
+* **Predictable data > generalized CMS patterns**
+* **Future growth without schema changes**
+
+---
+
+## Final Summary
+
+| Area    | Decision                          |
+| ------- | --------------------------------- |
+| Media   | Image-based only                  |
+| Storage | Semantic folders, no placeholders |
+| Bio     | Minimal, structured tables        |
+| Texts   | Long-form editorial content       |
+| Admin   | Single user                       |
+| Logs    | Mandatory, append-only            |

@@ -276,3 +276,219 @@ for insert
 with check (
   auth.uid() = (select admin_user_id from app_admin where singleton_id = true)
 );
+
+-- ============================================================
+-- BIOGRAPHY TABLES (Residency, Awards, Collections, Education)
+-- ============================================================
+
+-- ============================================================
+-- Biography: Residency
+-- ============================================================
+create table if not exists public.bio_residency (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  location text not null,
+  year int not null,
+  sort_order int not null default 0,
+  updated_at timestamptz not null default now(),
+  updated_by uuid not null references auth.users(id) on delete restrict,
+  constraint bio_residency_year_check check (year between 1900 and 2100),
+  constraint bio_residency_sort_order_check check (sort_order >= 0)
+);
+
+create index if not exists bio_residency_sort_order_idx
+on public.bio_residency(sort_order);
+
+alter table public.bio_residency enable row level security;
+
+create policy "bio_residency_public_read"
+on public.bio_residency
+for select
+using (true);
+
+create policy "bio_residency_admin_write"
+on public.bio_residency
+for all
+using (
+  auth.uid() = (
+    select admin_user_id
+    from public.app_admin
+    where singleton_id = true
+  )
+)
+with check (
+  auth.uid() = (
+    select admin_user_id
+    from public.app_admin
+    where singleton_id = true
+  )
+);
+
+-- ============================================================
+-- Biography: Awards
+-- ============================================================
+create table if not exists public.bio_awards (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  issuer text,
+  year int not null,
+  sort_order int not null default 0,
+  updated_at timestamptz not null default now(),
+  updated_by uuid not null references auth.users(id) on delete restrict,
+  constraint bio_awards_year_check check (year between 1900 and 2100),
+  constraint bio_awards_sort_order_check check (sort_order >= 0)
+);
+
+create index if not exists bio_awards_sort_order_idx
+on public.bio_awards(sort_order);
+
+alter table public.bio_awards enable row level security;
+
+create policy "bio_awards_public_read"
+on public.bio_awards
+for select
+using (true);
+
+create policy "bio_awards_admin_write"
+on public.bio_awards
+for all
+using (
+  auth.uid() = (
+    select admin_user_id
+    from public.app_admin
+    where singleton_id = true
+  )
+)
+with check (
+  auth.uid() = (
+    select admin_user_id
+    from public.app_admin
+    where singleton_id = true
+  )
+);
+
+-- ============================================================
+-- Biography: Collections
+-- ============================================================
+create table if not exists public.bio_collections (
+  id uuid primary key default gen_random_uuid(),
+  collector_name text not null,
+  location text,
+  year int,
+  sort_order int not null default 0,
+  updated_at timestamptz not null default now(),
+  updated_by uuid not null references auth.users(id) on delete restrict,
+  constraint bio_collections_year_check check (
+    year is null or year between 1900 and 2100
+  ),
+  constraint bio_collections_sort_order_check check (sort_order >= 0)
+);
+
+create index if not exists bio_collections_sort_order_idx
+on public.bio_collections(sort_order);
+
+alter table public.bio_collections enable row level security;
+
+create policy "bio_collections_public_read"
+on public.bio_collections
+for select
+using (true);
+
+create policy "bio_collections_admin_write"
+on public.bio_collections
+for all
+using (
+  auth.uid() = (
+    select admin_user_id
+    from public.app_admin
+    where singleton_id = true
+  )
+)
+with check (
+  auth.uid() = (
+    select admin_user_id
+    from public.app_admin
+    where singleton_id = true
+  )
+);
+
+-- ============================================================
+-- Biography: Education
+-- ============================================================
+create table if not exists public.bio_education (
+  id uuid primary key default gen_random_uuid(),
+  institution text not null,
+  program text not null,
+  location text not null,
+  year int not null,
+  sort_order int not null default 0,
+  updated_at timestamptz not null default now(),
+  updated_by uuid not null references auth.users(id) on delete restrict,
+  constraint bio_education_year_check check (year between 1900 and 2100),
+  constraint bio_education_sort_order_check check (sort_order >= 0)
+);
+
+create index if not exists bio_education_sort_order_idx
+on public.bio_education(sort_order);
+
+alter table public.bio_education enable row level security;
+
+create policy "bio_education_public_read"
+on public.bio_education
+for select
+using (true);
+
+create policy "bio_education_admin_write"
+on public.bio_education
+for all
+using (
+  auth.uid() = (
+    select admin_user_id
+    from public.app_admin
+    where singleton_id = true
+  )
+)
+with check (
+  auth.uid() = (
+    select admin_user_id
+    from public.app_admin
+    where singleton_id = true
+  )
+);
+
+create table if not exists public.texts (
+  id uuid primary key default gen_random_uuid(),
+  year int not null,
+  title text not null,
+  slug text not null,
+  body_text text not null,
+  summary text,
+  is_published boolean not null default true,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  updated_by uuid not null references auth.users(id) on delete restrict,
+  constraint texts_year_check check (year between 1900 and 2100),
+  constraint texts_sort_order_check check (sort_order >= 0),
+  constraint texts_slug_unique unique (slug)
+);
+
+create index if not exists texts_year_idx on public.texts(year);
+create index if not exists texts_sort_order_idx on public.texts(sort_order);
+
+alter table public.texts enable row level security;
+
+create policy "texts_public_read"
+on public.texts
+for select
+using (is_published = true);
+
+create policy "texts_admin_write"
+on public.texts
+for all
+using (
+  auth.uid() = (select admin_user_id from app_admin where singleton_id = true)
+)
+with check (
+  auth.uid() = (select admin_user_id from app_admin where singleton_id = true)
+);

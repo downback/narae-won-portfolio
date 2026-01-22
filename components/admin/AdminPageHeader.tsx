@@ -17,21 +17,25 @@ const pageConfigs: Record<string, PageConfig> = {
     description: "Welcome to the admin panel",
     viewLink: "/",
   },
-  "/admin/main-page": {
-    title: "Main Page",
-    description:
-      "This image appears as the main visual on your portfolio homepage",
-    viewLink: "/",
-  },
   "/admin/works": {
     title: "Works",
     description: "Add, edit, or remove works from your works page",
     viewLink: "/works",
   },
-  "/admin/biography": {
-    title: "Biography",
-    description: "Add, edit, or remove your biography detail",
-    viewLink: "/biography",
+  "/admin/exhibitions": {
+    title: "Exhibitions",
+    description: "Manage solo and group exhibitions",
+    viewLink: "/",
+  },
+  "/admin/cv": {
+    title: "CV",
+    description: "Add, edit, or remove your CV detail",
+    viewLink: "/cv",
+  },
+  "/admin/text": {
+    title: "Text",
+    description: "Create and edit text entries for the public texts page",
+    viewLink: "/texts",
   },
 }
 

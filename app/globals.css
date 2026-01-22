@@ -104,27 +104,3 @@
   animation: floatUp 10s linear infinite;
 } */
 
-.link-underline {
-  position: relative;
-}
-
-.link-underline::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 0;
-  height: 1px;
-  width: 100%;
-  transform: translateY(-50%) scaleX(0);
-  transform-origin: left;
-  background-color: black;
-  transition: transform 300ms ease-in-out;
-}
-
-.link-underline:hover::after {
-  transform: translateY(-50%) scaleX(1);
-}
-
-.link-underline-active::after {
-  transform: translateY(-50%) scaleX(1);
-}

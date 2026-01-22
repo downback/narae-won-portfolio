@@ -1,4 +1,3 @@
-import Image from "next/image"
 import Link from "next/link"
 import {
   Card,
@@ -11,14 +10,12 @@ import { Button } from "@/components/ui/button"
 import { supabaseServer } from "@/lib/server"
 
 type PreviewCard = {
-  title: "Main Page" | "Works" | "Biography"
+  title: "Works" | "Biography"
   updatedAt: string
   previewTitle: string
   previewText: string
   adminLink: string
 }
-
-const bucketName = "site-assets"
 
 const formatUpdatedAt = (value?: string | null) => {
   if (!value) return "Not updated"
@@ -39,65 +36,10 @@ const getLatestTimestamp = (timestamps: (string | null | undefined)[]) => {
   return new Date(Math.max(...numericTimes)).toISOString()
 }
 
-const fetchHeroPreviewUrl = async (supabase: Awaited<ReturnType<typeof supabaseServer>>) => {
-  const { data: siteContent } = await supabase
-    .from("site_content")
-    .select("hero_asset_id, updated_at")
-    .eq("singleton_id", true)
-    .maybeSingle()
-
-  if (siteContent?.hero_asset_id) {
-    const { data: asset } = await supabase
-      .from("assets")
-      .select("path")
-      .eq("id", siteContent.hero_asset_id)
-      .maybeSingle()
-
-    if (asset?.path) {
-      const { data } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(asset.path)
-      const versionTag = siteContent.updated_at
-        ? `?v=${encodeURIComponent(siteContent.updated_at)}`
-        : ""
-      return data.publicUrl ? `${data.publicUrl}${versionTag}` : null
-    }
-  }
-
-  const { data: fallbackAsset } = await supabase
-    .from("assets")
-    .select("path, created_at")
-    .eq("asset_kind", "hero_media")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  if (!fallbackAsset?.path) return null
-
-  const { data } = supabase.storage
-    .from(bucketName)
-    .getPublicUrl(fallbackAsset.path)
-  const versionTag = fallbackAsset.created_at
-    ? `?v=${encodeURIComponent(fallbackAsset.created_at)}`
-    : ""
-  return data.publicUrl ? `${data.publicUrl}${versionTag}` : null
-}
-
 export default async function AdminQuickPreviewPanel() {
   const supabase = await supabaseServer()
 
-  const [
-    siteContentResult,
-    worksAssetResult,
-    soloResult,
-    groupResult,
-    heroPreviewUrl,
-  ] = await Promise.all([
-    supabase
-      .from("site_content")
-      .select("updated_at")
-      .eq("singleton_id", true)
-      .maybeSingle(),
+  const [worksAssetResult, soloResult, groupResult] = await Promise.all([
     supabase
       .from("assets")
       .select("created_at")
@@ -117,7 +59,6 @@ export default async function AdminQuickPreviewPanel() {
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    fetchHeroPreviewUrl(supabase),
   ])
 
   const biographyUpdatedAt = getLatestTimestamp([
@@ -126,13 +67,6 @@ export default async function AdminQuickPreviewPanel() {
   ])
 
   const previewCards: PreviewCard[] = [
-    {
-      title: "Main Page",
-      updatedAt: formatUpdatedAt(siteContentResult.data?.updated_at),
-      previewTitle: "Latest hero image",
-      previewText: "Hero image updated with floating sculpture visual.",
-      adminLink: "/admin/main-page",
-    },
     {
       title: "Works",
       updatedAt: formatUpdatedAt(worksAssetResult.data?.created_at),
@@ -164,27 +98,13 @@ export default async function AdminQuickPreviewPanel() {
               </p>
             </CardHeader>
             <CardContent className="space-y-3">
-              {card.title === "Main Page" ? (
-                <div className="relative h-28 w-full overflow-hidden rounded-md border border-dashed border-border bg-muted/30">
-                  {heroPreviewUrl ? (
-                    <Image
-                      src={heroPreviewUrl}
-                      alt="Hero preview"
-                      fill
-                      className="object-cover"
-                      sizes="(min-width: 1280px) 33vw, 100vw"
-                      unoptimized
-                    />
-                  ) : null}
-                </div>
-              ) : null}
               {card.title !== "Works" ? (
-              <div className="space-y-1">
-                <p className="text-sm font-medium">{card.previewTitle}</p>
-                <p className="text-sm text-muted-foreground">
-                  {card.previewText}
-                </p>
-              </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">{card.previewTitle}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {card.previewText}
+                  </p>
+                </div>
               ) : null}
             </CardContent>
             <CardFooter>

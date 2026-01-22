@@ -1,4 +1,4 @@
-import AdminWorksPdfPanel from "@/components/admin/AdminWorksPdfPanel"
+import AdminWorksPanel from "@/components/admin/AdminWorksPanel"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabaseServer } from "@/lib/server"
 
@@ -46,20 +46,18 @@ export default async function AdminWorks() {
 
   return (
     <div className="space-y-6">
-      <AdminWorksPdfPanel lastUpdatedLabel={lastUpdatedLabel} />
+      <AdminWorksPanel lastUpdatedLabel={lastUpdatedLabel} />
 
       <Card className="border-0 bg-muted shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium">
-            PDF Guidelines
-          </CardTitle>
+          <CardTitle className="text-base font-medium">Guidelines</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
           <ul className="list-disc space-y-2 pl-5">
-            <li>Use a single PDF file named portfolio.pdf.</li>
-            <li>Recommended size: under 15MB for fast loading.</li>
-            <li>Include a cover page and keep page order final.</li>
-            <li>Update the file whenever new work is added.</li>
+            <li>Upload a single image per work (jpg, png, or webp).</li>
+            <li>Provide the year and caption for every work.</li>
+            <li>Optional description can include medium or size.</li>
+            <li>Keep images optimized for fast loading.</li>
           </ul>
         </CardContent>
       </Card>
