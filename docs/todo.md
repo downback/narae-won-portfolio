@@ -49,11 +49,10 @@
     - [x] add year existing check
     - [x] add year DB
     - [x] 2018-2021
-    - [ ] drag and drop
+    - [x] drag and drop
   - [x] refactor folders in components
-  - [ ] exhibitions
-    - [ ] exhibitions preview
-    - [ ] separate solo/group uploader
+  - [x] exhibitions
+    - [x] separate solo/group uploader
   - [ ] texts
     - [ ] texts preview
   - [ ] biography tables

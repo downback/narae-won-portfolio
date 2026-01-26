@@ -21,6 +21,7 @@ export type ExhibitionFormValues = {
   mainImageFile: File | null
   category: ExhibitionCategory
   year: string
+  exhibitionTitle: string
   caption: string
   description: string
   additionalImages: File[]
@@ -36,6 +37,7 @@ type ExhibitionUploadModalProps = {
     mainImageUrl?: string
     category?: ExhibitionCategory
     year?: string
+    exhibitionTitle?: string
     caption?: string
     description?: string
   }
@@ -66,6 +68,7 @@ export default function ExhibitionUploadModal({
   const [category, setCategory] =
     useState<ExhibitionCategory>("solo-exhibitions")
   const [year, setYear] = useState("")
+  const [exhibitionTitle, setExhibitionTitle] = useState("")
   const [caption, setCaption] = useState("")
   const [details, setDetails] = useState("")
   const [additionalImages, setAdditionalImages] = useState<File[]>([])
@@ -96,6 +99,7 @@ export default function ExhibitionUploadModal({
       setMainImagePreviewUrl("")
       setCategory(initialValues?.category ?? "solo-exhibitions")
       setYear(initialValues?.year ?? "")
+      setExhibitionTitle(initialValues?.exhibitionTitle ?? "")
       setCaption(initialValues?.caption ?? "")
       setDetails(initialValues?.description ?? "")
       setInitialMainImageUrl(initialValues?.mainImageUrl ?? "")
@@ -111,6 +115,7 @@ export default function ExhibitionUploadModal({
       setInitialMainImageUrl("")
       setCategory("solo-exhibitions")
       setYear("")
+      setExhibitionTitle("")
       setCaption("")
       setDetails("")
       setAdditionalImages([])
@@ -179,21 +184,7 @@ export default function ExhibitionUploadModal({
             ) : null}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="exhibition-category">Category</Label>
-            <select
-              id="exhibition-category"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              value={category}
-              onChange={(event) =>
-                setCategory(event.target.value as ExhibitionCategory)
-              }
-            >
-              <option value="solo-exhibitions">Solo exhibitions</option>
-              <option value="group-exhibitions">Group exhibitions</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="exhibition-year">Year (required)</Label>
+            <Label htmlFor="exhibition-year">Year *</Label>
             <Input
               id="exhibition-year"
               type="number"
@@ -204,7 +195,16 @@ export default function ExhibitionUploadModal({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="exhibition-caption">Caption (required)</Label>
+            <Label htmlFor="exhibition-title">Exhibition title *</Label>
+            <Input
+              id="exhibition-title"
+              value={exhibitionTitle}
+              onChange={(event) => setExhibitionTitle(event.target.value)}
+              placeholder="Exhibition title"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="exhibition-caption">Description *</Label>
             <Input
               id="exhibition-caption"
               value={caption}
@@ -213,9 +213,7 @@ export default function ExhibitionUploadModal({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="exhibition-description">
-              Description (optional)
-            </Label>
+            <Label htmlFor="exhibition-description">Exhibition text</Label>
             <Textarea
               id="exhibition-description"
               value={details}
@@ -225,9 +223,7 @@ export default function ExhibitionUploadModal({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="upload-additional-images">
-              Additional images (optional)
-            </Label>
+            <Label htmlFor="upload-additional-images">Additional images</Label>
             <Input
               id="upload-additional-images"
               type="file"
@@ -267,6 +263,7 @@ export default function ExhibitionUploadModal({
                 mainImageFile,
                 category,
                 year,
+                exhibitionTitle,
                 caption,
                 description: details,
                 additionalImages,

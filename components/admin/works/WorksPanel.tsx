@@ -214,9 +214,6 @@ export default function WorksPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-medium">Works by year</h2>
-      </div>
       {yearOptions.length === 0 ? (
         <p className="text-sm text-muted-foreground">No works yet.</p>
       ) : (
