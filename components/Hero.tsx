@@ -83,7 +83,7 @@ export default function Hero({ alt = "Hero image" }: HeroProps) {
     revalidateOnReconnect: false, // Don't refetch on reconnect
     dedupingInterval: 3600000, // Dedupe requests within 1 hour
     fallbackData: { url: null },
-  })
+    })
 
   if (isLoading) {
     return (

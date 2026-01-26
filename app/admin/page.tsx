@@ -1,5 +1,5 @@
-import AdminQuickPreviewPanel from "@/components/admin/AdminQuickPreviewPanel"
-import AdminRecentActivityPanel from "@/components/admin/AdminRecentActivityPanel"
+import AdminQuickPreviewPanel from "@/components/admin/dashboard/AdminQuickPreviewPanel"
+import AdminRecentActivityPanel from "@/components/admin/dashboard/AdminRecentActivityPanel"
 import { supabaseServer } from "@/lib/server"
 
 export default async function Admin() {

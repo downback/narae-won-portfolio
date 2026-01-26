@@ -2,9 +2,20 @@
 
 import { useState } from "react"
 import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react"
-import BioUploadModal from "@/components/admin/BioUploadModal"
+import BioUploadModal from "@/components/admin/bio/BioUploadModal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 type BioItem = {
   id?: string
@@ -329,19 +340,39 @@ export default function AdminBioSectionPanel({
                 onClick={() => openEditModal(item)}
                 disabled={!hasValidId(item.id)}
               >
-                <Pencil className="h-3 w-3 md:h-4 md:w-4 hover:text-zinc-400" />
+                <Pencil className="h-3 w-3 md:h-4 md:w-4 text-zinc-600 hover:text-zinc-400" />
               </Button>
-              <Button
-                type="button"
-                variant="default"
-                size="icon"
-                aria-label="Delete"
-                className="shadow-none"
-                onClick={() => handleDelete(item)}
-                disabled={!hasValidId(item.id)}
-              >
-                <Trash2 className="h-3 w-3 md:h-4 md:w-4 text-red-500 hover:text-red-300" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="icon"
+                    aria-label="Delete"
+                    className="shadow-none"
+                    disabled={!hasValidId(item.id)}
+                  >
+                    <Trash2 className="h-3 w-3 md:h-4 md:w-4 text-red-500 hover:text-red-300" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete entry?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => handleDelete(item)}
+                      disabled={!hasValidId(item.id)}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         ))}

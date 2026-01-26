@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils"
 
 type ActivityItem = {
   action: "add" | "update" | "delete"
-  area: "Main Page" | "Works" | "Biography"
-  context?: "solo" | "group"
+  entityType: string
+  context?: string
   date: string
   sortTime: number
 }
@@ -38,12 +38,12 @@ const formatActivityDate = (timestamp: string) =>
 
 const buildActivityItem = (
   action: ActivityItem["action"],
-  area: ActivityItem["area"],
+  entityType: ActivityItem["entityType"],
   timestamp: string,
   context?: ActivityItem["context"]
 ): ActivityItem => ({
   action,
-  area,
+  entityType,
   context,
   date: formatActivityDate(timestamp),
   sortTime: new Date(timestamp).getTime(),
@@ -58,17 +58,15 @@ const fetchRecentActivities = async (): Promise<RecentActivityResult> => {
 
     const { data: activityLog, error: activityLogError } = await supabase
       .from("activity_log")
-      .select("action, area, context, created_at")
+      .select("action_type, entity_type, metadata, created_at")
       .order("created_at", { ascending: false })
       .limit(10)
 
     const [
-      siteContentResult,
       soloShowsResult,
       groupShowsResult,
-      assetsResult,
+      artworksResult,
     ] = await Promise.all([
-      supabase.from("site_content").select("updated_at").limit(1),
       isMissingTableError(activityLogError)
         ? supabase
             .from("bio_solo_shows")
@@ -84,46 +82,41 @@ const fetchRecentActivities = async (): Promise<RecentActivityResult> => {
             .limit(2)
         : Promise.resolve({ data: null, error: null }),
       supabase
-        .from("assets")
-        .select("created_at, asset_kind")
+        .from("artworks")
+        .select("created_at, category")
         .order("created_at", { ascending: false })
-        .limit(2),
+        .limit(4),
     ])
 
-    if (
-      (activityLogError && !isMissingTableError(activityLogError)) ||
-      siteContentResult.error ||
-      soloShowsResult.error ||
-      groupShowsResult.error ||
-      assetsResult.error
-    ) {
-      throw (
-        activityLogError ||
-        siteContentResult.error ||
-        soloShowsResult.error ||
-        groupShowsResult.error ||
-        assetsResult.error
-      )
+    const criticalError =
+      (activityLogError && !isMissingTableError(activityLogError)
+        ? activityLogError
+        : null) ||
+      (soloShowsResult.error && !isMissingTableError(soloShowsResult.error)
+        ? soloShowsResult.error
+        : null) ||
+      (groupShowsResult.error && !isMissingTableError(groupShowsResult.error)
+        ? groupShowsResult.error
+        : null) ||
+      (artworksResult.error && !isMissingTableError(artworksResult.error)
+        ? artworksResult.error
+        : null)
+
+    if (criticalError) {
+      throw criticalError
     }
 
     const activities: ActivityItem[] = []
 
-    if (siteContentResult.data?.[0]?.updated_at) {
-      activities.push(
-        buildActivityItem(
-          "update",
-          "Main Page",
-          siteContentResult.data[0].updated_at
-        )
-      )
-    }
-
     activityLog?.forEach((item) => {
       if (!item.created_at) return
-      if (item.area !== "Biography") return
-      activities.push(
-        buildActivityItem(item.action, item.area, item.created_at, item.context)
-      )
+      const action = item.action_type as ActivityItem["action"]
+      const entityType = item.entity_type || "Update"
+      const context =
+        item.metadata && typeof item.metadata === "object"
+          ? (item.metadata as { context?: string }).context
+          : undefined
+      activities.push(buildActivityItem(action, entityType, item.created_at, context))
     })
 
     if (isMissingTableError(activityLogError)) {
@@ -144,10 +137,11 @@ const fetchRecentActivities = async (): Promise<RecentActivityResult> => {
       })
     }
 
-    assetsResult.data?.forEach((item) => {
+    artworksResult.data?.forEach((item) => {
       if (!item.created_at) return
-      const area = item.asset_kind === "works_pdf" ? "Works" : "Main Page"
-      activities.push(buildActivityItem("add", area, item.created_at))
+      const entityType =
+        item.category === "works" ? "Works" : "Exhibitions"
+      activities.push(buildActivityItem("add", entityType, item.created_at))
     })
 
     const sortedActivities = activities
@@ -164,10 +158,10 @@ const fetchRecentActivities = async (): Promise<RecentActivityResult> => {
 export default async function AdminRecentActivityPanel() {
   const { activities, hasError } = await fetchRecentActivities()
   const formatAreaLabel = (activity: ActivityItem) => {
-    if (activity.area === "Biography" && activity.context) {
+    if (activity.entityType === "Biography" && activity.context) {
       return `${activity.context} show info`
     }
-    return activity.area
+    return activity.entityType
   }
 
   return (
@@ -186,7 +180,7 @@ export default async function AdminRecentActivityPanel() {
           <ul className="space-y-4">
             {activities.map((activity, index) => (
               <li
-                key={`${activity.action}-${activity.area}-${activity.date}-${index}`}
+                key={`${activity.action}-${activity.entityType}-${activity.date}-${index}`}
                 className="flex items-center justify-between gap-4 text-sm"
               >
                 <div className="flex items-center gap-2">

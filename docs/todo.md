@@ -1,166 +1,126 @@
-## Project TODO (Full-stack Developer)
-
-### Milestone 0 — Foundation
-
-- [x] Create Next.js repo (App Router)
-- [x] Install/configure TailwindCSS
-- [x] Initialize ShadCN and add required base components (form, input, button, textarea, card, alert/toast, dialog if needed)
-- [x] Add Supabase client configuration (env vars + client helpers for server/client usage)
-- [x] Create Supabase project
-- [x] Configure Supabase Auth (email/password enabled)
-- [x] Create the single admin user in Supabase and record the admin `user_id` for RLS use
-- [ ] Define decision: Storage access model (public buckets vs private + signed URLs)
-- [ ] Define decision: file replacement strategy (replace-in-place vs new object key per upload)
+# Frontend TODO List (Phased)
 
 ---
 
-### Milestone 1 — Supabase Backend (DB + Storage + Security)
+## Phase 1 — Project Foundation & Routing
 
-- [x] Create Storage buckets (or folders) for:
+**Goal:** Establish correct public/admin routing and base app structure.
 
-  - [ ] Hero media
-  - [ ] Works PDF
+- [x] Set up Next.js App Router structure with `(public)` and `admin` segments
+- [x] Implement public route structure:
+  - `works` (single entry point, data-driven)
+  - `exhibitions/solo/[slug]`
+  - `exhibitions/group/[slug]`
+  - `texts` (editorial pages)
 
-- [x] Implement Storage policies:
-
-  - [ ] Public read or signed URL model (per decision)
-  - [ ] Admin-only write/update/delete
-
-- [x] Create database tables for:
-
-  - [ ] Hero media metadata (type, storage path/key, updated_at)
-  - [ ] Works PDF metadata (storage path/key, updated_at)
-  - [ ] Bio structured content (fields matching existing structure)
-
-- [ ] Seed initial rows (so public pages always have a valid “current” record)
-- [ ] Enable RLS for all content tables
-- [ ] Implement RLS policies:
-
-  - [ ] Public read access for current content
-  - [ ] Admin-only insert/update for the single admin user
-
-- [x] Validate security with two sessions:
-
-  - [ ] Unauthed user can read public content only
-  - [ ] Unauthed user cannot write DB/Storage
-  - [ ] Admin can write DB/Storage
+- [x] Ensure no unused list routes exist (no index pages for exhibitions)
+- [x] Set up shared layout(s) for public pages
+- [x] Set up admin layout with protected routing (no UI redesign)
 
 ---
 
-### Milestone 2 — Public Site Routes (Preserve existing design)
+## Phase 2 — Supabase Client & Auth Integration
 
-- [ ] Scaffold public routes:
+**Goal:** Correct, reusable Supabase integration with strict admin enforcement.
 
-  - [ ] Home
-  - [x] Works
-  - [x] Bio
-  - [ ] Contact
-
-  - [x] Contact - locate contents in the center
-  - [x] mobile sidebar no hover effect
-  - [x] sidebar refactor
-  - [x ] Works - loading animation
-  - [ ] admin ui start
-    - [x] admin sidebar
-    - [x] admin sub-header
-    - [x] add svg
-    - [x] edit modal
-    - Dashboard
-      - [x] recent activity (add new | delete | update + main page | works | Biography + date of admin activity)
-      - [x] quick buttons for modal
-    - main page
-      - [x] current image / change btn -> modal(image upload / animation check-box / preview + save btn) -> confirmation modal
-    - works
-      - [x] add new work btn -> modal(select category / images upload / caption / preview & drag order + save btn) -> confirmation modal
-    - Bio
-      - [x] add new info btn -> modal(select category / text + save btn) -> confirmation modal
-  - [ ] admin db connect
-  - [ ] main image file name on supabase
-  - [ ] Home - animation adjust
-
-- [ ] Implement Supabase server-side with admin page
-
-  - [ ] Dashboard
-  - [ ] main page
-  - [ ] works
-  - [ ] bio
-
-- [ ] Implement caching strategy to ensure “immediate reflection” (no stale content)
-- [ ] Home: render hero media (image or looped video) based on metadata
-- [ ] Works: implement PDF viewing behavior + mobile fallback (open/download if embed fails)
-- [ ] Bio: render structured bio fields exactly as required
-- [ ] Contact: implement required static contact content (no form unless explicitly required)
+- [x] Initialize Supabase client (browser + shared utilities)
+- [x] Implement admin authentication flow using existing login experience
+- [x] Enforce admin-only access for all `/admin` routes
+- [x] Ensure auth state is the single source of truth (no timeouts, no hacks)
+- [x] Handle unauthenticated and unauthorized states cleanly
 
 ---
 
-### Milestone 3 — Admin Auth + Protected Area
+## Phase 3 — Public Data Fetching & Upload
 
-- [ ] Create `/admin/login` page
-- [ ] Build login form using ShadCN form components (inputs, validation messaging, button)
-- [ ] Implement Supabase Auth sign-in flow
-- [ ] Implement admin route protection for `/admin/**`:
+**Goal:** connect all public content deterministically from the database.
 
-  - [ ] Redirect unauthenticated to `/admin/login`
-  - [ ] Prevent server-rendered admin pages from loading without session
+- Implement fetch & upload
+  - [x] artworks (grouped/sorted by year, category, display order)
+    - [x] artworks preview
+    - [x] edit -> modal
+    - [x] delete -> confirmation
+    - [x] card separate by year
+    - [x] new confirmation modal
+    - [x] leave confirmation modal open
+    - [x] make inputs empty
+    - [ ] add year existing check
+    - [ ] add year DB
+    - [ ] add year design refine
+    - [ ] drag and drop
+  - [x] refactor folders in components
+  - [ ] exhibitions
+    - [ ] exhibitions preview
+    - [ ] separate solo/group uploader
+  - [ ] texts
+    - [ ] texts preview
+  - [ ] biography tables
+    - [ ] separate sections
 
-- [ ] Create admin layout wrapper (navigation + page container per existing constraints)
-
----
-
-### Milestone 4 — Admin Dashboard (Content Management)
-
-- [ ] Create `/admin` dashboard page (overview)
-- [ ] Dashboard: show current hero media + last updated timestamp
-- [ ] Dashboard: show current works PDF + last updated timestamp
-- [ ] Dashboard: show bio content snapshot (key fields)
-- [ ] Hero media management
-
-  - [ ] File input + upload button (ShadCN components)
-  - [ ] Client-side validation (type + size)
-  - [ ] Upload to Supabase Storage
-  - [ ] Update hero metadata row in DB (only after upload success)
-  - [ ] Preview updated media
-  - [ ] Success/error UI feedback (ShadCN alert/toast patterns)
-
-- [ ] Works PDF management
-
-  - [ ] File input + upload button
-  - [ ] Client-side validation (PDF + size)
-  - [ ] Upload to Storage
-  - [ ] Update works metadata row in DB
-  - [ ] Provide preview link/viewer
-  - [ ] Success/error feedback
-
-- [ ] Bio editor
-
-  - [ ] Build form matching structured fields (ShadCN form components)
-  - [ ] Load current bio values
-  - [ ] Save updates to DB
-  - [ ] Success/error feedback
-
-- [ ] Verify updates reflect immediately on public pages (hero, works, bio)
+- [ ] Preview ui for artworks and exhibitions section
+- [ ] Uploader ui for ipad & mobile
+- [ ] Render content strictly based on DB ordering fields
+- [ ] Gracefully handle empty states (no crashes, no broken UI)
+- [ ] Ensure image-heavy pages are mobile-safe (basic loading behavior)
 
 ---
 
-### Milestone 5 — Quality, Security, Release
+## Phase 4 — Admin CRUD Interfaces
 
-- [ ] Add robust error handling for all admin actions (auth errors, upload failures, permission errors)
-- [ ] Confirm RLS + Storage policy behavior in production-like environment
-- [ ] Check responsiveness across common breakpoints:
+**Goal:** Allow admin to manage all content safely and predictably.
 
-  - [ ] Public pages (must pass)
-  - [ ] Admin pages (at least usable on tablet/desktop)
+- [ ] Build admin CRUD UI for:
+  - artworks
+  - texts
+  - biography tables
 
-- [ ] Add basic smoke-test checklist (manual) and run it end-to-end:
+- [ ] Load existing DB data into admin forms
+- [ ] Ensure admin UI reflects current DB state accurately
+- [ ] Prevent accidental destructive actions via basic confirmations
 
-  - [ ] Admin login
-  - [ ] Upload hero image
-  - [ ] Upload hero video
-  - [ ] Upload works PDF
-  - [ ] Edit bio
-  - [ ] Confirm public pages reflect changes immediately
+---
 
-- [ ] Deploy Next.js app (e.g., Vercel)
-- [ ] Configure production env vars
-- [ ] Run production smoke tests again
-- [ ] Document minimal “how to update content” steps for handoff to maintainer/admin
+## Phase 5 — Image Upload & Mutation Coordination
+
+**Goal:** Enforce safe, ordered mutations involving Storage + DB.
+
+- [ ] Implement client-side image validation (type, size)
+- [ ] Implement safe upload flow:
+  - upload image to Storage
+  - create/update DB record with storage path
+
+- [ ] Implement safe update flow:
+  - upload new image
+  - update DB reference
+  - remove old image if required
+
+- [ ] Implement delete flow:
+  - delete DB record
+  - delete storage object
+
+- [ ] Ensure no DB record ever points to a missing storage file
+
+---
+
+## Phase 6 — Activity Logging & Error Handling
+
+**Goal:** Make admin actions auditable and failures safe.
+
+- [ ] Log every admin mutation to `activity_log`
+- [ ] Ensure logging is automatic and non-blocking
+- [ ] Surface clear, friendly error messages to admin users
+- [ ] Avoid exposing internal errors on public pages
+- [ ] Ensure partial failures do not break public state
+
+---
+
+## Phase 7 — Final QA & Hardening
+
+**Goal:** Validate correctness, safety, and alignment with PRD.
+
+- [ ] Verify all public pages work without authentication
+- [ ] Verify admin-only writes are fully enforced
+- [ ] Confirm RLS errors are handled gracefully in UI
+- [ ] Test image upload/update/delete edge cases
+- [ ] Test empty DB scenarios (fresh project)
+- [ ] Run mobile and basic performance sanity checks

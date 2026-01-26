@@ -1,4 +1,4 @@
-import AdminExhibitionsPanel from "@/components/admin/AdminExhibitionsPanel"
+import AdminExhibitionsPanel from "@/components/admin/exhibition/AdminExhibitionsPanel"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function AdminExhibitions() {

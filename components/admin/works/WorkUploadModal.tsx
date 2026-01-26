@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import {
   Dialog,
@@ -13,42 +13,65 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
-type HeroUploadModalProps = {
+export type WorkFormValues = {
+  imageFile: File | null
+  year: string
+  caption: string
+  description: string
+}
+
+type WorkUploadModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   title?: string
   description?: string
-  onImageSelect?: (file: File | null) => void
-  onConfirm?: () => void
+  onSave?: (values: WorkFormValues) => void
+  initialValues?: {
+    imageUrl?: string
+    year?: string
+    caption?: string
+    description?: string
+  }
+  isEditMode?: boolean
   confirmLabel?: string
   isConfirmDisabled?: boolean
   isSubmitting?: boolean
   errorMessage?: string
 }
 
-export default function HeroUploadModal({
+export default function WorkUploadModal({
   open,
   onOpenChange,
   title = "Update Content",
-  description = "Upload an image or update text content.",
-  onImageSelect,
-  onConfirm,
+  description = "Upload a work image and add metadata.",
+  onSave,
+  initialValues,
+  isEditMode = false,
   confirmLabel = "Confirm change",
   isConfirmDisabled = false,
   isSubmitting = false,
   errorMessage,
-}: HeroUploadModalProps) {
+}: WorkUploadModalProps) {
   const [selectedImageName, setSelectedImageName] = useState("")
   const [imagePreviewUrl, setImagePreviewUrl] = useState("")
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [initialImageUrl, setInitialImageUrl] = useState(
+    initialValues?.imageUrl ?? ""
+  )
+  const [year, setYear] = useState(initialValues?.year ?? "")
+  const [caption, setCaption] = useState(initialValues?.caption ?? "")
+  const [details, setDetails] = useState(initialValues?.description ?? "")
+  const wasSubmittingRef = useRef(false)
 
   const handleImageDrop = (event: React.DragEvent<HTMLLabelElement>) => {
     event.preventDefault()
     const file = event.dataTransfer.files?.[0]
     if (file) {
       setSelectedImageName(file.name)
+      setImageFile(file)
       setImagePreviewUrl(URL.createObjectURL(file))
-      onImageSelect?.(file)
     }
   }
 
@@ -60,11 +83,47 @@ export default function HeroUploadModal({
     }
   }, [imagePreviewUrl])
 
+  useEffect(() => {
+    let resetTimeout: ReturnType<typeof setTimeout> | undefined
+    if (!open) {
+      wasSubmittingRef.current = false
+      return
+    }
+
+    if (wasSubmittingRef.current && !isSubmitting && !errorMessage) {
+      resetTimeout = setTimeout(() => {
+        setSelectedImageName("")
+        setImagePreviewUrl("")
+        setImageFile(null)
+        setInitialImageUrl("")
+        setCaption("")
+        setDetails("")
+      }, 0)
+    }
+
+    wasSubmittingRef.current = isSubmitting
+    return () => {
+      if (resetTimeout) clearTimeout(resetTimeout)
+    }
+  }, [open, isSubmitting, errorMessage])
+
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setSelectedImageName("")
       setImagePreviewUrl("")
-      onImageSelect?.(null)
+      setImageFile(null)
+      setInitialImageUrl("")
+      setYear("")
+      setCaption("")
+      setDetails("")
+    } else {
+      setSelectedImageName("")
+      setImageFile(null)
+      setImagePreviewUrl("")
+      setYear(initialValues?.year ?? "")
+      setCaption(initialValues?.caption ?? "")
+      setDetails(initialValues?.description ?? "")
+      setInitialImageUrl(initialValues?.imageUrl ?? "")
     }
 
     onOpenChange(nextOpen)
@@ -84,7 +143,9 @@ export default function HeroUploadModal({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="upload-image">Image upload</Label>
+            <Label htmlFor="upload-image">
+              Image upload{isEditMode ? " (optional)" : ""}
+            </Label>
             <label
               htmlFor="upload-image"
               className="flex min-h-[120px] w-full cursor-pointer items-center justify-center rounded-md border border-dashed border-border bg-muted/20 px-4 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
@@ -109,15 +170,15 @@ export default function HeroUploadModal({
                 const file = event.target.files?.[0]
                 if (file) {
                   setSelectedImageName(file.name)
+                  setImageFile(file)
                   setImagePreviewUrl(URL.createObjectURL(file))
-                  onImageSelect?.(file)
                 }
               }}
             />
-            {imagePreviewUrl ? (
+            {imagePreviewUrl || initialImageUrl ? (
               <div className="overflow-hidden rounded-md border border-border">
                 <Image
-                  src={imagePreviewUrl}
+                  src={imagePreviewUrl || initialImageUrl}
                   alt="Selected preview"
                   width={800}
                   height={400}
@@ -126,6 +187,31 @@ export default function HeroUploadModal({
                 />
               </div>
             ) : null}
+          </div>
+          {year ? (
+            <div className="space-y-2">
+              <Label>Year</Label>
+              <p className="text-sm text-muted-foreground">{year}</p>
+            </div>
+          ) : null}
+          <div className="space-y-2">
+            <Label htmlFor="work-caption">Caption (required)</Label>
+            <Input
+              id="work-caption"
+              value={caption}
+              onChange={(event) => setCaption(event.target.value)}
+              placeholder="Caption text"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="work-description">Description (optional)</Label>
+            <Textarea
+              id="work-description"
+              value={details}
+              onChange={(event) => setDetails(event.target.value)}
+              placeholder="Optional description"
+              className="min-h-[120px]"
+            />
           </div>
         </div>
 
@@ -143,7 +229,14 @@ export default function HeroUploadModal({
           <Button
             type="button"
             variant="highlight"
-            onClick={onConfirm}
+            onClick={() =>
+              onSave?.({
+                imageFile,
+                year,
+                caption,
+                description: details,
+              })
+            }
             disabled={isConfirmDisabled || isSubmitting}
           >
             {isSubmitting ? "Saving..." : confirmLabel}

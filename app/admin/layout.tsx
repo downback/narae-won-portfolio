@@ -3,9 +3,9 @@
 import { useEffect, useState, useMemo, type ReactNode } from "react"
 import type { Session } from "@supabase/supabase-js"
 import { supabaseBrowser } from "@/lib/client"
-import AdminSidebar from "@/components/admin/AdminSidebar"
-import AdminLoginModal from "@/components/admin/AdminLoginModal"
-import AdminPageHeader from "@/components/admin/AdminPageHeader"
+import AdminSidebar from "@/components/admin/shared/AdminSidebar"
+import AdminLoginModal from "@/components/admin/dashboard/AdminLoginModal"
+import AdminPageHeader from "@/components/admin/shared/AdminPageHeader"
 import Loading from "@/components/Loading"
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

@@ -43,7 +43,7 @@ export default function Works() {
           caption: item.caption ?? null,
           imageUrl: `${rawPath}${versionTag}`,
         }
-      }
+    }
 
       const { data } = supabase.storage.from(bucketName).getPublicUrl(rawPath)
       return {

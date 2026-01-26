@@ -1,4 +1,4 @@
-import AdminBioSectionPanel from "@/components/admin/AdminBioSectionPanel"
+import AdminBioSectionPanel from "@/components/admin/bio/AdminBioSectionPanel"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabaseServer } from "@/lib/server"
 

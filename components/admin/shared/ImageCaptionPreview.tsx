@@ -1,0 +1,125 @@
+"use client"
+
+import { useState } from "react"
+import Image from "next/image"
+import { Pencil, Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
+type ImageCaptionPreviewProps = {
+  imageUrl: string
+  caption: string
+  onEdit?: () => void
+  onDelete?: () => Promise<void> | void
+}
+
+export default function ImageCaptionPreview({
+  imageUrl,
+  caption,
+  onEdit,
+  onDelete,
+}: ImageCaptionPreviewProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    if (!onDelete) return
+    try {
+      const startTime = Date.now()
+      setIsDialogOpen(true)
+      setIsDeleting(true)
+      await onDelete()
+      const elapsedTime = Date.now() - startTime
+      if (elapsedTime < 1000) {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 1000 - elapsedTime)
+        })
+      }
+      setIsDialogOpen(false)
+    } catch (error) {
+      console.error("Delete failed", { error })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3">
+        <div className="h-12 w-12 overflow-hidden rounded-md border border-border bg-muted/20">
+          <Image
+            src={imageUrl}
+            alt={caption}
+            width={48}
+            height={48}
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <p className="text-sm text-muted-foreground">{caption}</p>
+      </div>
+      <div className="flex gap-1 md:gap-2 items-center">
+        <Button
+          type="button"
+          variant="default"
+          size="icon"
+          aria-label="Edit"
+          className="shadow-none"
+          onClick={onEdit}
+          disabled={!onEdit}
+        >
+          <Pencil className="h-3 w-3 md:h-4 md:w-4 text-zinc-600 hover:text-zinc-400" />
+        </Button>
+        <AlertDialog
+          open={isDialogOpen}
+          onOpenChange={(nextOpen) => {
+            if (isDeleting) return
+            setIsDialogOpen(nextOpen)
+          }}
+        >
+          <AlertDialogTrigger asChild>
+            <Button
+              type="button"
+              variant="default"
+              size="icon"
+              aria-label="Delete"
+              className="shadow-none"
+              disabled={!onDelete}
+            >
+              <Trash2 className="h-3 w-3 md:h-4 md:w-4 text-red-500 hover:text-red-300" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete entry?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(event) => {
+                  event.preventDefault()
+                  handleDelete()
+                }}
+                disabled={!onDelete || isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </div>
+  )
+}

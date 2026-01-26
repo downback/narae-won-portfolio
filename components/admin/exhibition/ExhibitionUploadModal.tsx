@@ -32,6 +32,14 @@ type ExhibitionUploadModalProps = {
   title?: string
   description?: string
   onSave?: (values: ExhibitionFormValues) => void
+  initialValues?: {
+    mainImageUrl?: string
+    category?: ExhibitionCategory
+    year?: string
+    caption?: string
+    description?: string
+  }
+  isEditMode?: boolean
   confirmLabel?: string
   isConfirmDisabled?: boolean
   isSubmitting?: boolean
@@ -44,6 +52,8 @@ export default function ExhibitionUploadModal({
   title = "Add exhibition",
   description = "Upload exhibition images and add metadata.",
   onSave,
+  initialValues,
+  isEditMode = false,
   confirmLabel = "Save exhibition",
   isConfirmDisabled = false,
   isSubmitting = false,
@@ -52,6 +62,7 @@ export default function ExhibitionUploadModal({
   const [selectedMainImageName, setSelectedMainImageName] = useState("")
   const [mainImagePreviewUrl, setMainImagePreviewUrl] = useState("")
   const [mainImageFile, setMainImageFile] = useState<File | null>(null)
+  const [initialMainImageUrl, setInitialMainImageUrl] = useState("")
   const [category, setCategory] =
     useState<ExhibitionCategory>("solo-exhibitions")
   const [year, setYear] = useState("")
@@ -77,11 +88,24 @@ export default function ExhibitionUploadModal({
     }
   }, [mainImagePreviewUrl])
 
+  useEffect(() => {
+    if (!open) return
+    setSelectedMainImageName("")
+    setMainImageFile(null)
+    setMainImagePreviewUrl("")
+    setCategory(initialValues?.category ?? "solo-exhibitions")
+    setYear(initialValues?.year ?? "")
+    setCaption(initialValues?.caption ?? "")
+    setDetails(initialValues?.description ?? "")
+    setInitialMainImageUrl(initialValues?.mainImageUrl ?? "")
+  }, [open, initialValues])
+
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setSelectedMainImageName("")
       setMainImagePreviewUrl("")
       setMainImageFile(null)
+      setInitialMainImageUrl("")
       setCategory("solo-exhibitions")
       setYear("")
       setCaption("")
@@ -106,7 +130,9 @@ export default function ExhibitionUploadModal({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="upload-main-image">Main image upload</Label>
+            <Label htmlFor="upload-main-image">
+              Main image upload{isEditMode ? " (optional)" : ""}
+            </Label>
             <label
               htmlFor="upload-main-image"
               className="flex min-h-[120px] w-full cursor-pointer items-center justify-center rounded-md border border-dashed border-border bg-muted/20 px-4 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
@@ -136,10 +162,10 @@ export default function ExhibitionUploadModal({
                 }
               }}
             />
-            {mainImagePreviewUrl ? (
+            {mainImagePreviewUrl || initialMainImageUrl ? (
               <div className="overflow-hidden rounded-md border border-border">
                 <Image
-                  src={mainImagePreviewUrl}
+                  src={mainImagePreviewUrl || initialMainImageUrl}
                   alt="Selected preview"
                   width={800}
                   height={400}
