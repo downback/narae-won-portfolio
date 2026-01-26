@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { GripVertical } from "lucide-react"
 import ExhibitionUploadModal, {
   type ExhibitionCategory,
   type ExhibitionFormValues,
@@ -33,6 +34,11 @@ export default function AdminExhibitionsPanel() {
   )
   const [selectedCategory, setSelectedCategory] =
     useState<ExhibitionCategory>("solo-exhibitions")
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [dragCategory, setDragCategory] = useState<ExhibitionCategory | null>(
+    null
+  )
   const previewUrlsRef = useRef<string[]>([])
   const supabase = useMemo(() => supabaseBrowser(), [])
 
@@ -196,6 +202,27 @@ export default function AdminExhibitionsPanel() {
     }
   }
 
+  const moveItem = (
+    category: ExhibitionCategory,
+    fromIndex: number,
+    toIndex: number
+  ) => {
+    if (fromIndex === toIndex) return
+    setPreviewItems((prevItems) => {
+      const solo = prevItems.filter((item) => item.category === "solo-exhibitions")
+      const group = prevItems.filter(
+        (item) => item.category === "group-exhibitions"
+      )
+      const target = category === "solo-exhibitions" ? solo : group
+      const nextTarget = [...target]
+      const [moved] = nextTarget.splice(fromIndex, 1)
+      nextTarget.splice(toIndex, 0, moved)
+      return category === "solo-exhibitions"
+        ? [...nextTarget, ...group]
+        : [...solo, ...nextTarget]
+    })
+  }
+
   const renderCategorySection = (
     title: string,
     category: ExhibitionCategory,
@@ -225,22 +252,62 @@ export default function AdminExhibitionsPanel() {
           </p>
         ) : (
           <div className="flex flex-col gap-2">
-            {items.map((item) => (
-              <ImageCaptionPreview
+            {items.map((item, index) => (
+              <div
                 key={item.id}
-                imageUrl={item.imageUrl}
-                caption={item.caption}
-                onEdit={() => {
-                  setEditingItem(item)
-                  setSelectedCategory(item.category)
-                  setErrorMessage("")
-                  setIsUploadOpen(true)
+                className={`flex items-center gap-3 pb-2 ${
+                  dragCategory === category && dragOverIndex === index
+                    ? "bg-muted/40"
+                    : ""
+                }`}
+                draggable
+                onDragStart={() => {
+                  setDraggedIndex(index)
+                  setDragCategory(category)
                 }}
-                onDelete={() => handleDelete(item)}
-              />
+                onDragOver={(event) => {
+                  if (dragCategory && dragCategory !== category) return
+                  event.preventDefault()
+                  setDragOverIndex(index)
+                }}
+                onDragLeave={() => setDragOverIndex(null)}
+                onDrop={() => {
+                  if (
+                    draggedIndex !== null &&
+                    (!dragCategory || dragCategory === category)
+                  ) {
+                    moveItem(category, draggedIndex, index)
+                  }
+                  setDraggedIndex(null)
+                  setDragOverIndex(null)
+                  setDragCategory(null)
+                }}
+              >
+                <div className="flex items-center text-muted-foreground">
+                  <GripVertical className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <ImageCaptionPreview
+                    imageUrl={item.imageUrl}
+                    caption={item.caption}
+                    onEdit={() => {
+                      setEditingItem(item)
+                      setSelectedCategory(item.category)
+                      setErrorMessage("")
+                      setIsUploadOpen(true)
+                    }}
+                    onDelete={() => handleDelete(item)}
+                  />
+                </div>
+              </div>
             ))}
           </div>
         )}
+        {items.length > 0 ? (
+          <p className="text-xs text-left text-muted-foreground">
+            Drag rows to reorder
+          </p>
+        ) : null}
       </CardContent>
     </Card>
   )
