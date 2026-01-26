@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,7 @@ type TextUploadModalProps = {
   title?: string
   description?: string
   onSave?: (values: TextFormValues) => void
+  initialValues?: TextFormValues
   confirmLabel?: string
   isConfirmDisabled?: boolean
   isSubmitting?: boolean
@@ -44,12 +45,21 @@ export default function TextUploadModal({
   title = "Add text",
   description = "Create a new text entry for the public texts page.",
   onSave,
+  initialValues,
   confirmLabel = "Save text",
   isConfirmDisabled = false,
   isSubmitting = false,
   errorMessage,
 }: TextUploadModalProps) {
   const [formValues, setFormValues] = useState<TextFormValues>(defaultTextValues)
+
+  useEffect(() => {
+    if (!open) return
+    const resetTimeout = setTimeout(() => {
+      setFormValues(initialValues ?? defaultTextValues)
+    }, 0)
+    return () => clearTimeout(resetTimeout)
+  }, [open, initialValues])
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {

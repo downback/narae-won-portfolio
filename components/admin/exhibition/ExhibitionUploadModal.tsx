@@ -130,7 +130,8 @@ export default function ExhibitionUploadModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md md:max-w-lg">
+      {/* design refine: dialog height and scroll */}
+      <DialogContent className="max-w-md md:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

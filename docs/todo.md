@@ -53,10 +53,13 @@
   - [x] refactor folders in components
   - [x] exhibitions
     - [x] separate solo/group uploader
+    - [x] drag and drop
   - [ ] texts
     - [ ] texts preview
+    - [ ] texts delete and edit
+    - [ ] drag and drop
   - [ ] biography tables
-    - [ ] separate sections
+    - [ ] add new sections
 
 - [ ] Preview ui for artworks and exhibitions section
 - [ ] Uploader ui for ipad & mobile
