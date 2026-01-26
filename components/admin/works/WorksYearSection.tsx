@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { GripVertical } from "lucide-react"
 import ImageCaptionPreview from "@/components/admin/shared/ImageCaptionPreview"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,6 +20,7 @@ type WorksYearSectionProps = {
   onAdd: () => void
   onEdit: (item: WorkPreviewItem) => void
   onDelete: (item: WorkPreviewItem) => void
+  onReorder?: (items: WorkPreviewItem[]) => void
 }
 
 export default function WorksYearSection({
@@ -26,7 +29,27 @@ export default function WorksYearSection({
   onAdd,
   onEdit,
   onDelete,
+  onReorder,
 }: WorksYearSectionProps) {
+  const [orderedItems, setOrderedItems] = useState(items)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+
+  useEffect(() => {
+    setOrderedItems(items)
+  }, [items])
+
+  const moveItem = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return
+    setOrderedItems((prevItems) => {
+      const nextItems = [...prevItems]
+      const [moved] = nextItems.splice(fromIndex, 1)
+      nextItems.splice(toIndex, 0, moved)
+      onReorder?.(nextItems)
+      return nextItems
+    })
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -37,21 +60,51 @@ export default function WorksYearSection({
         </Button>
       </CardHeader>
       <CardContent className="space-y-2 text-sm text-muted-foreground">
-        {items.length === 0 ? (
+        {orderedItems.length === 0 ? (
           <p className="text-xs text-muted-foreground">No work previews yet.</p>
         ) : (
           <div className="flex flex-col gap-2">
-            {items.map((item) => (
-              <ImageCaptionPreview
+            {orderedItems.map((item, index) => (
+              <div
                 key={item.id}
-                imageUrl={item.imageUrl}
-                caption={item.caption}
-                onEdit={() => onEdit(item)}
-                onDelete={() => onDelete(item)}
-              />
+                className={`flex items-center gap-3  pb-2 last:border-b-0 last:pb-0 ${
+                  dragOverIndex === index ? "bg-muted/40" : ""
+                }`}
+                draggable
+                onDragStart={() => setDraggedIndex(index)}
+                onDragOver={(event) => {
+                  event.preventDefault()
+                  setDragOverIndex(index)
+                }}
+                onDragLeave={() => setDragOverIndex(null)}
+                onDrop={() => {
+                  if (draggedIndex !== null) {
+                    moveItem(draggedIndex, index)
+                  }
+                  setDraggedIndex(null)
+                  setDragOverIndex(null)
+                }}
+              >
+                <div className="flex items-center text-muted-foreground">
+                  <GripVertical className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <ImageCaptionPreview
+                    imageUrl={item.imageUrl}
+                    caption={item.caption}
+                    onEdit={() => onEdit(item)}
+                    onDelete={() => onDelete(item)}
+                  />
+                </div>
+              </div>
             ))}
           </div>
         )}
+        {orderedItems.length > 0 ? (
+          <p className="text-xs text-left text-muted-foreground">
+            Drag rows to reorder
+          </p>
+        ) : null}
       </CardContent>
     </Card>
   )
