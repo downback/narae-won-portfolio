@@ -6,6 +6,7 @@ type ActivityItem = {
   action: "add" | "update" | "delete"
   entityType: string
   context?: string
+  category?: string
   date: string
   sortTime: number
 }
@@ -17,7 +18,7 @@ type RecentActivityResult = {
 
 const actionLabels: Record<ActivityItem["action"], string> = {
   add: "add",
-  update: "update",
+  update: "edit",
   delete: "delete",
 }
 
@@ -40,11 +41,13 @@ const buildActivityItem = (
   action: ActivityItem["action"],
   entityType: ActivityItem["entityType"],
   timestamp: string,
-  context?: ActivityItem["context"]
+  context?: ActivityItem["context"],
+  category?: ActivityItem["category"]
 ): ActivityItem => ({
   action,
   entityType,
   context,
+  category,
   date: formatActivityDate(timestamp),
   sortTime: new Date(timestamp).getTime(),
 })
@@ -66,26 +69,36 @@ const fetchRecentActivities = async (): Promise<RecentActivityResult> => {
       soloShowsResult,
       groupShowsResult,
       artworksResult,
+      textsResult,
     ] = await Promise.all([
       isMissingTableError(activityLogError)
         ? supabase
-            .from("bio_solo_shows")
-            .select("updated_at")
-            .order("updated_at", { ascending: false })
+            .from("bio_solo_exhibitions")
+            .select("created_at")
+            .order("created_at", { ascending: false })
             .limit(2)
         : Promise.resolve({ data: null, error: null }),
       isMissingTableError(activityLogError)
         ? supabase
-            .from("bio_group_shows")
-            .select("updated_at")
-            .order("updated_at", { ascending: false })
+            .from("bio_group_exhibitions")
+            .select("created_at")
+            .order("created_at", { ascending: false })
             .limit(2)
         : Promise.resolve({ data: null, error: null }),
-      supabase
-        .from("artworks")
-        .select("created_at, category")
-        .order("created_at", { ascending: false })
-        .limit(4),
+      isMissingTableError(activityLogError)
+        ? supabase
+            .from("artworks")
+            .select("created_at, category")
+            .order("created_at", { ascending: false })
+            .limit(4)
+        : Promise.resolve({ data: null, error: null }),
+      isMissingTableError(activityLogError)
+        ? supabase
+            .from("texts")
+            .select("created_at")
+            .order("created_at", { ascending: false })
+            .limit(4)
+        : Promise.resolve({ data: null, error: null }),
     ])
 
     const criticalError =
@@ -97,6 +110,9 @@ const fetchRecentActivities = async (): Promise<RecentActivityResult> => {
         : null) ||
       (groupShowsResult.error && !isMissingTableError(groupShowsResult.error)
         ? groupShowsResult.error
+        : null) ||
+      (textsResult.error && !isMissingTableError(textsResult.error)
+        ? textsResult.error
         : null) ||
       (artworksResult.error && !isMissingTableError(artworksResult.error)
         ? artworksResult.error
@@ -112,35 +128,40 @@ const fetchRecentActivities = async (): Promise<RecentActivityResult> => {
       if (!item.created_at) return
       const action = item.action_type as ActivityItem["action"]
       const entityType = item.entity_type || "Update"
-      const context =
+      const metadata =
         item.metadata && typeof item.metadata === "object"
-          ? (item.metadata as { context?: string }).context
-          : undefined
-      activities.push(buildActivityItem(action, entityType, item.created_at, context))
+          ? (item.metadata as { context?: string; section?: string; category?: string })
+          : {}
+      const context = metadata.context ?? metadata.section
+      const category = metadata.category
+      activities.push(
+        buildActivityItem(action, entityType, item.created_at, context, category)
+      )
     })
 
     if (isMissingTableError(activityLogError)) {
       soloShowsResult.data?.forEach((item) => {
-        if (item.updated_at) {
-          activities.push(
-            buildActivityItem("update", "Biography", item.updated_at)
-          )
+        if (item.created_at) {
+          activities.push(buildActivityItem("add", "CV detail", item.created_at, "solo exhibition"))
         }
       })
 
       groupShowsResult.data?.forEach((item) => {
-        if (item.updated_at) {
-          activities.push(
-            buildActivityItem("update", "Biography", item.updated_at)
-          )
+        if (item.created_at) {
+          activities.push(buildActivityItem("add", "CV detail", item.created_at, "group exhibition"))
+        }
+      })
+
+      textsResult.data?.forEach((item) => {
+        if (item.created_at) {
+          activities.push(buildActivityItem("add", "Text", item.created_at))
         }
       })
     }
 
     artworksResult.data?.forEach((item) => {
       if (!item.created_at) return
-      const entityType =
-        item.category === "works" ? "Works" : "Exhibitions"
+      const entityType = item.category === "works" ? "Work" : "Exhibition"
       activities.push(buildActivityItem("add", entityType, item.created_at))
     })
 
@@ -158,8 +179,16 @@ const fetchRecentActivities = async (): Promise<RecentActivityResult> => {
 export default async function AdminRecentActivityPanel() {
   const { activities, hasError } = await fetchRecentActivities()
   const formatAreaLabel = (activity: ActivityItem) => {
-    if (activity.entityType === "Biography" && activity.context) {
-      return `${activity.context} show info`
+    if (activity.entityType === "artwork") {
+      return activity.category === "works" ? "Work" : "Exhibition"
+    }
+    if (activity.entityType === "cv_detail") {
+      return activity.context
+        ? `CV detail (${activity.context})`
+        : "CV detail"
+    }
+    if (activity.entityType === "text") {
+      return "Text"
     }
     return activity.entityType
   }

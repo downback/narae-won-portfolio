@@ -12,6 +12,29 @@ const mapSupabaseError = (message: string) => {
   return "Unable to save text entry."
 }
 
+const logTextActivity = async (
+  supabase: Awaited<ReturnType<typeof supabaseServer>>,
+  userId: string,
+  action: "add" | "update" | "delete",
+  textId: string
+) => {
+  const { error } = await supabase.from("activity_log").insert({
+    admin_id: userId,
+    action_type: action,
+    entity_type: "text",
+    entity_id: textId,
+    metadata: null,
+  })
+
+  if (error) {
+    console.warn("Activity log insert failed", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    })
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await supabaseServer()
@@ -69,6 +92,7 @@ export async function POST(request: Request) {
       )
     }
 
+    await logTextActivity(supabase, user.id, "add", text.id)
     return NextResponse.json({ ok: true, id: text.id, createdAt: text.created_at })
   } catch (error) {
     console.error("Text create failed", { error })

@@ -9,13 +9,15 @@ type BioPayload = {
 const logActivity = async (
   supabase: Awaited<ReturnType<typeof supabaseServer>>,
   userId: string,
-  action: "add" | "update" | "delete"
+  action: "add" | "update" | "delete",
+  entityId: string
 ) => {
   const { error } = await supabase.from("activity_log").insert({
-    area: "Biography",
-    action,
-    context: "residency",
-    created_by: userId,
+    admin_id: userId,
+    action_type: action,
+    entity_type: "cv_detail",
+    entity_id: entityId,
+    metadata: { section: "residency" },
   })
 
   if (error) {
@@ -64,7 +66,7 @@ export async function POST(request: Request) {
       )
     }
 
-    await logActivity(supabase, user.id, "add")
+    await logActivity(supabase, user.id, "add", data.id)
     return NextResponse.json(data)
   } catch (error) {
     console.error("Residency create failed", { error })

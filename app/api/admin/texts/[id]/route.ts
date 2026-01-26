@@ -19,6 +19,29 @@ const mapSupabaseError = (message: string) => {
   return "Unable to update text entry."
 }
 
+const logTextActivity = async (
+  supabase: Awaited<ReturnType<typeof supabaseServer>>,
+  userId: string,
+  action: "add" | "update" | "delete",
+  textId: string
+) => {
+  const { error } = await supabase.from("activity_log").insert({
+    admin_id: userId,
+    action_type: action,
+    entity_type: "text",
+    entity_id: textId,
+    metadata: null,
+  })
+
+  if (error) {
+    console.warn("Activity log insert failed", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    })
+  }
+}
+
 export async function PATCH(request: Request, { params }: RouteContext) {
   try {
     const { id } = await params
@@ -83,6 +106,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       )
     }
 
+    await logTextActivity(supabase, user.id, "update", updated.id)
     return NextResponse.json({ ok: true, id: updated.id, createdAt: updated.created_at })
   } catch (error) {
     console.error("Text update failed", { error })
@@ -122,6 +146,7 @@ export async function DELETE(_: Request, { params }: RouteContext) {
       )
     }
 
+    await logTextActivity(supabase, user.id, "delete", id)
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("Text delete failed", { error })

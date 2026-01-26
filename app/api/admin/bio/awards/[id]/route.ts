@@ -20,13 +20,15 @@ const isUuid = (value: string) => {
 const logActivity = async (
   supabase: Awaited<ReturnType<typeof supabaseServer>>,
   userId: string,
-  action: "add" | "update" | "delete"
+  action: "add" | "update" | "delete",
+  entityId: string
 ) => {
   const { error } = await supabase.from("activity_log").insert({
-    area: "Biography",
-    action,
-    context: "awards",
-    created_by: userId,
+    admin_id: userId,
+    action_type: action,
+    entity_type: "cv_detail",
+    entity_id: entityId,
+    metadata: { section: "awards & selections" },
   })
 
   if (error) {
@@ -93,7 +95,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       )
     }
 
-    await logActivity(supabase, user.id, "update")
+    await logActivity(supabase, user.id, "update", id)
     return NextResponse.json(data)
   } catch (error) {
     console.error("Awards update failed", { error })
@@ -140,7 +142,7 @@ export async function DELETE(_: Request, { params }: RouteContext) {
       )
     }
 
-    await logActivity(supabase, user.id, "delete")
+    await logActivity(supabase, user.id, "delete", id)
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("Awards delete failed", { error })
