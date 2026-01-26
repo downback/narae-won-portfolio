@@ -3,7 +3,7 @@ import { supabaseServer } from "@/lib/server"
 
 type BioPayload = {
   description?: string
-  year?: number | null
+  year?: string | null
 }
 
 const logActivity = async (
@@ -14,7 +14,7 @@ const logActivity = async (
   const { error } = await supabase.from("activity_log").insert({
     area: "Biography",
     action,
-    context: "group",
+    context: "education",
     created_by: userId,
   })
 
@@ -41,14 +41,14 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as BioPayload
     const description = body.description?.trim()
-    const year = body.year
+    const year = body.year?.trim()
 
-    if (year === undefined || year === null) {
+    if (!year) {
       return NextResponse.json({ error: "Year is required." }, { status: 400 })
     }
 
     const { data, error } = await supabase
-      .from("bio_group_exhibitions")
+      .from("bio_education")
       .insert({
         description: description || null,
         year,
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
 
     if (error || !data) {
       return NextResponse.json(
-        { error: "Unable to create group show entry." },
+        { error: "Unable to create education entry." },
         { status: 500 }
       )
     }
@@ -67,9 +67,9 @@ export async function POST(request: Request) {
     await logActivity(supabase, user.id, "add")
     return NextResponse.json(data)
   } catch (error) {
-    console.error("Group show create failed", { error })
+    console.error("Education create failed", { error })
     return NextResponse.json(
-      { error: "Server error while creating group show." },
+      { error: "Server error while creating education entry." },
       { status: 500 }
     )
   }

@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
     const updates = items.map((item) =>
       supabase
-        .from("bio_solo_exhibitions")
+        .from("bio_awards")
         .update({ display_order: item.display_order })
         .eq("id", item.id)
     )
@@ -37,14 +37,14 @@ export async function POST(request: Request) {
 
     if (hasError) {
       return NextResponse.json(
-        { error: "Unable to update solo show order." },
+        { error: "Unable to update awards order." },
         { status: 500 }
       )
     }
 
     return NextResponse.json({ ok: true })
   } catch (error) {
-    console.error("Solo show reorder failed", { error })
+    console.error("Awards reorder failed", { error })
     return NextResponse.json(
       { error: "Server error while saving order." },
       { status: 500 }

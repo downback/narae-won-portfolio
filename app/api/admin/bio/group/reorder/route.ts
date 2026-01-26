@@ -3,7 +3,7 @@ import { supabaseServer } from "@/lib/server"
 
 type ReorderItem = {
   id: string
-  sort_order: number
+  display_order: number
 }
 
 export async function POST(request: Request) {
@@ -27,8 +27,8 @@ export async function POST(request: Request) {
 
     const updates = items.map((item) =>
       supabase
-        .from("bio_group_shows")
-        .update({ sort_order: item.sort_order, updated_by: user.id })
+        .from("bio_group_exhibitions")
+        .update({ display_order: item.display_order })
         .eq("id", item.id)
     )
 

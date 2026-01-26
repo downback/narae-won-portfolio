@@ -13,8 +13,7 @@ import { Label } from "@/components/ui/label"
 
 type BioFormValues = {
   year: string
-  title: string
-  location: string
+  description: string
 }
 
 type BioUploadModalProps = {
@@ -45,9 +44,7 @@ export default function BioUploadModal({
   errorMessage,
 }: BioUploadModalProps) {
   const hasRequiredValues =
-    values.year.trim().length > 0 &&
-    values.title.trim().length > 0 &&
-    values.location.trim().length > 0
+    values.year.trim().length > 0 && values.description.trim().length > 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -72,29 +69,16 @@ export default function BioUploadModal({
                 })
               }
             />
-            <Label htmlFor="upload-title">Title</Label>
+            <Label htmlFor="upload-description">Description</Label>
             <Input
-              id="upload-title"
+              id="upload-description"
               type="text"
-              placeholder="Show title"
-              value={values.title}
+              placeholder="Exhibition description"
+              value={values.description}
               onChange={(event) =>
                 onValuesChange({
                   ...values,
-                  title: event.target.value,
-                })
-              }
-            />
-            <Label htmlFor="upload-location">Location</Label>
-            <Input
-              id="upload-location"
-              type="text"
-              placeholder="Location"
-              value={values.location}
-              onChange={(event) =>
-                onValuesChange({
-                  ...values,
-                  location: event.target.value,
+                  description: event.target.value,
                 })
               }
             />

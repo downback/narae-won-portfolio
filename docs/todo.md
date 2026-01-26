@@ -54,12 +54,12 @@
   - [x] exhibitions
     - [x] separate solo/group uploader
     - [x] drag and drop
-  - [ ] texts
-    - [ ] texts preview
-    - [ ] texts delete and edit
-    - [ ] drag and drop
-  - [ ] biography tables
-    - [ ] add new sections
+  - [x] texts
+    - [x] texts preview
+    - [x] texts delete and edit
+  - [x] biography tables
+    - [x] add new sections(Residency, Awards & Selections, Collection)
+    - [x] separate components
 
 - [ ] Preview ui for artworks and exhibitions section
 - [ ] Uploader ui for ipad & mobile

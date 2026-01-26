@@ -14,7 +14,7 @@ const logActivity = async (
   const { error } = await supabase.from("activity_log").insert({
     area: "Biography",
     action,
-    context: "group",
+    context: "collections",
     created_by: userId,
   })
 
@@ -41,14 +41,10 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as BioPayload
     const description = body.description?.trim()
-    const year = body.year
-
-    if (year === undefined || year === null) {
-      return NextResponse.json({ error: "Year is required." }, { status: 400 })
-    }
+    const year = body.year ?? null
 
     const { data, error } = await supabase
-      .from("bio_group_exhibitions")
+      .from("bio_collections")
       .insert({
         description: description || null,
         year,
@@ -59,7 +55,7 @@ export async function POST(request: Request) {
 
     if (error || !data) {
       return NextResponse.json(
-        { error: "Unable to create group show entry." },
+        { error: "Unable to create collection entry." },
         { status: 500 }
       )
     }
@@ -67,9 +63,9 @@ export async function POST(request: Request) {
     await logActivity(supabase, user.id, "add")
     return NextResponse.json(data)
   } catch (error) {
-    console.error("Group show create failed", { error })
+    console.error("Collection create failed", { error })
     return NextResponse.json(
-      { error: "Server error while creating group show." },
+      { error: "Server error while creating collection entry." },
       { status: 500 }
     )
   }

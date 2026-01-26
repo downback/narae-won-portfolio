@@ -3,7 +3,7 @@ import { supabaseServer } from "@/lib/server"
 
 type BioPayload = {
   description?: string
-  year?: number
+  year?: number | null
 }
 
 type RouteContext = {
@@ -25,7 +25,7 @@ const logActivity = async (
   const { error } = await supabase.from("activity_log").insert({
     area: "Biography",
     action,
-    context: "solo",
+    context: "awards",
     created_by: userId,
   })
 
@@ -42,12 +42,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   try {
     const { id } = await params
     if (!isUuid(id)) {
-      console.error("Invalid solo show id", { id })
+      console.error("Invalid awards id", { id })
       return NextResponse.json({ error: "Invalid id." }, { status: 400 })
     }
 
     const supabase = await supabaseServer()
-    console.log("Solo show update request", { id })
+    console.log("Awards update request", { id })
     const {
       data: { user },
       error: userError,
@@ -61,7 +61,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     try {
       body = (await request.json()) as BioPayload
     } catch (error) {
-      console.error("Solo show update invalid JSON", { error })
+      console.error("Awards update invalid JSON", { error })
       return NextResponse.json(
         { error: "Invalid request body." },
         { status: 400 }
@@ -70,28 +70,25 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const description = body.description?.trim()
     const year = body.year
 
-    if (!year) {
-      return NextResponse.json(
-        { error: "Year is required." },
-        { status: 400 }
-      )
+    if (year === undefined || year === null) {
+      return NextResponse.json({ error: "Year is required." }, { status: 400 })
     }
 
     const { data, error } = await supabase
-      .from("bio_solo_exhibitions")
+      .from("bio_awards")
       .update({ description: description || null, year })
       .eq("id", id)
       .select("description, year")
       .single()
 
     if (error || !data) {
-      console.error("Solo show update error", {
+      console.error("Awards update error", {
         message: error?.message,
         details: error?.details,
         hint: error?.hint,
       })
       return NextResponse.json(
-        { error: error?.message || "Unable to update solo show entry." },
+        { error: error?.message || "Unable to update awards entry." },
         { status: 500 }
       )
     }
@@ -99,9 +96,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     await logActivity(supabase, user.id, "update")
     return NextResponse.json(data)
   } catch (error) {
-    console.error("Solo show update failed", { error })
+    console.error("Awards update failed", { error })
     return NextResponse.json(
-      { error: "Server error while updating solo show." },
+      { error: "Server error while updating awards." },
       { status: 500 }
     )
   }
@@ -111,12 +108,12 @@ export async function DELETE(_: Request, { params }: RouteContext) {
   try {
     const { id } = await params
     if (!isUuid(id)) {
-      console.error("Invalid solo show id", { id })
+      console.error("Invalid awards id", { id })
       return NextResponse.json({ error: "Invalid id." }, { status: 400 })
     }
 
     const supabase = await supabaseServer()
-    console.log("Solo show delete request", { id })
+    console.log("Awards delete request", { id })
     const {
       data: { user },
       error: userError,
@@ -127,18 +124,18 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     }
 
     const { error } = await supabase
-      .from("bio_solo_exhibitions")
+      .from("bio_awards")
       .delete()
       .eq("id", id)
 
     if (error) {
-      console.error("Solo show delete error", {
+      console.error("Awards delete error", {
         message: error.message,
         details: error.details,
         hint: error.hint,
       })
       return NextResponse.json(
-        { error: error.message || "Unable to delete solo show entry." },
+        { error: error.message || "Unable to delete awards entry." },
         { status: 500 }
       )
     }
@@ -146,9 +143,9 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     await logActivity(supabase, user.id, "delete")
     return NextResponse.json({ ok: true })
   } catch (error) {
-    console.error("Solo show delete failed", { error })
+    console.error("Awards delete failed", { error })
     return NextResponse.json(
-      { error: "Server error while deleting solo show." },
+      { error: "Server error while deleting awards." },
       { status: 500 }
     )
   }

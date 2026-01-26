@@ -30,14 +30,14 @@ export default function AdminExhibitionsPanel() {
   const [errorMessage, setErrorMessage] = useState("")
   const [previewItems, setPreviewItems] = useState<ExhibitionPreviewItem[]>([])
   const [editingItem, setEditingItem] = useState<ExhibitionPreviewItem | null>(
-    null
+    null,
   )
   const [selectedCategory, setSelectedCategory] =
     useState<ExhibitionCategory>("solo-exhibitions")
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const [dragCategory, setDragCategory] = useState<ExhibitionCategory | null>(
-    null
+    null,
   )
   const previewUrlsRef = useRef<string[]>([])
   const supabase = useMemo(() => supabaseBrowser(), [])
@@ -52,7 +52,7 @@ export default function AdminExhibitionsPanel() {
     const { data, error } = await supabase
       .from("artworks")
       .select(
-        "id, storage_path, caption, category, year, description, exhibition_slug, created_at"
+        "id, storage_path, caption, category, year, description, exhibition_slug, created_at",
       )
       .in("category", ["solo-exhibitions", "group-exhibitions"])
       .order("created_at", { ascending: false })
@@ -91,11 +91,11 @@ export default function AdminExhibitionsPanel() {
 
   const soloItems = useMemo(
     () => previewItems.filter((item) => item.category === "solo-exhibitions"),
-    [previewItems]
+    [previewItems],
   )
   const groupItems = useMemo(
     () => previewItems.filter((item) => item.category === "group-exhibitions"),
-    [previewItems]
+    [previewItems],
   )
 
   const handleSave = async (values: ExhibitionFormValues) => {
@@ -145,7 +145,7 @@ export default function AdminExhibitionsPanel() {
         {
           method: isEditMode ? "PATCH" : "POST",
           body: formData,
-        }
+        },
       )
 
       const payload = (await response.json()) as {
@@ -205,13 +205,15 @@ export default function AdminExhibitionsPanel() {
   const moveItem = (
     category: ExhibitionCategory,
     fromIndex: number,
-    toIndex: number
+    toIndex: number,
   ) => {
     if (fromIndex === toIndex) return
     setPreviewItems((prevItems) => {
-      const solo = prevItems.filter((item) => item.category === "solo-exhibitions")
+      const solo = prevItems.filter(
+        (item) => item.category === "solo-exhibitions",
+      )
       const group = prevItems.filter(
-        (item) => item.category === "group-exhibitions"
+        (item) => item.category === "group-exhibitions",
       )
       const target = category === "solo-exhibitions" ? solo : group
       const nextTarget = [...target]
@@ -226,7 +228,7 @@ export default function AdminExhibitionsPanel() {
   const renderCategorySection = (
     title: string,
     category: ExhibitionCategory,
-    items: ExhibitionPreviewItem[]
+    items: ExhibitionPreviewItem[],
   ) => (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -318,7 +320,7 @@ export default function AdminExhibitionsPanel() {
       {renderCategorySection(
         "Group exhibitions",
         "group-exhibitions",
-        groupItems
+        groupItems,
       )}
       <ExhibitionUploadModal
         open={isUploadOpen}

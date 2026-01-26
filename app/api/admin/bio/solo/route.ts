@@ -2,9 +2,8 @@ import { NextResponse } from "next/server"
 import { supabaseServer } from "@/lib/server"
 
 type BioPayload = {
-  title?: string
-  location?: string
-  year?: number
+  description?: string
+  year?: number | null
 }
 
 const logActivity = async (
@@ -41,26 +40,21 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as BioPayload
-    const title = body.title?.trim()
-    const location = body.location?.trim()
+    const description = body.description?.trim()
     const year = body.year
 
-    if (!title || !location || !year) {
-      return NextResponse.json(
-        { error: "Title, location, and year are required." },
-        { status: 400 }
-      )
+    if (year === undefined || year === null) {
+      return NextResponse.json({ error: "Year is required." }, { status: 400 })
     }
 
     const { data, error } = await supabase
-      .from("bio_solo_shows")
+      .from("bio_solo_exhibitions")
       .insert({
-        title,
-        location,
+        description: description || null,
         year,
-        updated_by: user.id,
+        display_order: 0,
       })
-      .select("id, title, location, year")
+      .select("id, year, description")
       .single()
 
     if (error || !data) {

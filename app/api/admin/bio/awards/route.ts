@@ -14,7 +14,7 @@ const logActivity = async (
   const { error } = await supabase.from("activity_log").insert({
     area: "Biography",
     action,
-    context: "group",
+    context: "awards",
     created_by: userId,
   })
 
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     }
 
     const { data, error } = await supabase
-      .from("bio_group_exhibitions")
+      .from("bio_awards")
       .insert({
         description: description || null,
         year,
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
 
     if (error || !data) {
       return NextResponse.json(
-        { error: "Unable to create group show entry." },
+        { error: "Unable to create awards entry." },
         { status: 500 }
       )
     }
@@ -67,9 +67,9 @@ export async function POST(request: Request) {
     await logActivity(supabase, user.id, "add")
     return NextResponse.json(data)
   } catch (error) {
-    console.error("Group show create failed", { error })
+    console.error("Awards create failed", { error })
     return NextResponse.json(
-      { error: "Server error while creating group show." },
+      { error: "Server error while creating awards entry." },
       { status: 500 }
     )
   }

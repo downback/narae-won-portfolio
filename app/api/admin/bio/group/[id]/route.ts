@@ -2,8 +2,7 @@ import { NextResponse } from "next/server"
 import { supabaseServer } from "@/lib/server"
 
 type BioPayload = {
-  title?: string
-  location?: string
+  description?: string
   year?: number
 }
 
@@ -68,22 +67,21 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         { status: 400 }
       )
     }
-    const title = body.title?.trim()
-    const location = body.location?.trim()
+    const description = body.description?.trim()
     const year = body.year
 
-    if (!title || !location || !year) {
+    if (!year) {
       return NextResponse.json(
-        { error: "Title, location, and year are required." },
+        { error: "Year is required." },
         { status: 400 }
       )
     }
 
     const { data, error } = await supabase
-      .from("bio_group_shows")
-      .update({ title, location, year, updated_by: user.id })
+      .from("bio_group_exhibitions")
+      .update({ description: description || null, year })
       .eq("id", id)
-      .select("title, location, year")
+      .select("description, year")
       .single()
 
     if (error || !data) {
@@ -129,7 +127,7 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     }
 
     const { error } = await supabase
-      .from("bio_group_shows")
+      .from("bio_group_exhibitions")
       .delete()
       .eq("id", id)
 
