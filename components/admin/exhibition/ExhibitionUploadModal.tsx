@@ -90,14 +90,17 @@ export default function ExhibitionUploadModal({
 
   useEffect(() => {
     if (!open) return
-    setSelectedMainImageName("")
-    setMainImageFile(null)
-    setMainImagePreviewUrl("")
-    setCategory(initialValues?.category ?? "solo-exhibitions")
-    setYear(initialValues?.year ?? "")
-    setCaption(initialValues?.caption ?? "")
-    setDetails(initialValues?.description ?? "")
-    setInitialMainImageUrl(initialValues?.mainImageUrl ?? "")
+    const resetTimeout = setTimeout(() => {
+      setSelectedMainImageName("")
+      setMainImageFile(null)
+      setMainImagePreviewUrl("")
+      setCategory(initialValues?.category ?? "solo-exhibitions")
+      setYear(initialValues?.year ?? "")
+      setCaption(initialValues?.caption ?? "")
+      setDetails(initialValues?.description ?? "")
+      setInitialMainImageUrl(initialValues?.mainImageUrl ?? "")
+    }, 0)
+    return () => clearTimeout(resetTimeout)
   }, [open, initialValues])
 
   const handleOpenChange = (nextOpen: boolean) => {

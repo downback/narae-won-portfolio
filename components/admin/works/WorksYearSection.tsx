@@ -9,7 +9,6 @@ type WorkPreviewItem = {
   imageUrl: string
   caption: string
   year: number | null
-  description: string | null
   createdAt: string
 }
 

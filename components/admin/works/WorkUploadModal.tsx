@@ -13,13 +13,18 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export type WorkFormValues = {
   imageFile: File | null
   year: string
   caption: string
-  description: string
 }
 
 type WorkUploadModalProps = {
@@ -28,11 +33,12 @@ type WorkUploadModalProps = {
   title?: string
   description?: string
   onSave?: (values: WorkFormValues) => void
+  yearOptions?: string[]
+  isYearSelectDisabled?: boolean
   initialValues?: {
     imageUrl?: string
     year?: string
     caption?: string
-    description?: string
   }
   isEditMode?: boolean
   confirmLabel?: string
@@ -47,6 +53,8 @@ export default function WorkUploadModal({
   title = "Update Content",
   description = "Upload a work image and add metadata.",
   onSave,
+  yearOptions = [],
+  isYearSelectDisabled = false,
   initialValues,
   isEditMode = false,
   confirmLabel = "Confirm change",
@@ -58,11 +66,10 @@ export default function WorkUploadModal({
   const [imagePreviewUrl, setImagePreviewUrl] = useState("")
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [initialImageUrl, setInitialImageUrl] = useState(
-    initialValues?.imageUrl ?? ""
+    initialValues?.imageUrl ?? "",
   )
   const [year, setYear] = useState(initialValues?.year ?? "")
   const [caption, setCaption] = useState(initialValues?.caption ?? "")
-  const [details, setDetails] = useState(initialValues?.description ?? "")
   const wasSubmittingRef = useRef(false)
 
   const handleImageDrop = (event: React.DragEvent<HTMLLabelElement>) => {
@@ -97,7 +104,6 @@ export default function WorkUploadModal({
         setImageFile(null)
         setInitialImageUrl("")
         setCaption("")
-        setDetails("")
       }, 0)
     }
 
@@ -115,14 +121,12 @@ export default function WorkUploadModal({
       setInitialImageUrl("")
       setYear("")
       setCaption("")
-      setDetails("")
     } else {
       setSelectedImageName("")
       setImageFile(null)
       setImagePreviewUrl("")
       setYear(initialValues?.year ?? "")
       setCaption(initialValues?.caption ?? "")
-      setDetails(initialValues?.description ?? "")
       setInitialImageUrl(initialValues?.imageUrl ?? "")
     }
 
@@ -188,12 +192,33 @@ export default function WorkUploadModal({
               </div>
             ) : null}
           </div>
-          {year ? (
-            <div className="space-y-2">
-              <Label>Year</Label>
-              <p className="text-sm text-muted-foreground">{year}</p>
-            </div>
-          ) : null}
+          <div className="space-y-2">
+            <Label htmlFor="work-year">Year</Label>
+            <Select
+              value={year || undefined}
+              onValueChange={setYear}
+              disabled={isYearSelectDisabled}
+            >
+              <SelectTrigger id="work-year" disabled={isYearSelectDisabled}>
+                <SelectValue
+                  placeholder={
+                    isYearSelectDisabled
+                      ? year
+                        ? `Selected year: ${year}`
+                        : "Year category not available"
+                      : "Select year"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {yearOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="work-caption">Caption (required)</Label>
             <Input
@@ -201,16 +226,6 @@ export default function WorkUploadModal({
               value={caption}
               onChange={(event) => setCaption(event.target.value)}
               placeholder="Caption text"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="work-description">Description (optional)</Label>
-            <Textarea
-              id="work-description"
-              value={details}
-              onChange={(event) => setDetails(event.target.value)}
-              placeholder="Optional description"
-              className="min-h-[120px]"
             />
           </div>
         </div>
@@ -234,7 +249,6 @@ export default function WorkUploadModal({
                 imageFile,
                 year,
                 caption,
-                description: details,
               })
             }
             disabled={isConfirmDisabled || isSubmitting}

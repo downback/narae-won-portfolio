@@ -44,9 +44,11 @@
     - [x] new confirmation modal
     - [x] leave confirmation modal open
     - [x] make inputs empty
-    - [ ] add year existing check
-    - [ ] add year DB
-    - [ ] add year design refine
+    - [x] add year ui refine
+    - [x] add year modal
+    - [x] add year existing check
+    - [x] add year DB
+    - [x] 2018-2021
     - [ ] drag and drop
   - [x] refactor folders in components
   - [ ] exhibitions

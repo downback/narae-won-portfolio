@@ -5,15 +5,15 @@ import WorkUploadModal, {
   type WorkFormValues,
 } from "@/components/admin/works/WorkUploadModal"
 import WorksYearSection from "@/components/admin/works/WorksYearSection"
-import { Button } from "@/components/ui/button"
+import YearInputDialog from "@/components/admin/shared/YearInputDialog"
 import { supabaseBrowser } from "@/lib/client"
+import { Plus } from "lucide-react"
 
 type WorkPreviewItem = {
   id: string
   imageUrl: string
   caption: string
   year: number | null
-  description: string | null
   createdAt: string
 }
 
@@ -25,9 +25,14 @@ export default function WorksPanel() {
   const [editingItem, setEditingItem] = useState<WorkPreviewItem | null>(null)
   const [manualYears, setManualYears] = useState<string[]>([])
   const [selectedYear, setSelectedYear] = useState<string>("")
+  const [selectedYearCategory, setSelectedYearCategory] = useState<string>("")
+  const [isYearDialogOpen, setIsYearDialogOpen] = useState(false)
   const previewUrlsRef = useRef<string[]>([])
   const supabase = useMemo(() => supabaseBrowser(), [])
   const bucketName = "site-assets"
+  const rangeLabel = "2018-2021"
+  const rangeStart = 2018
+  const rangeEnd = 2021
 
   useEffect(() => {
     const previewUrls = previewUrlsRef.current
@@ -39,7 +44,7 @@ export default function WorksPanel() {
   const loadPreviewItems = useCallback(async () => {
     const { data, error } = await supabase
       .from("artworks")
-      .select("id, storage_path, caption, year, description, created_at")
+      .select("id, storage_path, caption, year, created_at")
       .eq("category", "works")
       .order("created_at", { ascending: false })
 
@@ -60,7 +65,6 @@ export default function WorksPanel() {
           imageUrl: publicData.publicUrl,
           caption: item.caption ?? "",
           year: item.year ?? null,
-          description: item.description ?? null,
           createdAt: item.created_at ?? new Date().toISOString(),
         }
       })
@@ -107,14 +111,13 @@ export default function WorksPanel() {
       }
       formData.append("year", resolvedYear)
       formData.append("caption", values.caption)
-      formData.append("description", values.description)
 
       const response = await fetch(
         isEditMode ? `/api/admin/works/${editingItem?.id}` : "/api/admin/works",
         {
           method: isEditMode ? "PATCH" : "POST",
           body: formData,
-        }
+        },
       )
 
       const payload = (await response.json()) as {
@@ -137,7 +140,6 @@ export default function WorksPanel() {
             imageUrl: previewUrl,
             caption: values.caption,
             year: Number(resolvedYear),
-            description: values.description,
             createdAt: new Date().toISOString(),
           },
           ...prev,
@@ -161,7 +163,6 @@ export default function WorksPanel() {
       imageUrl: editingItem.imageUrl,
       year: editingItem.year ? String(editingItem.year) : "",
       caption: editingItem.caption,
-      description: editingItem.description ?? "",
     }
   }, [editingItem])
 
@@ -169,22 +170,42 @@ export default function WorksPanel() {
     const yearsFromItems = previewItems
       .map((item) => (item.year ? String(item.year) : null))
       .filter((value): value is string => Boolean(value))
-    const merged = Array.from(new Set([...yearsFromItems, ...manualYears]))
-    return merged.sort((a, b) => Number(b) - Number(a))
-  }, [previewItems, manualYears])
+    const filteredYears = yearsFromItems.filter((year) => {
+      const numeric = Number(year)
+      return Number.isNaN(numeric) || numeric < rangeStart || numeric > rangeEnd
+    })
+    const filteredManualYears = manualYears.filter((year) => {
+      const numeric = Number(year)
+      return Number.isNaN(numeric) || numeric < rangeStart || numeric > rangeEnd
+    })
+    const merged = Array.from(
+      new Set([rangeLabel, ...filteredYears, ...filteredManualYears]),
+    )
+    const sortValue = (label: string) => {
+      if (label === rangeLabel) return rangeEnd
+      const numeric = Number(label)
+      return Number.isNaN(numeric) ? Number.NEGATIVE_INFINITY : numeric
+    }
+    return merged.sort((a, b) => sortValue(b) - sortValue(a))
+  }, [previewItems, manualYears, rangeLabel, rangeEnd, rangeStart])
 
   const groupedByYear = useMemo(() => {
     const grouped = new Map<string, WorkPreviewItem[]>()
     yearOptions.forEach((year) => grouped.set(year, []))
     previewItems.forEach((item) => {
-      const year = item.year ? String(item.year) : "Unknown"
+      const numericYear = item.year ?? null
+      if (numericYear && numericYear >= rangeStart && numericYear <= rangeEnd) {
+        grouped.get(rangeLabel)?.push(item)
+        return
+      }
+      const year = numericYear ? String(numericYear) : "Unknown"
       if (!grouped.has(year)) grouped.set(year, [])
       grouped.get(year)?.push(item)
     })
     grouped.forEach((items, year) => {
       items.sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       )
       grouped.set(year, items)
     })
@@ -194,26 +215,7 @@ export default function WorksPanel() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-medium">Works</h2>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            const nextYear = window
-              .prompt("Enter a year (e.g. 2027)")
-              ?.trim()
-            if (!nextYear) return
-            if (!/^\d{4}$/.test(nextYear)) {
-              setErrorMessage("Year must be a 4-digit number.")
-              return
-            }
-            setManualYears((prev) =>
-              prev.includes(nextYear) ? prev : [...prev, nextYear]
-            )
-          }}
-        >
-          Add year
-        </Button>
+        <h2 className="text-base font-medium">Works by year</h2>
       </div>
       {yearOptions.length === 0 ? (
         <p className="text-sm text-muted-foreground">No works yet.</p>
@@ -227,12 +229,19 @@ export default function WorksPanel() {
               onAdd={() => {
                 setErrorMessage("")
                 setEditingItem(null)
-                setSelectedYear(year)
+                setSelectedYear(year === rangeLabel ? String(rangeEnd) : year)
+                setSelectedYearCategory(year)
                 setIsUploadOpen(true)
               }}
               onEdit={(item) => {
                 setEditingItem(item)
-                setSelectedYear(item.year ? String(item.year) : "")
+                const nextYear = item.year ? String(item.year) : ""
+                const nextCategory =
+                  item.year && item.year >= rangeStart && item.year <= rangeEnd
+                    ? rangeLabel
+                    : nextYear
+                setSelectedYear(nextYear)
+                setSelectedYearCategory(nextCategory)
                 setErrorMessage("")
                 setIsUploadOpen(true)
               }}
@@ -252,7 +261,7 @@ export default function WorksPanel() {
                 } catch (error) {
                   console.error("Failed to delete work", { error })
                   setErrorMessage(
-                    "Unable to delete the work entry. Please try again."
+                    "Unable to delete the work entry. Please try again.",
                   )
                 }
               }}
@@ -265,7 +274,9 @@ export default function WorksPanel() {
         open={isUploadOpen}
         onOpenChange={setIsUploadOpen}
         title={editingItem ? "Edit work" : "Add work"}
-        description="Upload a work image and provide the metadata."
+        description="Upload a work image and caption text"
+        yearOptions={["2018", "2019", "2020", "2021"]}
+        isYearSelectDisabled={selectedYearCategory !== rangeLabel}
         onSave={handleSave}
         initialValues={
           editingItem
@@ -279,6 +290,26 @@ export default function WorksPanel() {
         isConfirmDisabled={isUploading}
         isSubmitting={isUploading}
         errorMessage={errorMessage}
+      />
+      <YearInputDialog
+        open={isYearDialogOpen}
+        onOpenChange={setIsYearDialogOpen}
+        onConfirm={(nextYear) => {
+          setErrorMessage("")
+          setManualYears((prev) =>
+            prev.includes(nextYear) ? prev : [...prev, nextYear],
+          )
+        }}
+        trigger={
+          <button
+            type="button"
+            className="flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
+            aria-label="Add a new year category "
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add a new year category</span>
+          </button>
+        }
       />
     </div>
   )
