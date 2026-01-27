@@ -36,16 +36,9 @@ export default function SidebarNavContent({
     <nav className={cn("flex flex-col justify-between md:h-full", className)}>
       <div className="space-y-6">
         <div className="space-y-2">
-          <Link
-            className={cn(
-              "text-sm inline-block transition-colors hover:text-red-500 w-full border-b border-black",
-              pathname === "/works" && "text-red-500",
-            )}
-            href="/works"
-            onClick={onNavigate}
-          >
+          <span className="text-sm inline-block w-full border-b-[0.9px] border-black">
             work
-          </Link>
+          </span>
           <div className="flex flex-col">
             {worksYears.map((year) => (
               <Link
@@ -64,7 +57,7 @@ export default function SidebarNavContent({
         </div>
 
         <div className="space-y-2">
-          <span className="text-sm inline-block w-full border-b border-black">
+          <span className="text-sm inline-block w-full border-b-[0.9px] border-black">
             exhibitions
           </span>
           <div className="flex flex-col gap-2">
@@ -114,7 +107,7 @@ export default function SidebarNavContent({
         </div>
       </div>
 
-      <div className="flex flex-row justify-between w-full border-b border-black mb-4 md:mb-8">
+      <div className="flex flex-row justify-between w-full border-b-[0.9px] border-black mb-4 md:mb-8">
         {navLinks
           .filter((link) => link.href !== "/works")
           .map((link) => (

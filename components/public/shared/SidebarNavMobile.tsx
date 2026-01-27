@@ -67,7 +67,7 @@ export default function SidebarNavMobile({
           onClick={() => setIsMobileNavOpen(true)}
           className={cn(isHomeRoute ? "invisible" : "fixed right-3 top-4")}
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-5 w-5" strokeWidth={1.5} />
         </Button>
       </header>
 
@@ -82,7 +82,7 @@ export default function SidebarNavMobile({
               onClick={closeMobileNav}
               className={cn(isHomeRoute ? "invisible" : "fixed right-3 top-4")}
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5" strokeWidth={1.5} />
             </Button>
           </div>
           <SidebarNavContent

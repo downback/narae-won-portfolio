@@ -40,7 +40,9 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         />
       </div>
       <main className="flex-auto md:w-auto">
-        <div className="px-6 mb-24 sm:px-0 md:py-0 md:mt-8">{children}</div>
+        <div className="px-6 mb-24 sm:px-0 md:py-0 md:mt-28 md:pr-8">
+          {children}
+        </div>
       </main>
     </div>
   )

@@ -1,0 +1,42 @@
+"use client"
+
+import { useState } from "react"
+import { ChevronUp, Plus } from "lucide-react"
+
+type TextItemProps = {
+  year: string
+  title: string
+  body: string
+  defaultOpen?: boolean
+}
+
+export default function TextItem({
+  year,
+  title,
+  body,
+  defaultOpen = false,
+}: TextItemProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+
+  return (
+    <div className="w-full border-b-[0.9px] border-black border-black py-2">
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="flex w-full items-center justify-between gap-4 text-left"
+        aria-expanded={isOpen}
+      >
+        <div className="flex items-baseline gap-4">
+          <span className="text-sm font-light w-32">{year}</span>
+          <span className="text-sm font-light">{title}</span>
+        </div>
+        {isOpen ? (
+          <ChevronUp className="h-6 w-6" strokeWidth={1} aria-hidden />
+        ) : (
+          <Plus className="h-6 w-6" strokeWidth={1} aria-hidden />
+        )}
+      </button>
+      {isOpen ? <div className="mt-3 text-[14px] pb-2">{body}</div> : null}
+    </div>
+  )
+}

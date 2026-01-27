@@ -1,3 +1,4 @@
+import ExhibitionList from "@/components/public/ExhibitionList"
 import DetailSubHeader from "@/components/public/shared/DetailSubHeader"
 
 type SoloExhibitionPageProps = {
@@ -15,10 +16,12 @@ export default async function SoloExhibitionPage({
       <DetailSubHeader
         segments={[{ label: "solo exhibition", value: formatSlug(slug) }]}
       />
-      <h1 className="text-lg font-medium">Solo Exhibition</h1>
+      {/* <h1 className="text-lg font-medium">Solo Exhibition</h1>
       <p className="text-sm text-muted-foreground">
         Exhibition: {formatSlug(slug)}
-      </p>
+      </p> */}
+      <div className="mr-8"></div>
+      <ExhibitionList items={[]} />
     </div>
   )
 }

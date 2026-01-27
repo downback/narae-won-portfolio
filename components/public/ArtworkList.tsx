@@ -30,7 +30,7 @@ export default function ArtworkList({
   items = placeholderItems,
 }: ArtworkListProps) {
   return (
-    <div className="w-full md:mt-24 flex flex-col justify-center items-center gap-14">
+    <div className="w-full flex flex-col justify-center items-center gap-14">
       {items.map((item) => (
         <ArtworkItem
           key={item.id}
