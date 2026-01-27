@@ -6,7 +6,7 @@ type Exhibition = {
   id: string
   title: string
   description: string
-  mainImageSrc?: string
+  mainImageSrc: string
   mainImageAlt?: string
   detailImages?: {
     id: string
@@ -15,33 +15,8 @@ type Exhibition = {
   }[]
 }
 
-const placeholderSrc =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800' viewBox='0 0 1200 800'%3E%3Crect width='1200' height='800' fill='%23E5E7EB'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239CA3AF' font-family='Arial, sans-serif' font-size='32'%3EImage placeholder%3C/text%3E%3C/svg%3E"
-
-const placeholderItems: Exhibition[] = [
-  {
-    id: "exhibition-1",
-    title: "Exhibition title",
-    description: "Exhibition description placeholder text.",
-    mainImageSrc: placeholderSrc,
-    mainImageAlt: "Exhibition main image placeholder",
-    detailImages: [
-      {
-        id: "detail-1",
-        src: placeholderSrc,
-        alt: "Exhibition detail image placeholder",
-      },
-      {
-        id: "detail-2",
-        src: placeholderSrc,
-        alt: "Exhibition detail image placeholder",
-      },
-    ],
-  },
-]
-
 export default function ExhibitionList({
-  items = placeholderItems,
+  items = [],
 }: {
   items?: Exhibition[]
 }) {
@@ -54,7 +29,7 @@ export default function ExhibitionList({
         >
           <div className="h-[60vh] w-full md:h-auto">
             <LightboxImage
-              src={item.mainImageSrc ?? placeholderSrc}
+              src={item.mainImageSrc}
               alt={item.mainImageAlt ?? "Exhibition main image"}
               width={1200}
               height={800}

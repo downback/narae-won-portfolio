@@ -1,51 +1,85 @@
 import ExhibitionList from "@/components/public/ExhibitionList"
 import DetailSubHeader from "@/components/public/shared/DetailSubHeader"
+import { supabaseServer } from "@/lib/server"
 
 type GroupExhibitionPageProps = {
   params: Promise<{ slug: string }>
 }
 
 const formatSlug = (slug: string) => slug.replace(/-/g, " ")
+const toSlug = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
 
-const placeholderSrc =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800' viewBox='0 0 1200 800'%3E%3Crect width='1200' height='800' fill='%23E5E7EB'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239CA3AF' font-family='Arial, sans-serif' font-size='32'%3EImage placeholder%3C/text%3E%3C/svg%3E"
-
-const placeholderItems = [
-  {
-    id: "group-exhibition-1",
-    title: "Group exhibition title",
-    description: "Group exhibition description placeholder text.",
-    mainImageSrc: placeholderSrc,
-    mainImageAlt: "Group exhibition main image placeholder",
-    detailImages: [
-      {
-        id: "group-exhibition-1-detail-1",
-        src: placeholderSrc,
-        alt: "Group exhibition detail image placeholder",
-      },
-      {
-        id: "group-exhibition-1-detail-2",
-        src: placeholderSrc,
-        alt: "Group exhibition detail image placeholder",
-      },
-    ],
-  },
-]
+const bucketName = "site-assets"
 
 export default async function GroupExhibitionPage({
   params,
 }: GroupExhibitionPageProps) {
   const { slug } = await params
+  const supabase = await supabaseServer()
+  const { data: rows, error } = await supabase
+    .from("artworks")
+    .select("id, storage_path, title, caption, description, display_order")
+    .eq("category", "group-exhibitions")
+    .order("display_order", { ascending: true })
+
+  if (error) {
+    console.error("Failed to load group exhibition", { slug, error })
+  }
+
+  const images =
+    rows
+      ?.filter((row) => (row.title ? toSlug(row.title) === slug : false))
+      .map((row) => {
+        if (!row.storage_path) return null
+        const { data: publicData } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(row.storage_path)
+        if (!publicData?.publicUrl) return null
+        return {
+          id: row.id,
+          src: publicData.publicUrl,
+          alt: row.title ?? row.caption ?? "Exhibition image",
+          title: row.title ?? "",
+          description: row.description ?? "",
+        }
+      })
+      .filter((item): item is NonNullable<typeof item> => Boolean(item)) ?? []
+
+  const mainImage = images[0]
+  const detailImages = images.slice(1)
+  const fallbackTitle = formatSlug(slug)
+  const exhibitionTitle = mainImage?.title || fallbackTitle
+  const exhibitionDescription =
+    images.find((item) => item.description.length > 0)?.description ?? ""
+
+  const items = mainImage
+    ? [
+        {
+          id: `group-${slug}`,
+          title: exhibitionTitle,
+          description: exhibitionDescription,
+          mainImageSrc: mainImage.src,
+          mainImageAlt: mainImage.alt,
+          detailImages: detailImages.map((image) => ({
+            id: image.id,
+            src: image.src,
+            alt: image.alt,
+          })),
+        },
+      ]
+    : []
   return (
     <div className="space-y-4">
       <DetailSubHeader
         segments={[{ label: "group exhibition", value: formatSlug(slug) }]}
       />
-      {/* <h1 className="text-lg font-medium">Group Exhibition</h1>
-      <p className="text-sm text-muted-foreground">
-        Exhibition: {formatSlug(slug)}
-      </p> */}
-      <ExhibitionList items={placeholderItems} />
+      <ExhibitionList items={items} />
     </div>
   )
 }

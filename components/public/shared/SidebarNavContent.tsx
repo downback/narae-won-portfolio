@@ -102,7 +102,7 @@ export default function SidebarNavContent({
                   <Link
                     key={item.slug}
                     className={cn(
-                      "block truncate transition-colors hover:text-red-500",
+                      "block truncate transition-colors hover:text-red-500 capitalize",
                       pathname === `/exhibitions/solo/${item.slug}` &&
                         "text-red-500",
                     )}
@@ -123,7 +123,7 @@ export default function SidebarNavContent({
                   <Link
                     key={item.slug}
                     className={cn(
-                      "block truncate transition-colors hover:text-red-500",
+                      "block truncate transition-colors hover:text-red-500 capitalize",
                       pathname === `/exhibitions/group/${item.slug}` &&
                         "text-red-500",
                     )}

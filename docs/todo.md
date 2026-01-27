@@ -103,9 +103,13 @@
   - [ ]
 
 - [ ] 안쓰이는 데이터 삭제
-- [ ] works uploader 2018 - 2021 -> mandatory
-- [ ] ADMIN : works uploader ipad modal height
+- [ ] ADMIN : works uploader 2018 - 2021 -> mandatory
+- [ ] ADMIN : works uploader ipad modal height(exhibition uploader )
+- [ ] ADMIN : exhibition uploader width
 - [ ] ADMIN : exhibition uploader additional images
+
+- [ ] PUBLIC : works & exhibition pages start from the top
+- [ ] PUBLIC : exhibition uploader additional images
 
 ---
 

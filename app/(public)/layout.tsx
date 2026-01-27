@@ -9,8 +9,14 @@ const navLinks = [
   { href: "/cv", label: "cv" },
 ]
 
-const normalizeSlug = (value?: string | null) => (value ?? "").trim()
-const formatSlugLabel = (value: string) => value.replace(/-/g, " ")
+const normalizeTitle = (value?: string | null) => (value ?? "").trim()
+const toSlug = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
 
 export default async function PublicLayout({
   children,
@@ -62,16 +68,16 @@ export default async function PublicLayout({
   const buildExhibitions = (rows: { title?: string | null }[]) => {
     const seen = new Set<string>()
     return rows
-      .map((row) => normalizeSlug(row.title))
-      .filter((slug) => slug.length > 0)
-      .filter((slug) => {
-        if (seen.has(slug)) return false
-        seen.add(slug)
+      .map((row) => normalizeTitle(row.title))
+      .filter((title) => title.length > 0)
+      .filter((title) => {
+        if (seen.has(title)) return false
+        seen.add(title)
         return true
       })
-      .map((slug) => ({
-        slug,
-        title: formatSlugLabel(slug),
+      .map((title) => ({
+        slug: toSlug(title),
+        title,
       }))
   }
 
