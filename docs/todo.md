@@ -75,7 +75,7 @@
 - [x] Navbar
   - [x] ui copy
   - [x] mobile / desktop enhance
-- [ ] Sub-Header for mobile
+- [x] Sub-Header for mobile
 - [ ] Works
   - [ ] ui copy
 - [ ] Exhibitions

@@ -41,7 +41,7 @@ export default function SidebarNavMobile({
 
   return (
     <div className="w-full md:hidden flex flex-col justify-between">
-      <header className=" md:w-full md:hidden flex items-start px-8 py-8">
+      <header className=" md:w-full md:hidden flex items-start pl-6 pt-8 pb-6">
         <Link
           className="text-base font-medium z-60"
           href="/"
@@ -54,7 +54,7 @@ export default function SidebarNavMobile({
           size="icon"
           aria-label="Open menu"
           onClick={() => setIsMobileNavOpen(true)}
-          className={cn(isHomeRoute ? "invisible" : "fixed right-4 top-4")}
+          className={cn(isHomeRoute ? "invisible" : "fixed right-3 top-4")}
         >
           <Menu className="h-5 w-5" />
         </Button>
@@ -68,7 +68,7 @@ export default function SidebarNavMobile({
               size="icon"
               aria-label="Close menu"
               onClick={closeMobileNav}
-              className={cn(isHomeRoute ? "invisible" : "fixed right-4 top-4")}
+              className={cn(isHomeRoute ? "invisible" : "fixed right-3 top-4")}
             >
               <X className="h-5 w-5" />
             </Button>

@@ -38,7 +38,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         navLinks={navLinks}
       />
       <main className="w-full md:w-auto flex-1">
-        <div className="px-4 md:pr-8 sm:px-0 py-6 md:py-0 ">{children}</div>
+        <div className="px-6 md:pr-8 sm:px-0 md:py-0 ">{children}</div>
       </main>
     </div>
   )

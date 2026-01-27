@@ -1,4 +1,5 @@
 import BioSection from "@/components/public/BioSection"
+import DetailSubHeader from "@/components/public/shared/DetailSubHeader"
 import { supabaseServer } from "@/lib/server"
 
 const formatBioItems = (
@@ -43,7 +44,8 @@ export default async function Bio() {
   const selectedGroupShows = formatBioItems(groupRows ?? [])
 
   return (
-    <div className="space-y-10 font-light pt-6 md:pt-30">
+    <div className="space-y-10 font-light md:pt-30">
+      <DetailSubHeader segments={[{ label: "cv" }]} />
       <BioSection title="solo shows" items={soloShows} />
       <BioSection title="selected group shows" items={selectedGroupShows} />
       <BioSection title="education" items={education} />
