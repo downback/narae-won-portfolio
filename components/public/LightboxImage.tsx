@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
 type LightboxImageProps = {
@@ -47,20 +47,25 @@ export default function LightboxImage({
         />
       </button>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-[95vw] w-[95vw] h-[95vh] border-none bg-transparent p-0 shadow-none">
+        <DialogContent
+          className="max-w-[95vw] w-[95vw] h-[95vh] border-none bg-transparent p-0 shadow-none"
+          hideCloseButton
+          onClick={() => setIsOpen(false)}
+        >
+          <DialogTitle className="sr-only">Image preview</DialogTitle>
           <div className="relative h-full w-full">
             <Image
               src={src}
               alt={alt}
               fill
               sizes="95vw"
-              className="object-contain"
+              className="object-contain px-4 py-4"
               priority
             />
-            <div className="absolute right-4 top-4">
+            <div className="absolute right-3 top-2">
               <Button
                 type="button"
-                variant="secondary"
+                variant="svg"
                 size="sm"
                 onClick={() => setIsOpen(false)}
               >

@@ -24,21 +24,23 @@ const navLinks = [
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col md:flex-row h-full">
-      <SidebarNavDesktop
-        worksYears={worksYears}
-        soloExhibitions={soloExhibitions}
-        groupExhibitions={groupExhibitions}
-        navLinks={navLinks}
-      />
-      <SidebarNavMobile
-        worksYears={worksYears}
-        soloExhibitions={soloExhibitions}
-        groupExhibitions={groupExhibitions}
-        navLinks={navLinks}
-      />
-      <main className="w-full md:w-auto flex-1">
-        <div className="px-6 md:pr-8 sm:px-0 md:py-0 ">{children}</div>
+    <div className="flex min-h-screen flex-col md:flex-row">
+      <div className="flex w-full flex-col md:sticky md:top-0 md:h-screen md:w-xs xl:w-sm md:shrink-0 md:overflow-y-auto">
+        <SidebarNavDesktop
+          worksYears={worksYears}
+          soloExhibitions={soloExhibitions}
+          groupExhibitions={groupExhibitions}
+          navLinks={navLinks}
+        />
+        <SidebarNavMobile
+          worksYears={worksYears}
+          soloExhibitions={soloExhibitions}
+          groupExhibitions={groupExhibitions}
+          navLinks={navLinks}
+        />
+      </div>
+      <main className="flex-auto md:w-auto">
+        <div className="px-6 mb-24 sm:px-0 md:py-0 md:mt-8">{children}</div>
       </main>
     </div>
   )

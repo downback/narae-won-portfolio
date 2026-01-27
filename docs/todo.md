@@ -76,8 +76,8 @@
   - [x] ui copy
   - [x] mobile / desktop enhance
 - [x] Sub-Header for mobile
-- [ ] Works
-  - [ ] ui copy
+- [x] Works
+  - [x] ui copy
 - [ ] Exhibitions
   - [ ] ui copy
 - [ ] Texts

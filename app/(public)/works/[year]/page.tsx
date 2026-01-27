@@ -1,3 +1,4 @@
+import ArtworkList from "@/components/public/ArtworkList"
 import DetailSubHeader from "@/components/public/shared/DetailSubHeader"
 
 type WorksByYearPageProps = {
@@ -11,10 +12,11 @@ export default async function WorksByYearPage({
   return (
     <div className="space-y-4">
       <DetailSubHeader segments={[{ label: "work", value: year }]} />
-      <h1 className="text-lg font-medium">Works from {year}</h1>
+      {/* <h1 className="text-lg font-medium">Works from {year}</h1>
       <p className="text-sm text-muted-foreground">
         Filtered works by year will appear here.
-      </p>
+      </p> */}
+      <ArtworkList />
     </div>
   )
 }

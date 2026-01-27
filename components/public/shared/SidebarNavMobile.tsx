@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
@@ -37,13 +37,24 @@ export default function SidebarNavMobile({
   const isHomeRoute = pathname === "/"
   const isNavVisible = isHomeRoute || isMobileNavOpen
 
+  useEffect(() => {
+    if (!isMobileNavOpen) {
+      return
+    }
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = originalOverflow
+    }
+  }, [isMobileNavOpen])
+
   const closeMobileNav = () => setIsMobileNavOpen(false)
 
   return (
     <div className="w-full md:hidden flex flex-col justify-between">
       <header className=" md:w-full md:hidden flex items-start pl-6 pt-8 pb-6">
         <Link
-          className="text-base font-medium z-60"
+          className="text-base font-medium"
           href="/"
           onClick={closeMobileNav}
         >
@@ -61,8 +72,9 @@ export default function SidebarNavMobile({
       </header>
 
       {isNavVisible && (
-        <aside className="fixed left-0 top-0 z-50 h-full w-full bg-white md:hidden min-h-screen flex flex-col justify-between">
-          <div className="h-12">
+        <aside className="fixed left-0 top-0 z-50 h-full w-full bg-white md:hidden min-h-screen flex flex-col justify-between overflow-y-auto">
+          <div className="flex items-start justify-between pl-6 pt-8 pb-6">
+            <div className="text-base font-medium">NARAE WON</div>
             <Button
               variant="default"
               size="icon"

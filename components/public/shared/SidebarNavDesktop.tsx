@@ -31,12 +31,12 @@ export default function SidebarNavDesktop({
 
   return (
     <aside className="hidden md:flex md:w-xs xl:w-sm shrink-0 min-h-screen flex-col">
-      <div className="px-8 py-8  flex-none">
+      <div className="px-8 py-8 flex-none">
         <Link href="/" className="text-base font-medium ">
           NARAE WON
         </Link>
       </div>
-      <div className="flex-auto">
+      <div className="flex-auto overflow-y-auto">
         <SidebarNavContent
           worksYears={worksYears}
           soloExhibitions={soloExhibitions}
