@@ -9,7 +9,10 @@ const mapSupabaseError = (message: string) => {
   if (normalizedMessage.includes("does not exist")) {
     return "Required tables are missing. Check artworks."
   }
-  if (normalizedMessage.includes("permission") || normalizedMessage.includes("rls")) {
+  if (
+    normalizedMessage.includes("permission") ||
+    normalizedMessage.includes("rls")
+  ) {
     return "Permission denied. Check RLS policies for artworks."
   }
   return "Unable to save exhibition entry."
@@ -43,7 +46,10 @@ export async function POST(request: Request) {
     const description = formData.get("description")?.toString().trim()
 
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: "Missing image file." }, { status: 400 })
+      return NextResponse.json(
+        { error: "Missing image file." },
+        { status: 400 },
+      )
     }
 
     if (!category || !allowedCategories.includes(category as any)) {
@@ -53,7 +59,7 @@ export async function POST(request: Request) {
     if (file.type && !file.type.startsWith("image/")) {
       return NextResponse.json(
         { error: "Only image uploads are allowed." },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -63,18 +69,24 @@ export async function POST(request: Request) {
 
     const year = Number(yearRaw)
     if (Number.isNaN(year)) {
-      return NextResponse.json({ error: "Year must be a number." }, { status: 400 })
+      return NextResponse.json(
+        { error: "Year must be a number." },
+        { status: 400 },
+      )
     }
 
     if (!exhibitionTitle) {
       return NextResponse.json(
         { error: "Exhibition title is required." },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (!caption) {
-      return NextResponse.json({ error: "Caption is required." }, { status: 400 })
+      return NextResponse.json(
+        { error: "Caption is required." },
+        { status: 400 },
+      )
     }
 
     const storagePath = buildStoragePath(category, file)
@@ -88,7 +100,7 @@ export async function POST(request: Request) {
     if (uploadError) {
       return NextResponse.json(
         { error: "Upload failed. Please try again." },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -104,7 +116,7 @@ export async function POST(request: Request) {
       await supabase.storage.from(bucketName).remove([storagePath])
       return NextResponse.json(
         { error: mapSupabaseError(latestError.message) },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -115,7 +127,7 @@ export async function POST(request: Request) {
         storage_path: storagePath,
         category,
         year,
-        exhibition_slug: exhibitionTitle,
+        title: exhibitionTitle,
         caption,
         description: description || null,
         display_order: nextDisplayOrder,
@@ -127,7 +139,7 @@ export async function POST(request: Request) {
       await supabase.storage.from(bucketName).remove([storagePath])
       return NextResponse.json(
         { error: mapSupabaseError(artworkError?.message || "") },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -154,7 +166,7 @@ export async function POST(request: Request) {
     console.error("Exhibition upload failed", { error })
     return NextResponse.json(
       { error: "Server error while uploading exhibition." },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

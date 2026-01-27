@@ -89,11 +89,11 @@
 
 ## Phase 5 — Public page DB
 
-- [ ] Navbar
-  - [ ]
+- [x] Navbar
+  - [x] 2018 - 2021 logic
 - [ ] Sub-Header for mobile
   - [ ]
-- [ ] Works
+- [x] Works
   - [ ]
 - [ ] Exhibitions
   - [ ]
@@ -101,6 +101,11 @@
   - [ ]
 - [ ] CV
   - [ ]
+
+- [ ] 안쓰이는 데이터 삭제
+- [ ] works uploader 2018 - 2021 -> mandatory
+- [ ] ADMIN : works uploader ipad modal height
+- [ ] ADMIN : exhibition uploader additional images
 
 ---
 

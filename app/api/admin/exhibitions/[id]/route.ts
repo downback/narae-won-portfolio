@@ -44,7 +44,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const description = formData.get("description")?.toString().trim()
 
     const isAllowedCategory = (
-      value: string
+      value: string,
     ): value is (typeof allowedCategories)[number] =>
       allowedCategories.includes(value as (typeof allowedCategories)[number])
 
@@ -58,18 +58,24 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     const year = Number(yearRaw)
     if (Number.isNaN(year)) {
-      return NextResponse.json({ error: "Year must be a number." }, { status: 400 })
+      return NextResponse.json(
+        { error: "Year must be a number." },
+        { status: 400 },
+      )
     }
 
     if (!exhibitionTitle) {
       return NextResponse.json(
         { error: "Exhibition title is required." },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (!caption) {
-      return NextResponse.json({ error: "Caption is required." }, { status: 400 })
+      return NextResponse.json(
+        { error: "Caption is required." },
+        { status: 400 },
+      )
     }
 
     const { data: artwork, error: artworkError } = await supabase
@@ -81,7 +87,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     if (artworkError || !artwork?.storage_path) {
       return NextResponse.json(
         { error: "Exhibition not found." },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -90,7 +96,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       if (file.type && !file.type.startsWith("image/")) {
         return NextResponse.json(
           { error: "Only image uploads are allowed." },
-          { status: 400 }
+          { status: 400 },
         )
       }
       nextStoragePath = buildStoragePath(category, file)
@@ -104,7 +110,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       if (uploadError) {
         return NextResponse.json(
           { error: "Upload failed. Please try again." },
-          { status: 500 }
+          { status: 500 },
         )
       }
     }
@@ -115,7 +121,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         storage_path: nextStoragePath,
         category,
         year,
-        exhibition_slug: exhibitionTitle,
+        title: exhibitionTitle,
         caption,
         description: description || null,
         updated_at: new Date().toISOString(),
@@ -130,7 +136,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       }
       return NextResponse.json(
         { error: updateError?.message || "Unable to update exhibition." },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -161,7 +167,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     console.error("Exhibition update failed", { error })
     return NextResponse.json(
       { error: "Server error while updating exhibition." },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -192,7 +198,7 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     if (artworkError || !artwork?.storage_path) {
       return NextResponse.json(
         { error: "Exhibition not found." },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -204,7 +210,7 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     if (deleteError) {
       return NextResponse.json(
         { error: deleteError.message || "Unable to delete exhibition." },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -233,7 +239,7 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     console.error("Exhibition delete failed", { error })
     return NextResponse.json(
       { error: "Server error while deleting exhibition." },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -24,6 +24,7 @@ import {
 export type WorkFormValues = {
   imageFile: File | null
   year: string
+  title: string
   caption: string
 }
 
@@ -38,6 +39,7 @@ type WorkUploadModalProps = {
   initialValues?: {
     imageUrl?: string
     year?: string
+    title?: string
     caption?: string
   }
   isEditMode?: boolean
@@ -69,6 +71,7 @@ export default function WorkUploadModal({
     initialValues?.imageUrl ?? "",
   )
   const [year, setYear] = useState(initialValues?.year ?? "")
+  const [titleValue, setTitleValue] = useState(initialValues?.title ?? "")
   const [caption, setCaption] = useState(initialValues?.caption ?? "")
   const wasSubmittingRef = useRef(false)
 
@@ -120,12 +123,14 @@ export default function WorkUploadModal({
       setImageFile(null)
       setInitialImageUrl("")
       setYear("")
+        setTitleValue("")
       setCaption("")
     } else {
       setSelectedImageName("")
       setImageFile(null)
       setImagePreviewUrl("")
       setYear(initialValues?.year ?? "")
+        setTitleValue(initialValues?.title ?? "")
       setCaption(initialValues?.caption ?? "")
       setInitialImageUrl(initialValues?.imageUrl ?? "")
     }
@@ -220,7 +225,16 @@ export default function WorkUploadModal({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="work-caption">Caption (required)</Label>
+            <Label htmlFor="work-title">Title *</Label>
+            <Input
+              id="work-title"
+              value={titleValue}
+              onChange={(event) => setTitleValue(event.target.value)}
+              placeholder="Work title"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="work-caption">Caption *</Label>
             <Input
               id="work-caption"
               value={caption}
@@ -248,6 +262,7 @@ export default function WorkUploadModal({
               onSave?.({
                 imageFile,
                 year,
+                title: titleValue,
                 caption,
               })
             }

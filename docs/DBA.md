@@ -14,24 +14,24 @@ All content is managed exclusively via **Supabase Database** and **Supabase Stor
 
 The database and storage layers together act as a **lightweight CMS**, optimized for:
 
-* editorial control
-* predictable structure
-* long-term maintainability
-* minimal schema complexity
+- editorial control
+- predictable structure
+- long-term maintainability
+- minimal schema complexity
 
 ---
 
 ## 2. Core Characteristics
 
-* **Single admin user**
-* **Public read / admin write** access model
-* **Image-based works and exhibitions**
-* **Text-based editorial pages**
-* **Structured biographical (CV) information**
-* **Explicit, semantic storage paths**
-* **No hero image**
-* **No PDF-based portfolio**
-* **No drafts, versions, or soft deletes**
+- **Single admin user**
+- **Public read / admin write** access model
+- **Image-based works and exhibitions**
+- **Text-based editorial pages**
+- **Structured biographical (CV) information**
+- **Explicit, semantic storage paths**
+- **No hero image**
+- **No PDF-based portfolio**
+- **No drafts, versions, or soft deletes**
 
 ---
 
@@ -39,11 +39,10 @@ The database and storage layers together act as a **lightweight CMS**, optimized
 
 ### 3.1 Bucket
 
-* **Bucket name:** `site-assets`
-* **Access model:**
-
-  * Public read access
-  * Authenticated admin write access only
+- **Bucket name:** `site-assets`
+- **Access model:**
+  - Public read access
+  - Authenticated admin write access only
 
 ---
 
@@ -60,25 +59,25 @@ site-assets/
 
 **Rules**
 
-* No placeholder files
-* No empty folders
-* Folders exist only if they contain real images
-* Year folders under `works/` are created dynamically when images are uploaded
-* Exhibition folders use **semantic slugs**, not IDs
-* Storage paths must remain **stable after creation**
-* Future years or exhibitions must **not** require schema changes
+- No placeholder files
+- No empty folders
+- Folders exist only if they contain real images
+- Year folders under `works/` are created dynamically when images are uploaded
+- Exhibition folders use **semantic slugs**, not IDs
+- Storage paths must remain **stable after creation**
+- Future years or exhibitions must **not** require schema changes
 
 ---
 
 ### 3.3 Storage Constraints
 
-* Images are allowed **only** in:
+- Images are allowed **only** in:
+  - `works/`
+  - `solo-exhibitions/`
+  - `group-exhibitions/`
 
-  * `works/`
-  * `solo-exhibitions/`
-  * `group-exhibitions/`
-* One storage object corresponds to one database record
-* Storage is not treated as a source of truth; the database is authoritative
+- One storage object corresponds to one database record
+- Storage is not treated as a source of truth; the database is authoritative
 
 ---
 
@@ -100,39 +99,39 @@ The database is responsible for:
 
 Represents **all images displayed on the site**, including:
 
-* Works
-* Solo exhibition images
-* Group exhibition images
+- Works
+- Solo exhibition images
+- Group exhibition images
 
 **One row = one image file in storage**
 
 #### Columns
 
-* `id` — primary key
-* `storage_path` — string, required, unique
-* `category` — enum-like text:
+- `id` — primary key
+- `storage_path` — string, required, unique
+- `category` — enum-like text:
+  - `works`
+  - `solo-exhibitions`
+  - `group-exhibitions`
 
-  * `works`
-  * `solo-exhibitions`
-  * `group-exhibitions`
-* `year` — integer, nullable
+- `year` — integer, nullable
   (used for works only)
-* `exhibition_slug` — string, nullable
+- `title` — string, nullable
   (used for exhibitions only)
-* `caption` — text, required (may be empty)
-* `description` — text, nullable
-* `display_order` — integer
-* `created_at`
-* `updated_at`
+- `caption` — text, required (may be empty)
+- `description` — text, nullable
+- `display_order` — integer
+- `created_at`
+- `updated_at`
 
 #### Rules
 
-* Each image must have exactly one `artworks` row
-* Ordering must be deterministic within:
+- Each image must have exactly one `artworks` row
+- Ordering must be deterministic within:
+  - `(category, year)` for works
+  - `(category, title)` for exhibitions
 
-  * `(category, year)` for works
-  * `(category, exhibition_slug)` for exhibitions
-* Storage paths are immutable once referenced
+- Storage paths are immutable once referenced
 
 ---
 
@@ -143,69 +142,69 @@ Each table is independent and ordered.
 
 All bio tables:
 
-* Allow empty states
-* Store plain text only
-* Support deterministic ordering
+- Allow empty states
+- Store plain text only
+- Support deterministic ordering
 
 ---
 
 ### 6.1 `bio_solo_exhibitions`
 
-* `id`
-* `year`
-* `description`
-* `display_order`
-* `created_at`
+- `id`
+- `year`
+- `description`
+- `display_order`
+- `created_at`
 
 ---
 
 ### 6.2 `bio_group_exhibitions`
 
-* `id`
-* `year`
-* `description`
-* `display_order`
-* `created_at`
+- `id`
+- `year`
+- `description`
+- `display_order`
+- `created_at`
 
 ---
 
 ### 6.3 `bio_education`
 
-* `id`
-* `year` (text, free-form; e.g. “2018–2022”)
-* `description`
-* `display_order`
-* `created_at`
+- `id`
+- `year` (text, free-form; e.g. “2018–2022”)
+- `description`
+- `display_order`
+- `created_at`
 
 ---
 
 ### 6.4 `bio_residency`
 
-* `id`
-* `year`
-* `description`
-* `display_order`
-* `created_at`
+- `id`
+- `year`
+- `description`
+- `display_order`
+- `created_at`
 
 ---
 
 ### 6.5 `bio_awards`
 
-* `id`
-* `year`
-* `description`
-* `display_order`
-* `created_at`
+- `id`
+- `year`
+- `description`
+- `display_order`
+- `created_at`
 
 ---
 
 ### 6.6 `bio_collections`
 
-* `id`
-* `year` (nullable)
-* `description`
-* `display_order`
-* `created_at`
+- `id`
+- `year` (nullable)
+- `description`
+- `display_order`
+- `created_at`
 
 ---
 
@@ -215,27 +214,27 @@ All bio tables:
 
 Represents long-form editorial content, including:
 
-* Essays
-* Statements
-* Writings
-* Press texts
+- Essays
+- Statements
+- Writings
+- Press texts
 
 #### Columns
 
-* `id`
-* `slug` (unique, URL-safe)
-* `title`
-* `year`
-* `body`
-* `created_at`
-* `updated_at`
+- `id`
+- `slug` (unique, URL-safe)
+- `title`
+- `year`
+- `body`
+- `created_at`
+- `updated_at`
 
 #### Notes
 
-* Text content is plain text or markdown
-* All records are publicly readable
-* No draft or publish state
-* Ordering is handled externally or implicitly
+- Text content is plain text or markdown
+- All records are publicly readable
+- No draft or publish state
+- Ordering is handled externally or implicitly
 
 ---
 
@@ -247,20 +246,20 @@ Tracks admin actions for accountability and debugging.
 
 #### Columns
 
-* `id`
-* `admin_id`
-* `action_type` (e.g. create, update, delete)
-* `entity_type` (e.g. artwork, text, bio)
-* `entity_id`
-* `metadata` (JSON)
-* `created_at`
+- `id`
+- `admin_id`
+- `action_type` (e.g. create, update, delete)
+- `entity_type` (e.g. artwork, text, bio)
+- `entity_id`
+- `metadata` (JSON)
+- `created_at`
 
 #### Rules
 
-* Append-only
-* No updates
-* No deletes
-* Admin-only write access
+- Append-only
+- No updates
+- No deletes
+- Admin-only write access
 
 ---
 
@@ -270,9 +269,9 @@ Tracks admin actions for accountability and debugging.
 
 Public read access is allowed for:
 
-* Artworks
-* Texts
-* Biography tables
+- Artworks
+- Texts
+- Biography tables
 
 ---
 
@@ -280,19 +279,19 @@ Public read access is allowed for:
 
 Only the authenticated admin may:
 
-* Insert, update, or delete DB records
-* Upload, update, or delete storage files
-* Create activity log entries
+- Insert, update, or delete DB records
+- Upload, update, or delete storage files
+- Create activity log entries
 
 ---
 
 ### 9.3 Safeguards
 
-* No anonymous writes
-* No multi-role system
-* Database-level enforcement via RLS
-* Storage-level enforcement via Storage Policies
-* Storage paths must not be modified after DB reference
+- No anonymous writes
+- No multi-role system
+- Database-level enforcement via RLS
+- Storage-level enforcement via Storage Policies
+- Storage paths must not be modified after DB reference
 
 ---
 
@@ -300,13 +299,13 @@ Only the authenticated admin may:
 
 The system does **not** require:
 
-* Version history
-* Drafts or revisions
-* Soft deletes
-* Search or tagging
-* Localization
-* Analytics
-* Generic CMS abstractions
+- Version history
+- Drafts or revisions
+- Soft deletes
+- Search or tagging
+- Localization
+- Analytics
+- Generic CMS abstractions
 
 ---
 
@@ -324,10 +323,10 @@ The DBA is responsible for:
 
 ## 12. Product Intent (Guiding Principles)
 
-* **Structure > flexibility**
-* **Editorial control > automation**
-* **Predictable data > generalized CMS patterns**
-* **Future growth without schema changes**
+- **Structure > flexibility**
+- **Editorial control > automation**
+- **Predictable data > generalized CMS patterns**
+- **Future growth without schema changes**
 
 ---
 

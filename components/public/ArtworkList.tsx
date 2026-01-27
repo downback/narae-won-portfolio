@@ -3,7 +3,7 @@ import ArtworkItem from "@/components/public/ArtworkItem"
 type Artwork = {
   id: string
   title: string
-  description: string
+  caption: string
   imageSrc?: string
   imageAlt?: string
 }
@@ -12,30 +12,14 @@ type ArtworkListProps = {
   items?: Artwork[]
 }
 
-const placeholderItems: Artwork[] = [
-  {
-    id: "work-1",
-    title: "Work title",
-    description: "Work description placeholder text.",
-  },
-  {
-    id: "work-2",
-    title: "Another work title Another work title Another work title",
-    description:
-      "Another work description placeholder text. Another work description placeholder text. Another work description placeholder text.",
-  },
-]
-
-export default function ArtworkList({
-  items = placeholderItems,
-}: ArtworkListProps) {
+export default function ArtworkList({ items = [] }: ArtworkListProps) {
   return (
     <div className="w-full flex flex-col justify-center items-center gap-14">
       {items.map((item) => (
         <ArtworkItem
           key={item.id}
           title={item.title}
-          description={item.description}
+          caption={item.caption}
           imageSrc={item.imageSrc}
           imageAlt={item.imageAlt}
         />

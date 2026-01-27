@@ -37,6 +37,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const formData = await request.formData()
     const file = formData.get("file")
     const yearRaw = formData.get("year")?.toString().trim()
+    const title = formData.get("title")?.toString().trim()
     const caption = formData.get("caption")?.toString().trim()
     const description = formData.get("description")?.toString().trim()
 
@@ -47,6 +48,10 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const year = Number(yearRaw)
     if (Number.isNaN(year)) {
       return NextResponse.json({ error: "Year must be a number." }, { status: 400 })
+    }
+
+    if (!title) {
+      return NextResponse.json({ error: "Title is required." }, { status: 400 })
     }
 
     if (!caption) {
@@ -95,6 +100,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       .update({
         storage_path: nextStoragePath,
         year,
+        title,
         caption,
         description: description || null,
         updated_at: new Date().toISOString(),

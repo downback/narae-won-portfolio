@@ -14,11 +14,11 @@ import { supabaseBrowser } from "@/lib/client"
 type ExhibitionPreviewItem = {
   id: string
   imageUrl: string
+  exhibitionTitle: string
   caption: string
   category: ExhibitionCategory
   year: number | null
   description: string
-  exhibitionTitle: string
   createdAt: string
 }
 
@@ -52,7 +52,7 @@ export default function AdminExhibitionsPanel() {
     const { data, error } = await supabase
       .from("artworks")
       .select(
-        "id, storage_path, caption, category, year, description, exhibition_slug, created_at",
+        "id, storage_path, caption, category, year, description, title, created_at",
       )
       .in("category", ["solo-exhibitions", "group-exhibitions"])
       .order("created_at", { ascending: false })
@@ -76,7 +76,7 @@ export default function AdminExhibitionsPanel() {
           category: item.category as ExhibitionCategory,
           year: item.year ?? null,
           description: item.description ?? "",
-          exhibitionTitle: item.exhibition_slug ?? "",
+          exhibitionTitle: item.title ?? "",
           createdAt: item.created_at ?? new Date().toISOString(),
         }
       })
@@ -291,6 +291,7 @@ export default function AdminExhibitionsPanel() {
                 <div className="flex-1">
                   <ImageCaptionPreview
                     imageUrl={item.imageUrl}
+                    title={item.exhibitionTitle}
                     caption={item.caption}
                     onEdit={() => {
                       setEditingItem(item)

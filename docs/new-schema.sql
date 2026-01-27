@@ -34,7 +34,7 @@ create table public.artworks (
   storage_path text not null,
   category text not null,
   year int null,
-  exhibition_slug text null,
+  title text null,
   caption text not null,
   description text null,
   display_order int not null,

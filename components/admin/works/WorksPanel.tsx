@@ -12,6 +12,7 @@ import { Plus } from "lucide-react"
 type WorkPreviewItem = {
   id: string
   imageUrl: string
+  title: string
   caption: string
   year: number | null
   createdAt: string
@@ -44,7 +45,7 @@ export default function WorksPanel() {
   const loadPreviewItems = useCallback(async () => {
     const { data, error } = await supabase
       .from("artworks")
-      .select("id, storage_path, caption, year, created_at")
+      .select("id, storage_path, title, caption, year, created_at")
       .eq("category", "works")
       .order("created_at", { ascending: false })
 
@@ -63,6 +64,7 @@ export default function WorksPanel() {
         return {
           id: item.id,
           imageUrl: publicData.publicUrl,
+          title: item.title ?? "",
           caption: item.caption ?? "",
           year: item.year ?? null,
           createdAt: item.created_at ?? new Date().toISOString(),
@@ -81,6 +83,10 @@ export default function WorksPanel() {
     const isEditMode = Boolean(editingItem)
     if (!values.imageFile && !isEditMode) {
       setErrorMessage("Select an image to upload.")
+      return
+    }
+    if (!values.title.trim()) {
+      setErrorMessage("Title is required.")
       return
     }
     if (!values.caption.trim()) {
@@ -110,6 +116,7 @@ export default function WorksPanel() {
         formData.append("file", values.imageFile)
       }
       formData.append("year", resolvedYear)
+      formData.append("title", values.title)
       formData.append("caption", values.caption)
 
       const response = await fetch(
@@ -138,6 +145,7 @@ export default function WorksPanel() {
           {
             id: crypto.randomUUID(),
             imageUrl: previewUrl,
+            title: values.title,
             caption: values.caption,
             year: Number(resolvedYear),
             createdAt: new Date().toISOString(),
@@ -162,6 +170,7 @@ export default function WorksPanel() {
     return {
       imageUrl: editingItem.imageUrl,
       year: editingItem.year ? String(editingItem.year) : "",
+      title: editingItem.title,
       caption: editingItem.caption,
     }
   }, [editingItem])

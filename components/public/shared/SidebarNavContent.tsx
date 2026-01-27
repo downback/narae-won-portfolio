@@ -32,6 +32,38 @@ export default function SidebarNavContent({
   className,
   onNavigate,
 }: SidebarNavContentProps) {
+  const rangeStart = 2018
+  const rangeEnd = 2021
+  const rangeLabel = `${rangeStart} - ${rangeEnd}`
+  const rangeSlug = `${rangeStart}-${rangeEnd}`
+  const workLinks = worksYears
+    .filter((year) => year.trim().length > 0)
+    .reduce<{ label: string; href: string; key: string }[]>((acc, year) => {
+      const yearValue = Number(year)
+      if (
+        Number.isInteger(yearValue) &&
+        yearValue >= rangeStart &&
+        yearValue <= rangeEnd
+      ) {
+        const alreadyAdded = acc.some((item) => item.key === rangeSlug)
+        if (!alreadyAdded) {
+          acc.push({
+            label: rangeLabel,
+            href: `/works/${rangeSlug}`,
+            key: rangeSlug,
+          })
+        }
+        return acc
+      }
+
+      acc.push({
+        label: year,
+        href: `/works/${year}`,
+        key: year,
+      })
+      return acc
+    }, [])
+
   return (
     <nav className={cn("flex flex-col justify-between md:h-full", className)}>
       <div className="space-y-6">
@@ -40,17 +72,17 @@ export default function SidebarNavContent({
             work
           </span>
           <div className="flex flex-col">
-            {worksYears.map((year) => (
+            {workLinks.map((item) => (
               <Link
-                key={year}
+                key={item.key}
                 className={cn(
                   "inline-block transition-colors hover:text-red-500 text-base md:text-[14px] font-light",
-                  pathname === `/works/${year}` && "text-red-500",
+                  pathname === item.href && "text-red-500",
                 )}
-                href={`/works/${year}`}
+                href={item.href}
                 onClick={onNavigate}
               >
-                {year}
+                {item.label}
               </Link>
             ))}
           </div>

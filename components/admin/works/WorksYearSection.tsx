@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 type WorkPreviewItem = {
   id: string
   imageUrl: string
+  title: string
   caption: string
   year: number | null
   createdAt: string
@@ -91,6 +92,7 @@ export default function WorksYearSection({
                 <div className="flex-1">
                   <ImageCaptionPreview
                     imageUrl={item.imageUrl}
+                    title={item.title}
                     caption={item.caption}
                     onEdit={() => onEdit(item)}
                     onDelete={() => onDelete(item)}

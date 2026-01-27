@@ -4,7 +4,7 @@ import LightboxImage from "@/components/public/LightboxImage"
 
 type ArtworkItemProps = {
   title?: string
-  description?: string
+  caption?: string
   imageSrc?: string
   imageAlt?: string
 }
@@ -14,7 +14,7 @@ const placeholderSrc =
 
 export default function ArtworkItem({
   title = "Work title",
-  description = "Work description placeholder text.",
+  caption = "Work caption placeholder text.",
   imageSrc = placeholderSrc,
   imageAlt = "Artwork placeholder",
 }: ArtworkItemProps) {
@@ -36,7 +36,7 @@ export default function ArtworkItem({
           {title}
         </p>
         <p className="md:min-w-0 md:flex-1 md:text-right font-light">
-          {description}
+          {caption}
         </p>
       </div>
     </div>

@@ -8,6 +8,7 @@ import DeleteConfirmDialog from "@/components/admin/shared/DeleteConfirmDialog"
 
 type ImageCaptionPreviewProps = {
   imageUrl: string
+  title: string
   caption: string
   onEdit?: () => void
   onDelete?: () => Promise<void> | void
@@ -15,6 +16,7 @@ type ImageCaptionPreviewProps = {
 
 export default function ImageCaptionPreview({
   imageUrl,
+  title,
   caption,
   onEdit,
   onDelete,
@@ -55,7 +57,9 @@ export default function ImageCaptionPreview({
             className="h-full w-full object-cover"
           />
         </div>
-        <p className="text-sm text-muted-foreground">{caption}</p>
+        <p className="text-sm text-muted-foreground">
+          {title}, {caption}
+        </p>
       </div>
       <div className="flex gap-1 md:gap-2 items-center">
         <Button

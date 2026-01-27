@@ -1,28 +1,82 @@
 import type { ReactNode } from "react"
 import SidebarNavDesktop from "@/components/public/shared/SidebarNavDesktop"
 import SidebarNavMobile from "@/components/public/shared/SidebarNavMobile"
+import { supabaseServer } from "@/lib/server"
 
-const worksYears = ["2026", "2025", "2024"]
-const soloExhibitions = [
-  { title: "solo exhibition title1", slug: "solo-exhibition-title1" },
-  { title: "solo exhibition title2", slug: "solo-exhibition-title2" },
-  { title: "solo exhibition title3", slug: "solo-exhibition-title3" },
-]
-const groupExhibitions = [
-  { title: "group exhibition title1", slug: "group-exhibition-title1" },
-  { title: "group exhibition title2", slug: "group-exhibition-title2" },
-  {
-    title: "group exhibition title3 group-exhibition-title3",
-    slug: "group-exhibition-title3",
-  },
-]
 const navLinks = [
   { href: "/works", label: "works" },
   { href: "/texts", label: "text" },
   { href: "/cv", label: "cv" },
 ]
 
-export default function PublicLayout({ children }: { children: ReactNode }) {
+const normalizeSlug = (value?: string | null) => (value ?? "").trim()
+const formatSlugLabel = (value: string) => value.replace(/-/g, " ")
+
+export default async function PublicLayout({
+  children,
+}: {
+  children: ReactNode
+}) {
+  const supabase = await supabaseServer()
+  const [
+    { data: worksRows, error: worksError },
+    { data: soloRows, error: soloError },
+    { data: groupRows, error: groupError },
+  ] = await Promise.all([
+    supabase
+      .from("artworks")
+      .select("year")
+      .eq("category", "works")
+      .not("year", "is", null)
+      .order("year", { ascending: false }),
+    supabase
+      .from("artworks")
+      .select("title")
+      .eq("category", "solo-exhibitions")
+      .not("title", "is", null)
+      .order("title", { ascending: true }),
+    supabase
+      .from("artworks")
+      .select("title")
+      .eq("category", "group-exhibitions")
+      .not("title", "is", null)
+      .order("title", { ascending: true }),
+  ])
+
+  if (worksError || soloError || groupError) {
+    console.error("Failed to load sidebar navigation data", {
+      worksError,
+      soloError,
+      groupError,
+    })
+  }
+
+  const worksYears = Array.from(
+    new Set(
+      (worksRows ?? [])
+        .map((row) => (row.year ? String(row.year) : ""))
+        .filter((year) => year.length > 0),
+    ),
+  )
+
+  const buildExhibitions = (rows: { title?: string | null }[]) => {
+    const seen = new Set<string>()
+    return rows
+      .map((row) => normalizeSlug(row.title))
+      .filter((slug) => slug.length > 0)
+      .filter((slug) => {
+        if (seen.has(slug)) return false
+        seen.add(slug)
+        return true
+      })
+      .map((slug) => ({
+        slug,
+        title: formatSlugLabel(slug),
+      }))
+  }
+
+  const soloExhibitions = buildExhibitions(soloRows ?? [])
+  const groupExhibitions = buildExhibitions(groupRows ?? [])
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <div className="flex w-full flex-col md:sticky md:top-0 md:h-screen md:w-xs xl:w-sm md:shrink-0 md:overflow-y-auto">
