@@ -3,7 +3,7 @@ import { supabaseServer } from "@/lib/server"
 
 type BioPayload = {
   description?: string
-  year?: number | null
+  description_kr?: string
 }
 
 type RouteContext = {
@@ -70,13 +70,20 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       )
     }
     const description = body.description?.trim()
-    const year = body.year ?? null
+    const descriptionKr = body.description_kr?.trim()
+
+    if (!description || !descriptionKr) {
+      return NextResponse.json(
+        { error: "Description and Korean description are required." },
+        { status: 400 }
+      )
+    }
 
     const { data, error } = await supabase
       .from("bio_collections")
-      .update({ description: description || null, year })
+      .update({ description, description_kr: descriptionKr })
       .eq("id", id)
-      .select("description, year")
+      .select("description, description_kr")
       .single()
 
     if (error || !data) {

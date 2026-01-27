@@ -48,13 +48,13 @@ export default async function AdminQuickPreviewPanel() {
       .limit(1)
       .maybeSingle(),
     supabase
-      .from("bio_solo_shows")
+      .from("bio_solo_exhibitions")
       .select("updated_at")
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
     supabase
-      .from("bio_group_shows")
+      .from("bio_group_exhibitions")
       .select("updated_at")
       .order("updated_at", { ascending: false })
       .limit(1)

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 export default function AdminBiography() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="">
         <AdminBioSectionPanel />
       </div>
       <Card className="border-0 bg-muted shadow-none">

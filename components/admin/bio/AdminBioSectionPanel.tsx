@@ -10,14 +10,14 @@ import { supabaseBrowser } from "@/lib/client"
 const formatBioItems = (
   rows: {
     id: string
-    year: number | string | null
     description: string | null
+    description_kr: string | null
   }[],
 ) =>
   rows.map((row) => ({
     id: row.id,
-    year: row.year !== null ? String(row.year) : "",
     description: row.description ?? "",
+    description_kr: row.description_kr ?? "",
   }))
 
 export default function AdminBioSectionPanel() {
@@ -40,32 +40,27 @@ export default function AdminBioSectionPanel() {
     ] = await Promise.all([
       supabase
         .from("bio_solo_exhibitions")
-        .select("id, year, description, display_order")
-        .order("display_order", { ascending: true })
-        .order("year", { ascending: false }),
+        .select("id, description, description_kr, display_order")
+        .order("display_order", { ascending: true }),
       supabase
         .from("bio_group_exhibitions")
-        .select("id, year, description, display_order")
-        .order("display_order", { ascending: true })
-        .order("year", { ascending: false }),
+        .select("id, description, description_kr, display_order")
+        .order("display_order", { ascending: true }),
       supabase
         .from("bio_residency")
-        .select("id, year, description, display_order")
-        .order("display_order", { ascending: true })
-        .order("year", { ascending: false }),
+        .select("id, description, description_kr, display_order")
+        .order("display_order", { ascending: true }),
       supabase
         .from("bio_awards")
-        .select("id, year, description, display_order")
-        .order("display_order", { ascending: true })
-        .order("year", { ascending: false }),
+        .select("id, description, description_kr, display_order")
+        .order("display_order", { ascending: true }),
       supabase
         .from("bio_collections")
-        .select("id, year, description, display_order")
-        .order("display_order", { ascending: true })
-        .order("year", { ascending: false }),
+        .select("id, description, description_kr, display_order")
+        .order("display_order", { ascending: true }),
       supabase
         .from("bio_education")
-        .select("id, year, description, display_order")
+        .select("id, description, description_kr, display_order")
         .order("display_order", { ascending: true }),
     ])
 
@@ -147,7 +142,7 @@ export default function AdminBioSectionPanel() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 ">
       {sections.map((section) => (
         <BioSectionCard
           key={section.kind}
@@ -156,6 +151,6 @@ export default function AdminBioSectionPanel() {
           kind={section.kind}
         />
       ))}
-          </div>
+    </div>
   )
 }

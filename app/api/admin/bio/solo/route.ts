@@ -3,7 +3,7 @@ import { supabaseServer } from "@/lib/server"
 
 type BioPayload = {
   description?: string
-  year?: number | null
+  description_kr?: string
 }
 
 const logActivity = async (
@@ -43,20 +43,23 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as BioPayload
     const description = body.description?.trim()
-    const year = body.year
+    const descriptionKr = body.description_kr?.trim()
 
-    if (year === undefined || year === null) {
-      return NextResponse.json({ error: "Year is required." }, { status: 400 })
+    if (!description || !descriptionKr) {
+      return NextResponse.json(
+        { error: "Description and Korean description are required." },
+        { status: 400 }
+      )
     }
 
     const { data, error } = await supabase
       .from("bio_solo_exhibitions")
       .insert({
-        description: description || null,
-        year,
+        description,
+        description_kr: descriptionKr,
         display_order: 0,
       })
-      .select("id, year, description")
+      .select("id, description, description_kr")
       .single()
 
     if (error || !data) {

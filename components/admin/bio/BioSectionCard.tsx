@@ -9,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export type BioItem = {
   id?: string
-  year: string
   description: string
+  description_kr: string
 }
 
 export type BioSectionKind =
@@ -42,8 +42,8 @@ export default function BioSectionCard({
   const [deleteDialogId, setDeleteDialogId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [formValues, setFormValues] = useState({
-    year: "",
     description: "",
+    description_kr: "",
   })
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function BioSectionCard({
   }
 
   const resetForm = () => {
-    setFormValues({ year: "", description: "" })
+    setFormValues({ description: "", description_kr: "" })
     setEditingId(null)
     setErrorMessage("")
   }
@@ -82,8 +82,8 @@ export default function BioSectionCard({
       return
     }
     setFormValues({
-      year: item.year,
       description: item.description,
+      description_kr: item.description_kr,
     })
     setEditingId(normalizeId(item.id))
     setErrorMessage("")
@@ -91,47 +91,23 @@ export default function BioSectionCard({
   }
 
   const handleCreate = async () => {
-    const parsedYear = formValues.year ? Number(formValues.year) : null
-    const trimmedYear = formValues.year.trim()
-
-    if (kind === "education") {
-      if (!trimmedYear) {
-        setErrorMessage("Year is required.")
-        return
-      }
-    } else if (formValues.year) {
-      if (!Number.isInteger(parsedYear)) {
-        setErrorMessage("Year must be a number.")
-        return
-      }
-
-      if ((parsedYear ?? 0) < 1900 || (parsedYear ?? 0) > 2100) {
-        setErrorMessage("Year must be between 1900 and 2100.")
-        return
-      }
-    } else if (kind !== "collections") {
-      setErrorMessage("Year is required.")
-      return
-    }
-
     setIsSubmitting(true)
     setErrorMessage("")
 
     try {
-      const yearPayload = kind === "education" ? trimmedYear : parsedYear
       const response = await fetch(`/api/admin/bio/${kind}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           description: formValues.description,
-          year: yearPayload,
+          description_kr: formValues.description_kr,
         }),
       })
 
       const payload = (await response.json()) as {
         id?: string
-        year?: number
         description?: string | null
+        description_kr?: string | null
         error?: string
       }
 
@@ -145,14 +121,15 @@ export default function BioSectionCard({
         return
       }
 
-      const nextYear = payload.year ?? yearPayload ?? null
       const nextDescription = payload.description ?? formValues.description
+      const nextDescriptionKr =
+        payload.description_kr ?? formValues.description_kr
 
       setCurrentItems((prevItems) => [
         {
           id: payload.id,
-          year: nextYear !== null ? String(nextYear) : "",
           description: nextDescription,
+          description_kr: nextDescriptionKr,
         },
         ...prevItems,
       ])
@@ -172,47 +149,23 @@ export default function BioSectionCard({
       return
     }
     console.log("Editing bio entry", { id: editingId, kind })
-    const parsedYear = formValues.year ? Number(formValues.year) : null
-    const trimmedYear = formValues.year.trim()
-
-    if (kind === "education") {
-      if (!trimmedYear) {
-        setErrorMessage("Year is required.")
-        return
-      }
-    } else if (formValues.year) {
-      if (!Number.isInteger(parsedYear)) {
-        setErrorMessage("Year must be a number.")
-        return
-      }
-
-      if ((parsedYear ?? 0) < 1900 || (parsedYear ?? 0) > 2100) {
-        setErrorMessage("Year must be between 1900 and 2100.")
-        return
-      }
-    } else if (kind !== "collections") {
-      setErrorMessage("Year is required.")
-      return
-    }
-
     setIsSubmitting(true)
     setErrorMessage("")
 
     try {
-      const yearPayload = kind === "education" ? trimmedYear : parsedYear
       const safeId = encodeURIComponent(normalizeId(editingId))
       const response = await fetch(`/api/admin/bio/${kind}/${safeId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           description: formValues.description,
-          year: yearPayload,
+          description_kr: formValues.description_kr,
         }),
       })
 
       const payload = (await response.json()) as {
-        year?: number | string | null
         description?: string | null
+        description_kr?: string | null
         error?: string
       }
 
@@ -226,11 +179,9 @@ export default function BioSectionCard({
           item.id === editingId
             ? {
                 ...item,
-                year:
-                  (payload.year ?? yearPayload)
-                    ? String(payload.year ?? yearPayload)
-                    : "",
                 description: payload.description ?? formValues.description,
+                description_kr:
+                  payload.description_kr ?? formValues.description_kr,
               }
             : item,
         ),
@@ -321,14 +272,14 @@ export default function BioSectionCard({
   }
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 md:space-y-4 ">
+      <CardContent className="space-y-3 md:space-y-4">
         {currentItems.map((item, index) => (
           <div
-            key={item.id ?? `${item.year}-${item.description}-${index}`}
+            key={item.id ?? `${item.description}-${index}`}
             className={`flex flex-row gap-3 border-b border-border pb-3 md:pb-4 last:border-b-0 first:border-t first:border-border first:pt-3 md:first:pt-4 last:pb-0 md:items-center justify-between ${
               dragOverIndex === index ? "bg-muted/40" : ""
             }`}
@@ -351,9 +302,11 @@ export default function BioSectionCard({
               <div className="flex items-center text-muted-foreground">
                 <GripVertical className="h-4 w-4" />
               </div>
-              <div className="space-x-2 md:space-x-3">
-                <span className="text-sm font-medium">{item.year}</span>
-                <span className="text-sm">{item.description}</span>
+              <div className="space-y-1">
+                <span className="block text-sm">{item.description_kr}</span>
+                <span className="block text-sm text-muted-foreground">
+                  {item.description}
+                </span>
               </div>
             </div>
             <div className="flex gap-0 md:gap-2 items-center">
@@ -398,7 +351,7 @@ export default function BioSectionCard({
             </div>
           </div>
         ))}
-        <p className="text-xs text-right text-muted-foreground">
+        <p className="text-xs text-left text-muted-foreground">
           Drag rows to reorder
         </p>
         <button

@@ -12,8 +12,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 type BioFormValues = {
-  year: string
   description: string
+  description_kr: string
 }
 
 type BioUploadModalProps = {
@@ -44,7 +44,8 @@ export default function BioUploadModal({
   errorMessage,
 }: BioUploadModalProps) {
   const hasRequiredValues =
-    values.year.trim().length > 0 && values.description.trim().length > 0
+    values.description.trim().length > 0 &&
+    values.description_kr.trim().length > 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -56,16 +57,16 @@ export default function BioUploadModal({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="upload-year">Year</Label>
+            <Label htmlFor="upload-description-kr">Description (Korean)</Label>
             <Input
-              id="upload-year"
+              id="upload-description-kr"
               type="text"
-              placeholder="Year (e.g., 2024)"
-              value={values.year}
+              placeholder="전시 설명"
+              value={values.description_kr}
               onChange={(event) =>
                 onValuesChange({
                   ...values,
-                  year: event.target.value,
+                  description_kr: event.target.value,
                 })
               }
             />
