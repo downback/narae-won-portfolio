@@ -69,40 +69,38 @@
 
 ---
 
-## Phase 4 — Admin CRUD Interfaces
+## Phase 4 — Public page UI
 
-**Goal:** Allow admin to manage all content safely and predictably.
-
-- [ ] Build admin CRUD UI for:
-  - artworks
-  - texts
-  - biography tables
-
-- [ ] Load existing DB data into admin forms
-- [ ] Ensure admin UI reflects current DB state accurately
-- [ ] Prevent accidental destructive actions via basic confirmations
+- [x] Font
+- [x] Navbar
+  - [x] ui copy
+  - [x] mobile / desktop enhance
+- [ ] Sub-Header for mobile
+- [ ] Works
+  - [ ] ui copy
+- [ ] Exhibitions
+  - [ ] ui copy
+- [ ] Texts
+  - [ ] ui copy
+- [ ] CV
+  - [ ] ui copy
 
 ---
 
-## Phase 5 — Image Upload & Mutation Coordination
+## Phase 5 — Public page DB
 
-**Goal:** Enforce safe, ordered mutations involving Storage + DB.
-
-- [ ] Implement client-side image validation (type, size)
-- [ ] Implement safe upload flow:
-  - upload image to Storage
-  - create/update DB record with storage path
-
-- [ ] Implement safe update flow:
-  - upload new image
-  - update DB reference
-  - remove old image if required
-
-- [ ] Implement delete flow:
-  - delete DB record
-  - delete storage object
-
-- [ ] Ensure no DB record ever points to a missing storage file
+- [ ] Navbar
+  - [ ] ui copy
+  - [ ] mobile / desktop enhance
+- [ ] Sub-Header for mobile
+- [ ] Works
+  - [ ] ui copy
+- [ ] Exhibitions
+  - [ ] ui copy
+- [ ] Texts
+  - [ ] ui copy
+- [ ] CV
+  - [ ] ui copy
 
 ---
 

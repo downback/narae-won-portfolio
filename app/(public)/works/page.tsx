@@ -43,7 +43,7 @@ export default function Works() {
           caption: item.caption ?? null,
           imageUrl: `${rawPath}${versionTag}`,
         }
-    }
+      }
 
       const { data } = supabase.storage.from(bucketName).getPublicUrl(rawPath)
       return {
@@ -63,7 +63,7 @@ export default function Works() {
       revalidateOnReconnect: false, // Don't refetch on reconnect
       dedupingInterval: 3600000, // Dedupe requests within 1 hour
       fallbackData: [],
-    }
+    },
   )
   const resolvedWorksItems = worksItems ?? []
 

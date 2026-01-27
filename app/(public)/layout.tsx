@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
-import SidebarNavDesktop from "@/components/SidebarNavDesktop"
-import SidebarNavMobile from "@/components/SidebarNavMobile"
+import SidebarNavDesktop from "@/components/public/shared/SidebarNavDesktop"
+import SidebarNavMobile from "@/components/public/shared/SidebarNavMobile"
 
 const worksYears = ["2026", "2025", "2024"]
 const soloExhibitions = [
@@ -11,17 +11,20 @@ const soloExhibitions = [
 const groupExhibitions = [
   { title: "group exhibition title1", slug: "group-exhibition-title1" },
   { title: "group exhibition title2", slug: "group-exhibition-title2" },
-  { title: "group exhibition title3", slug: "group-exhibition-title3" },
+  {
+    title: "group exhibition title3 group-exhibition-title3",
+    slug: "group-exhibition-title3",
+  },
 ]
 const navLinks = [
   { href: "/works", label: "works" },
-  { href: "/cv", label: "cv" },
   { href: "/texts", label: "text" },
+  { href: "/cv", label: "cv" },
 ]
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex min-h-screen flex-col md:flex-row h-full">
       <SidebarNavDesktop
         worksYears={worksYears}
         soloExhibitions={soloExhibitions}
@@ -35,9 +38,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         navLinks={navLinks}
       />
       <main className="w-full md:w-auto flex-1">
-        <div className="px-4 md:pr-8 sm:px-0 py-6 md:py-0 ">
-          {children}
-        </div>
+        <div className="px-4 md:pr-8 sm:px-0 py-6 md:py-0 ">{children}</div>
       </main>
     </div>
   )

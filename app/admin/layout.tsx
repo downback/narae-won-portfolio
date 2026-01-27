@@ -29,7 +29,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         .eq("singleton_id", true)
         .maybeSingle()
 
-      if (adminError || !adminRow || adminRow.admin_user_id !== session.user.id) {
+      if (
+        adminError ||
+        !adminRow ||
+        adminRow.admin_user_id !== session.user.id
+      ) {
         await supabase.auth.signOut()
         if (mounted) setAuthStatus("unauthorized")
         return

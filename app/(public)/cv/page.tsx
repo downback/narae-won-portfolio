@@ -1,8 +1,8 @@
-import BioSection from "@/components/BioSection"
+import BioSection from "@/components/public/BioSection"
 import { supabaseServer } from "@/lib/server"
 
 const formatBioItems = (
-  rows: { title: string; location: string; year: number }[]
+  rows: { title: string; location: string; year: number }[],
 ) =>
   rows.map((row) => ({
     year: String(row.year),
