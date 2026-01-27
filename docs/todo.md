@@ -78,29 +78,29 @@
 - [x] Sub-Header for mobile
 - [x] Works
   - [x] ui copy
-- [ ] Exhibitions
-  - [ ] ui copy
-- [ ] Texts
-  - [ ] ui copy
-- [ ] CV
-  - [ ] ui copy
+- [x] Exhibitions
+  - [x] ui copy
+- [x] Texts
+  - [x] ui copy
+- [x] CV
+  - [x] ui copy
 
 ---
 
 ## Phase 5 — Public page DB
 
 - [ ] Navbar
-  - [ ] ui copy
-  - [ ] mobile / desktop enhance
+  - [ ]
 - [ ] Sub-Header for mobile
+  - [ ]
 - [ ] Works
-  - [ ] ui copy
+  - [ ]
 - [ ] Exhibitions
-  - [ ] ui copy
+  - [ ]
 - [ ] Texts
-  - [ ] ui copy
+  - [ ]
 - [ ] CV
-  - [ ] ui copy
+  - [ ]
 
 ---
 

@@ -1,5 +1,5 @@
 import DetailSubHeader from "@/components/public/shared/DetailSubHeader"
-import TextList from "@/components/public/TextList"
+import CvList from "@/components/public/CvList"
 
 export default function Contact() {
   return (
@@ -7,7 +7,7 @@ export default function Contact() {
       <DetailSubHeader segments={[{ label: "text" }]} />
       {/* <div>text page</div> */}
       <div className="w-full flex justify-end items-start">
-        <TextList />
+        <CvList category="solo exhibition" />
       </div>
     </div>
   )

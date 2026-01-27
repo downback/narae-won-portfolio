@@ -114,7 +114,7 @@ export default function SidebarNavContent({
             <Link
               key={link.href}
               className={cn(
-                "inline-block transition-colors hover:text-red-500 text-sm ",
+                "inline-block transition-colors hover:text-red-500 text-base md:text-[14px] ",
                 pathname === link.href && "text-red-500",
               )}
               href={link.href}

@@ -1,6 +1,7 @@
 // import BioSection from "@/components/public/BioSection"
 import DetailSubHeader from "@/components/public/shared/DetailSubHeader"
 import { supabaseServer } from "@/lib/server"
+import CvList from "@/components/public/CvList"
 
 const formatBioItems = (
   rows: { title: string; location: string; year: number }[],
@@ -26,29 +27,23 @@ const education = [
 ]
 
 export default async function Bio() {
-  const supabase = await supabaseServer()
-  const [{ data: soloRows }, { data: groupRows }] = await Promise.all([
-    supabase
-      .from("bio_solo_shows")
-      .select("title, location, year")
-      .order("sort_order", { ascending: true })
-      .order("year", { ascending: false }),
-    supabase
-      .from("bio_group_shows")
-      .select("title, location, year")
-      .order("sort_order", { ascending: true })
-      .order("year", { ascending: false }),
-  ])
-
-  const soloShows = formatBioItems(soloRows ?? [])
-  const selectedGroupShows = formatBioItems(groupRows ?? [])
-
   return (
-    <div className="space-y-10 font-light md:pt-30">
+    <div className="font-light">
       <DetailSubHeader segments={[{ label: "cv" }]} />
-      {/* <BioSection title="solo shows" items={soloShows} />
-      <BioSection title="selected group shows" items={selectedGroupShows} />
-      <BioSection title="education" items={education} /> */}
+      <div className="flex md:flex-row flex-col w-full">
+        <div className="flex-1">
+          <div className="text-[14px] font-medium mb-2 mt-2 md:mt-0">
+            원나래 | Narae Won
+          </div>
+          <div className="text-sm/4 font-light">1992 출생</div>
+          <div className="text-sm/4 font-light">born in 1992</div>
+        </div>
+        <div className="mt-6 md:mt-0 flex flex-col gap-6 md:gap-8 flex-4">
+          <CvList category="solo exhibition" />
+          <CvList category="selected group shows" />
+          <CvList category="education" />
+        </div>
+      </div>
     </div>
   )
 }

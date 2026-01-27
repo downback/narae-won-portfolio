@@ -65,7 +65,7 @@ export default function SidebarNavMobile({
           size="icon"
           aria-label="Open menu"
           onClick={() => setIsMobileNavOpen(true)}
-          className={cn(isHomeRoute ? "invisible" : "fixed right-3 top-4")}
+          className={cn(isHomeRoute ? "invisible" : "fixed right-3 top-5")}
         >
           <Menu className="h-5 w-5" strokeWidth={1.5} />
         </Button>
@@ -80,7 +80,7 @@ export default function SidebarNavMobile({
               size="icon"
               aria-label="Close menu"
               onClick={closeMobileNav}
-              className={cn(isHomeRoute ? "invisible" : "fixed right-3 top-4")}
+              className={cn(isHomeRoute ? "invisible" : "fixed right-3 top-5")}
             >
               <X className="h-5 w-5" strokeWidth={1.5} />
             </Button>
