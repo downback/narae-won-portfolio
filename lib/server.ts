@@ -21,15 +21,15 @@ export const supabaseServer = async () => {
       set(name: string, value: string, options: CookieOptions) {
         try {
           cookieStore.set({ name, value, ...options })
-        } catch (error) {
-          console.warn("Supabase cookie set failed", { error })
+        } catch {
+          // Ignore when cookies cannot be set (e.g. Server Components)
         }
       },
       remove(name: string, options: CookieOptions) {
         try {
           cookieStore.set({ name, value: "", ...options })
-        } catch (error) {
-          console.warn("Supabase cookie remove failed", { error })
+        } catch {
+          // Ignore when cookies cannot be set (e.g. Server Components)
         }
       },
     },
