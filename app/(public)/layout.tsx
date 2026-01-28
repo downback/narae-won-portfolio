@@ -100,7 +100,7 @@ export default async function PublicLayout({
         />
       </div>
       <main className="flex-auto md:w-auto">
-        <div className="px-6 mb-24 sm:px-0 md:py-0 md:mt-28 md:pr-8">
+        <div className="px-6 mb-32 sm:px-0 md:py-0 md:mt-28 md:pr-8">
           {children}
         </div>
       </main>

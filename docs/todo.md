@@ -95,9 +95,9 @@
   - [ ]
 - [x] Works
   - [ ]
-- [ ] Exhibitions
+- [x] Exhibitions
   - [ ]
-- [ ] Texts
+- [x] Texts
   - [ ]
 - [ ] CV
   - [ ]
@@ -109,7 +109,9 @@
 - [ ] ADMIN : exhibition uploader additional images
 
 - [ ] PUBLIC : works & exhibition pages start from the top
-- [ ] PUBLIC : exhibition uploader additional images
+- [x] PUBLIC : text input
+- [ ] PUBLIC : text item ui mobile
+- [ ] PUBLIC : text open -> scroll -> list position changing
 
 ---
 

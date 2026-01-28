@@ -92,7 +92,7 @@ export default function SidebarNavMobile({
             navLinks={navLinks}
             pathname={pathname}
             onNavigate={closeMobileNav}
-            className="px-8 pb-6 mt-8 flex-auto"
+            className="px-8 pb-6 md:mt-8 flex-auto"
           />
         </aside>
       )}

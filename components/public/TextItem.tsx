@@ -19,7 +19,7 @@ export default function TextItem({
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <div className="w-full border-b-[0.9px] border-black border-black py-2">
+    <div className="w-full border-b-[0.9px] border-black py-2">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
@@ -36,7 +36,9 @@ export default function TextItem({
           <Plus className="h-6 w-6" strokeWidth={1} aria-hidden />
         )}
       </button>
-      {isOpen ? <div className="mt-3 text-[14px] pb-2">{body}</div> : null}
+      {isOpen ? (
+        <div className="mt-6 text-[14px] pb-6 whitespace-pre-wrap">{body}</div>
+      ) : null}
     </div>
   )
 }

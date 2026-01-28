@@ -13,34 +13,7 @@ type TextListProps = {
   items?: TextEntry[]
 }
 
-const placeholderItems: TextEntry[] = [
-  {
-    id: "text-1",
-    year: "2024",
-    title: "Text title placeholder",
-    body: "Text body placeholder content goes here.",
-  },
-  {
-    id: "text-2",
-    year: "2023",
-    title: "Another text title",
-    body: "Another placeholder body for the text item.",
-  },
-  {
-    id: "text-3",
-    year: "2024",
-    title: "Text title placeholder",
-    body: "Text body placeholder content goes here.",
-  },
-  {
-    id: "text-4",
-    year: "2023",
-    title: "Another text title",
-    body: "Another placeholder body for the text item.",
-  },
-]
-
-export default function TextList({ items = placeholderItems }: TextListProps) {
+export default function TextList({ items = [] }: TextListProps) {
   return (
     <div className="w-full md:w-2xl xl:w-2/3 flex flex-col border-t-[0.9px] border-black">
       {items.map((item) => (
