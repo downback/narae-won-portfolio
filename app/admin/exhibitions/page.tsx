@@ -1,6 +1,8 @@
 import AdminExhibitionsPanel from "@/components/admin/exhibition/AdminExhibitionsPanel"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+export const dynamic = "force-dynamic"
+
 export default function AdminExhibitions() {
   return (
     <div className="space-y-6">
