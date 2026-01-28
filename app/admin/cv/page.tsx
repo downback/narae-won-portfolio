@@ -1,6 +1,8 @@
 import AdminBioSectionPanel from "@/components/admin/bio/AdminBioSectionPanel"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+export const dynamic = "force-dynamic"
+
 export default function AdminBiography() {
   return (
     <div className="space-y-6">

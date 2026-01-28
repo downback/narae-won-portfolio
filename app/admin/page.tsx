@@ -2,6 +2,8 @@ import AdminQuickPreviewPanel from "@/components/admin/dashboard/AdminQuickPrevi
 import AdminRecentActivityPanel from "@/components/admin/dashboard/AdminRecentActivityPanel"
 import { supabaseServer } from "@/lib/server"
 
+export const dynamic = "force-dynamic"
+
 export default async function Admin() {
   let connectionStatus = {
     status: "connected",

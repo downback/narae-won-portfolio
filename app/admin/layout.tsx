@@ -8,6 +8,8 @@ import AdminLoginModal from "@/components/admin/dashboard/AdminLoginModal"
 import AdminPageHeader from "@/components/admin/shared/AdminPageHeader"
 import Loading from "@/components/Loading"
 
+export const dynamic = "force-dynamic"
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const supabase = useMemo(() => supabaseBrowser(), [])
   const [authStatus, setAuthStatus] = useState<
