@@ -19,7 +19,7 @@ export default function ArtworkItem({
   imageAlt = "Artwork placeholder",
 }: ArtworkItemProps) {
   return (
-    <div className="mx-auto w-full max-w-2xl xl:max-w-3xl">
+    <div className="mx-auto w-full md:w-xl xl:max-w-3xl">
       <div className="h-[60vh] w-full md:h-auto">
         <LightboxImage
           src={imageSrc}

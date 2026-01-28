@@ -151,6 +151,6 @@ export default function AdminBioSectionPanel() {
           kind={section.kind}
         />
       ))}
-    </div>
+          </div>
   )
 }

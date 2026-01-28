@@ -49,7 +49,7 @@ export default function BioUploadModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md md:max-w-lg">
+      <DialogContent className="max-w-4/5 md:max-w-lg rounded-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

@@ -74,6 +74,9 @@ export default function WorkUploadModal({
   const [titleValue, setTitleValue] = useState(initialValues?.title ?? "")
   const [caption, setCaption] = useState(initialValues?.caption ?? "")
   const wasSubmittingRef = useRef(false)
+  const yearPlaceholder = isYearSelectDisabled
+    ? `Selected year: ${year || "-"}`
+    : "Select year"
 
   const handleImageDrop = (event: React.DragEvent<HTMLLabelElement>) => {
     event.preventDefault()
@@ -106,7 +109,9 @@ export default function WorkUploadModal({
         setImagePreviewUrl("")
         setImageFile(null)
         setInitialImageUrl("")
+        setTitleValue("")
         setCaption("")
+        setYear("")
       }, 0)
     }
 
@@ -123,14 +128,14 @@ export default function WorkUploadModal({
       setImageFile(null)
       setInitialImageUrl("")
       setYear("")
-        setTitleValue("")
+      setTitleValue("")
       setCaption("")
     } else {
       setSelectedImageName("")
       setImageFile(null)
       setImagePreviewUrl("")
       setYear(initialValues?.year ?? "")
-        setTitleValue(initialValues?.title ?? "")
+      setTitleValue(initialValues?.title ?? "")
       setCaption(initialValues?.caption ?? "")
       setInitialImageUrl(initialValues?.imageUrl ?? "")
     }
@@ -144,7 +149,7 @@ export default function WorkUploadModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md md:max-w-lg">
+      <DialogContent className="max-w-4/5 md:max-w-lg rounded-md max-h-[70vh] md:max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -206,13 +211,7 @@ export default function WorkUploadModal({
             >
               <SelectTrigger id="work-year" disabled={isYearSelectDisabled}>
                 <SelectValue
-                  placeholder={
-                    isYearSelectDisabled
-                      ? year
-                        ? `Selected year: ${year}`
-                        : "Year category not available"
-                      : "Select year"
-                  }
+                  placeholder={yearPlaceholder}
                 />
               </SelectTrigger>
               <SelectContent>

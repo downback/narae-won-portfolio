@@ -25,7 +25,7 @@ export default async function WorksByYearPage({
       "id, storage_path, title, caption, description, year, display_order",
     )
     .eq("category", "works")
-    .order("display_order", { ascending: true })
+    .order("display_order", { ascending: false })
 
   if (!Number.isNaN(startYear) && !Number.isNaN(endYear)) {
     query = query.gte("year", startYear).lte("year", endYear)
@@ -58,10 +58,6 @@ export default async function WorksByYearPage({
   return (
     <div className="space-y-4">
       <DetailSubHeader segments={[{ label: "work", value: displayYear }]} />
-      {/* <h1 className="text-lg font-medium">Works from {year}</h1>
-      <p className="text-sm text-muted-foreground">
-        Filtered works by year will appear here.
-      </p> */}
       <ArtworkList items={items} />
     </div>
   )

@@ -64,7 +64,7 @@ export default function AdminLoginModal() {
   return (
     <Dialog open={true} onOpenChange={() => {}}>
       <DialogContent
-        className="sm:max-w-md"
+        className="max-w-4/5 md:max-w-lg rounded-md"
         hideCloseButton
         onInteractOutside={(event) => event.preventDefault()}
         onEscapeKeyDown={(event) => event.preventDefault()}

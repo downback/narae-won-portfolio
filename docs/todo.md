@@ -99,19 +99,20 @@
   - [ ]
 - [x] Texts
   - [ ]
-- [ ] CV
+- [x] CV
   - [ ]
 
-- [ ] 안쓰이는 데이터 삭제
+- [x] ADMIN : works uploader ipad modal height(exhibition uploader )
+- [x] ADMIN : exhibition uploader width
+
 - [ ] ADMIN : works uploader 2018 - 2021 -> mandatory
-- [ ] ADMIN : works uploader ipad modal height(exhibition uploader )
-- [ ] ADMIN : exhibition uploader width
 - [ ] ADMIN : exhibition uploader additional images
 
 - [ ] PUBLIC : works & exhibition pages start from the top
-- [x] PUBLIC : text input
 - [ ] PUBLIC : text item ui mobile
 - [ ] PUBLIC : text open -> scroll -> list position changing
+
+- [x] PUBLIC : text input
 
 ---
 

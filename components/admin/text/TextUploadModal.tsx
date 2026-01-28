@@ -51,7 +51,8 @@ export default function TextUploadModal({
   isSubmitting = false,
   errorMessage,
 }: TextUploadModalProps) {
-  const [formValues, setFormValues] = useState<TextFormValues>(defaultTextValues)
+  const [formValues, setFormValues] =
+    useState<TextFormValues>(defaultTextValues)
 
   useEffect(() => {
     if (!open) return
@@ -74,7 +75,7 @@ export default function TextUploadModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md md:max-w-lg">
+      <DialogContent className="max-w-4/5 md:max-w-lg rounded-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

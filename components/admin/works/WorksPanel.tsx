@@ -100,7 +100,7 @@ export default function WorksPanel() {
       selectedYear
 
     if (!resolvedYear) {
-      setErrorMessage("Year is required.")
+      setErrorMessage("Select year is required.")
       return
     }
 
