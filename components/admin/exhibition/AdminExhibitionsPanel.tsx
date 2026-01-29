@@ -13,12 +13,14 @@ import { supabaseBrowser } from "@/lib/client"
 
 type ExhibitionPreviewItem = {
   id: string
+  exhibitionId: string
   imageUrl: string
   exhibitionTitle: string
   caption: string
   category: ExhibitionCategory
-  year: number | null
   description: string
+  exhibitionOrder: number
+  imageOrder: number
   createdAt: string
 }
 
@@ -32,6 +34,10 @@ export default function AdminExhibitionsPanel() {
   const [editingItem, setEditingItem] = useState<ExhibitionPreviewItem | null>(
     null,
   )
+  const [editingAdditionalImages, setEditingAdditionalImages] = useState<
+    { id: string; url: string }[]
+  >([])
+  const [resetSignal, setResetSignal] = useState(0)
   const [selectedCategory, setSelectedCategory] =
     useState<ExhibitionCategory>("solo-exhibitions")
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
@@ -43,19 +49,18 @@ export default function AdminExhibitionsPanel() {
   const supabase = useMemo(() => supabaseBrowser(), [])
 
   useEffect(() => {
+    const previewUrls = previewUrlsRef.current
     return () => {
-      previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+      previewUrls.forEach((url) => URL.revokeObjectURL(url))
     }
   }, [])
 
   const loadPreviewItems = useCallback(async () => {
     const { data, error } = await supabase
-      .from("artworks")
+      .from("exhibition_images")
       .select(
-        "id, storage_path, caption, category, year, description, title, created_at",
+        "id, storage_path, caption, display_order, created_at, is_primary, exhibitions ( id, title, type, slug, display_order, description )",
       )
-      .in("category", ["solo-exhibitions", "group-exhibitions"])
-      .order("created_at", { ascending: false })
 
     if (error) {
       console.error("Failed to load exhibition previews", { error })
@@ -63,24 +68,39 @@ export default function AdminExhibitionsPanel() {
     }
 
     const nextItems = (data ?? [])
+      .filter((item) => item.is_primary)
       .map((item) => {
         if (!item.storage_path) return null
+        const exhibition = Array.isArray(item.exhibitions)
+          ? item.exhibitions[0]
+          : item.exhibitions
+        if (!exhibition) return null
         const { data: publicData } = supabase.storage
           .from(bucketName)
           .getPublicUrl(item.storage_path)
         if (!publicData?.publicUrl) return null
         return {
           id: item.id,
+          exhibitionId: exhibition.id,
           imageUrl: publicData.publicUrl,
           caption: item.caption ?? "",
-          category: item.category as ExhibitionCategory,
-          year: item.year ?? null,
-          description: item.description ?? "",
-          exhibitionTitle: item.title ?? "",
+          category:
+            exhibition.type === "solo"
+              ? "solo-exhibitions"
+              : "group-exhibitions",
+          description: exhibition.description ?? "",
+          exhibitionTitle: exhibition.title ?? "",
+          exhibitionOrder: exhibition.display_order ?? 0,
+          imageOrder: item.display_order ?? 0,
           createdAt: item.created_at ?? new Date().toISOString(),
         }
       })
       .filter((item): item is ExhibitionPreviewItem => Boolean(item))
+      .sort(
+        (a, b) =>
+          a.exhibitionOrder - b.exhibitionOrder ||
+          a.imageOrder - b.imageOrder,
+      )
 
     setPreviewItems(nextItems)
   }, [supabase])
@@ -104,10 +124,6 @@ export default function AdminExhibitionsPanel() {
       setErrorMessage("Select a main image to upload.")
       return
     }
-    if (!values.year.trim()) {
-      setErrorMessage("Year is required.")
-      return
-    }
     if (!values.exhibitionTitle.trim()) {
       setErrorMessage("Exhibition title is required.")
       return
@@ -121,6 +137,23 @@ export default function AdminExhibitionsPanel() {
     setErrorMessage("")
 
     try {
+      if (
+        isEditMode &&
+        values.removedAdditionalImageIds &&
+        values.removedAdditionalImageIds.length > 0
+      ) {
+        const deleteResults = await Promise.all(
+          values.removedAdditionalImageIds.map((id) =>
+            fetch(`/api/admin/exhibitions/${id}`, { method: "DELETE" }),
+          ),
+        )
+        const failedDelete = deleteResults.find((response) => !response.ok)
+        if (failedDelete) {
+          const payload = (await failedDelete.json()) as { error?: string }
+          throw new Error(payload.error || "Unable to delete image.")
+        }
+      }
+
       const previewUrl = values.mainImageFile
         ? URL.createObjectURL(values.mainImageFile)
         : ""
@@ -133,10 +166,12 @@ export default function AdminExhibitionsPanel() {
         formData.append("file", values.mainImageFile)
       }
       formData.append("category", values.category)
-      formData.append("year", values.year)
       formData.append("exhibition_title", values.exhibitionTitle)
       formData.append("caption", values.caption)
       formData.append("description", values.description)
+      values.additionalImages.forEach((file) => {
+        formData.append("additional_images", file)
+      })
 
       const response = await fetch(
         isEditMode
@@ -162,12 +197,14 @@ export default function AdminExhibitionsPanel() {
         setPreviewItems((prev) => [
           {
             id: crypto.randomUUID(),
+            exhibitionId: editingItem?.exhibitionId ?? crypto.randomUUID(),
             imageUrl: previewUrl,
             caption: values.caption,
             category: values.category,
-            year: Number(values.year),
             description: values.description,
             exhibitionTitle: values.exhibitionTitle,
+            exhibitionOrder: 0,
+            imageOrder: 0,
             createdAt: new Date().toISOString(),
           },
           ...prev,
@@ -177,6 +214,8 @@ export default function AdminExhibitionsPanel() {
       await loadPreviewItems()
       setIsUploadOpen(false)
       setEditingItem(null)
+      setEditingAdditionalImages([])
+      setResetSignal((prev) => prev + 1)
     } catch (error) {
       console.error("Failed to save exhibition entry", { error })
       setErrorMessage("Unable to save the exhibition. Please try again.")
@@ -200,6 +239,41 @@ export default function AdminExhibitionsPanel() {
       console.error("Failed to delete exhibition", { error })
       setErrorMessage("Unable to delete the exhibition. Please try again.")
     }
+  }
+
+  const handleEdit = async (item: ExhibitionPreviewItem) => {
+    setEditingItem(item)
+    setSelectedCategory(item.category)
+    setErrorMessage("")
+
+    const { data, error } = await supabase
+      .from("exhibition_images")
+      .select("id, storage_path, is_primary, display_order")
+      .eq("exhibition_id", item.exhibitionId)
+      .order("display_order", { ascending: true })
+
+    if (error) {
+      console.error("Failed to load exhibition images", { error })
+      setEditingAdditionalImages([])
+      setIsUploadOpen(true)
+      return
+    }
+
+    const additionalImages = (data ?? [])
+      .filter((image) => !image.is_primary && image.storage_path)
+      .map((image) => {
+        const { data: publicData } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(image.storage_path)
+        return {
+          id: image.id,
+          url: publicData?.publicUrl ?? "",
+        }
+      })
+      .filter((image) => image.url.length > 0)
+
+    setEditingAdditionalImages(additionalImages)
+    setIsUploadOpen(true)
   }
 
   const moveItem = (
@@ -239,6 +313,7 @@ export default function AdminExhibitionsPanel() {
           onClick={() => {
             setErrorMessage("")
             setEditingItem(null)
+            setEditingAdditionalImages([])
             setSelectedCategory(category)
             setIsUploadOpen(true)
           }}
@@ -294,10 +369,7 @@ export default function AdminExhibitionsPanel() {
                     title={item.exhibitionTitle}
                     caption={item.caption}
                     onEdit={() => {
-                      setEditingItem(item)
-                      setSelectedCategory(item.category)
-                      setErrorMessage("")
-                      setIsUploadOpen(true)
+                      void handleEdit(item)
                     }}
                     onDelete={() => handleDelete(item)}
                   />
@@ -324,6 +396,7 @@ export default function AdminExhibitionsPanel() {
         groupItems,
       )}
       <ExhibitionUploadModal
+        key={`exhibition-modal-${resetSignal}`}
         open={isUploadOpen}
         onOpenChange={setIsUploadOpen}
         title={editingItem ? "Edit exhibition" : "Add exhibition"}
@@ -334,13 +407,14 @@ export default function AdminExhibitionsPanel() {
             ? {
                 mainImageUrl: editingItem.imageUrl,
                 category: editingItem.category,
-                year: editingItem.year ? String(editingItem.year) : "",
                 exhibitionTitle: editingItem.exhibitionTitle,
                 caption: editingItem.caption,
                 description: editingItem.description,
+                additionalImages: editingAdditionalImages,
               }
             : {
                 category: selectedCategory,
+                additionalImages: [],
               }
         }
         isEditMode={Boolean(editingItem)}

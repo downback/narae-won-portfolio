@@ -11,11 +11,19 @@ type RouteContext = {
 const isUuid = (value: string) =>
   /^[0-9a-fA-F-]{36}$/.test(value) && !value.includes("undefined")
 
-const buildStoragePath = (category: string, file: File) => {
+const toSlug = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+
+const buildStoragePath = (category: string, slug: string, file: File) => {
   const extension = file.name.split(".").pop() || ""
   const safeExtension = extension.replace(/[^a-zA-Z0-9]/g, "")
   const suffix = safeExtension ? `.${safeExtension}` : ""
-  return `${category}/${Date.now()}-${crypto.randomUUID()}${suffix}`
+  return `${category}/${slug}/${Date.now()}-${crypto.randomUUID()}${suffix}`
 }
 
 export async function PATCH(request: Request, { params }: RouteContext) {
@@ -38,7 +46,6 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const formData = await request.formData()
     const file = formData.get("file")
     const category = formData.get("category")?.toString().trim()
-    const yearRaw = formData.get("year")?.toString().trim()
     const exhibitionTitle = formData.get("exhibition_title")?.toString().trim()
     const caption = formData.get("caption")?.toString().trim()
     const description = formData.get("description")?.toString().trim()
@@ -50,18 +57,6 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     if (!category || !isAllowedCategory(category)) {
       return NextResponse.json({ error: "Invalid category." }, { status: 400 })
-    }
-
-    if (!yearRaw) {
-      return NextResponse.json({ error: "Year is required." }, { status: 400 })
-    }
-
-    const year = Number(yearRaw)
-    if (Number.isNaN(year)) {
-      return NextResponse.json(
-        { error: "Year must be a number." },
-        { status: 400 },
-      )
     }
 
     if (!exhibitionTitle) {
@@ -78,20 +73,59 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       )
     }
 
-    const { data: artwork, error: artworkError } = await supabase
-      .from("artworks")
-      .select("storage_path, category")
+    const { data: imageRow, error: imageError } = await supabase
+      .from("exhibition_images")
+      .select("storage_path, exhibition_id")
       .eq("id", id)
       .maybeSingle()
 
-    if (artworkError || !artwork?.storage_path) {
+    if (imageError || !imageRow?.storage_path || !imageRow.exhibition_id) {
       return NextResponse.json(
         { error: "Exhibition not found." },
         { status: 404 },
       )
     }
 
-    let nextStoragePath = artwork.storage_path
+    const { data: exhibition, error: exhibitionError } = await supabase
+      .from("exhibitions")
+      .select("id")
+      .eq("id", imageRow.exhibition_id)
+      .maybeSingle()
+
+    if (exhibitionError || !exhibition?.id) {
+      return NextResponse.json(
+        { error: "Exhibition not found." },
+        { status: 404 },
+      )
+    }
+
+    const exhibitionType = category === "solo-exhibitions" ? "solo" : "group"
+    const slug = toSlug(exhibitionTitle)
+    if (!slug) {
+      return NextResponse.json(
+        { error: "Exhibition title is required." },
+        { status: 400 },
+      )
+    }
+
+    const { error: exhibitionUpdateError } = await supabase
+      .from("exhibitions")
+      .update({
+        type: exhibitionType,
+        title: exhibitionTitle,
+        slug,
+        description: description || null,
+      })
+      .eq("id", exhibition.id)
+
+    if (exhibitionUpdateError) {
+      return NextResponse.json(
+        { error: exhibitionUpdateError.message },
+        { status: 500 },
+      )
+    }
+
+    let nextStoragePath = imageRow.storage_path
     if (file instanceof File) {
       if (file.type && !file.type.startsWith("image/")) {
         return NextResponse.json(
@@ -99,7 +133,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
           { status: 400 },
         )
       }
-      nextStoragePath = buildStoragePath(category, file)
+      nextStoragePath = buildStoragePath(category, slug, file)
       const { error: uploadError } = await supabase.storage
         .from(bucketName)
         .upload(nextStoragePath, file, {
@@ -116,22 +150,17 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     const { data: updated, error: updateError } = await supabase
-      .from("artworks")
+      .from("exhibition_images")
       .update({
         storage_path: nextStoragePath,
-        category,
-        year,
-        title: exhibitionTitle,
         caption,
-        description: description || null,
-        updated_at: new Date().toISOString(),
       })
       .eq("id", id)
       .select("id, created_at, storage_path")
       .single()
 
     if (updateError || !updated) {
-      if (nextStoragePath !== artwork.storage_path) {
+      if (nextStoragePath !== imageRow.storage_path) {
         await supabase.storage.from(bucketName).remove([nextStoragePath])
       }
       return NextResponse.json(
@@ -140,8 +169,8 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       )
     }
 
-    if (nextStoragePath !== artwork.storage_path) {
-      await supabase.storage.from(bucketName).remove([artwork.storage_path])
+    if (nextStoragePath !== imageRow.storage_path) {
+      await supabase.storage.from(bucketName).remove([imageRow.storage_path])
     }
 
     const { error: activityError } = await supabase
@@ -149,7 +178,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       .insert({
         admin_id: user.id,
         action_type: "update",
-        entity_type: "artwork",
+        entity_type: "exhibition",
         entity_id: updated.id,
         metadata: { category },
       })
@@ -189,21 +218,33 @@ export async function DELETE(_: Request, { params }: RouteContext) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
     }
 
-    const { data: artwork, error: artworkError } = await supabase
-      .from("artworks")
-      .select("storage_path, category")
+    const { data: imageRow, error: imageError } = await supabase
+      .from("exhibition_images")
+      .select("storage_path, exhibition_id")
       .eq("id", id)
       .maybeSingle()
 
-    if (artworkError || !artwork?.storage_path) {
+    if (imageError || !imageRow?.storage_path || !imageRow.exhibition_id) {
       return NextResponse.json(
         { error: "Exhibition not found." },
         { status: 404 },
       )
     }
 
+    const { data: exhibitionRow, error: exhibitionError } = await supabase
+      .from("exhibitions")
+      .select("type")
+      .eq("id", imageRow.exhibition_id)
+      .maybeSingle()
+
+    if (exhibitionError) {
+      console.error("Failed to load exhibition for delete", {
+        message: exhibitionError.message,
+      })
+    }
+
     const { error: deleteError } = await supabase
-      .from("artworks")
+      .from("exhibition_images")
       .delete()
       .eq("id", id)
 
@@ -214,16 +255,47 @@ export async function DELETE(_: Request, { params }: RouteContext) {
       )
     }
 
-    await supabase.storage.from(bucketName).remove([artwork.storage_path])
+    await supabase.storage.from(bucketName).remove([imageRow.storage_path])
+
+    const { count: remainingCount, error: remainingError } = await supabase
+      .from("exhibition_images")
+      .select("id", { count: "exact", head: true })
+      .eq("exhibition_id", imageRow.exhibition_id)
+
+    if (remainingError) {
+      console.error("Failed to count remaining exhibition images", {
+        message: remainingError.message,
+      })
+    }
+
+    if (!remainingError && (remainingCount ?? 0) === 0) {
+      const { error: exhibitionDeleteError } = await supabase
+        .from("exhibitions")
+        .delete()
+        .eq("id", imageRow.exhibition_id)
+
+      if (exhibitionDeleteError) {
+        console.error("Failed to delete empty exhibition", {
+          message: exhibitionDeleteError.message,
+        })
+      }
+    }
 
     const { error: activityError } = await supabase
       .from("activity_log")
       .insert({
         admin_id: user.id,
         action_type: "delete",
-        entity_type: "artwork",
+        entity_type: "exhibition",
         entity_id: id,
-        metadata: { category: artwork.category },
+        metadata: {
+          category:
+            exhibitionRow?.type === "solo"
+              ? "solo-exhibitions"
+              : exhibitionRow?.type === "group"
+                ? "group-exhibitions"
+                : "exhibitions",
+        },
       })
 
     if (activityError) {

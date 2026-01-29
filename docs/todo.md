@@ -91,27 +91,30 @@
 
 - [x] Navbar
   - [x] 2018 - 2021 logic
-- [ ] Sub-Header for mobile
-  - [ ]
 - [x] Works
-  - [ ]
 - [x] Exhibitions
-  - [ ]
 - [x] Texts
-  - [ ]
 - [x] CV
-  - [ ]
 
 - [x] ADMIN : works uploader ipad modal height(exhibition uploader )
 - [x] ADMIN : exhibition uploader width
 
+- [x] ADMIN : exhibition uploader MULTIPLE additional images
+- [x] ADMIN : exhibition uploader additional images preview
+- [x] ADMIN : exhibition uploader additional images
+- [x] ADMIN : separate tables of exhibition and works
+- [x] ADMIN : apply tables in ui
+- [x] -> check it on public page
 - [ ] ADMIN : works uploader 2018 - 2021 -> mandatory
-- [ ] ADMIN : exhibition uploader additional images
+- [ ] ADMIN : exhibition & works image preview square
+- [ ] ADMIN : login-modal btn
 
 - [ ] PUBLIC : works & exhibition pages start from the top
-- [ ] PUBLIC : text item ui mobile
+- [ ] PUBLIC : text item ui mobile - grid
 - [ ] PUBLIC : text open -> scroll -> list position changing
 
+- [ ] Favicon
+- [ ] instagram link
 - [x] PUBLIC : text input
 
 ---

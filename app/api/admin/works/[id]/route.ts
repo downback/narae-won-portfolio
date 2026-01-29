@@ -39,7 +39,6 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const yearRaw = formData.get("year")?.toString().trim()
     const title = formData.get("title")?.toString().trim()
     const caption = formData.get("caption")?.toString().trim()
-    const description = formData.get("description")?.toString().trim()
 
     if (!yearRaw) {
       return NextResponse.json({ error: "Year is required." }, { status: 400 })
@@ -102,7 +101,6 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         year,
         title,
         caption,
-        description: description || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)

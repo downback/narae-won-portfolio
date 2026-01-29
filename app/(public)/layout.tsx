@@ -10,13 +10,7 @@ const navLinks = [
 ]
 
 const normalizeTitle = (value?: string | null) => (value ?? "").trim()
-const toSlug = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
+const normalizeSlug = (value?: string | null) => (value ?? "").trim()
 
 export default async function PublicLayout({
   children,
@@ -36,17 +30,15 @@ export default async function PublicLayout({
       .not("year", "is", null)
       .order("year", { ascending: false }),
     supabase
-      .from("artworks")
-      .select("title")
-      .eq("category", "solo-exhibitions")
-      .not("title", "is", null)
-      .order("title", { ascending: true }),
+      .from("exhibitions")
+      .select("title, slug")
+      .eq("type", "solo")
+      .order("display_order", { ascending: true }),
     supabase
-      .from("artworks")
-      .select("title")
-      .eq("category", "group-exhibitions")
-      .not("title", "is", null)
-      .order("title", { ascending: true }),
+      .from("exhibitions")
+      .select("title, slug")
+      .eq("type", "group")
+      .order("display_order", { ascending: true }),
   ])
 
   if (worksError || soloError || groupError) {
@@ -65,19 +57,22 @@ export default async function PublicLayout({
     ),
   )
 
-  const buildExhibitions = (rows: { title?: string | null }[]) => {
+  const buildExhibitions = (rows: { title?: string | null; slug?: string | null }[]) => {
     const seen = new Set<string>()
     return rows
-      .map((row) => normalizeTitle(row.title))
-      .filter((title) => title.length > 0)
-      .filter((title) => {
-        if (seen.has(title)) return false
-        seen.add(title)
+      .map((row) => ({
+        title: normalizeTitle(row.title),
+        slug: normalizeSlug(row.slug),
+      }))
+      .filter((row) => row.title.length > 0 && row.slug.length > 0)
+      .filter((row) => {
+        if (seen.has(row.slug)) return false
+        seen.add(row.slug)
         return true
       })
-      .map((title) => ({
-        slug: toSlug(title),
-        title,
+      .map((row) => ({
+        slug: row.slug,
+        title: row.title,
       }))
   }
 

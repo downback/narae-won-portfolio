@@ -7,13 +7,6 @@ type GroupExhibitionPageProps = {
 }
 
 const formatSlug = (slug: string) => slug.replace(/-/g, " ")
-const toSlug = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
 
 const bucketName = "site-assets"
 
@@ -22,20 +15,36 @@ export default async function GroupExhibitionPage({
 }: GroupExhibitionPageProps) {
   const { slug } = await params
   const supabase = await supabaseServer()
-  const { data: rows, error } = await supabase
-    .from("artworks")
-    .select("id, storage_path, title, caption, description, display_order")
-    .eq("category", "group-exhibitions")
+  const { data: exhibition, error: exhibitionError } = await supabase
+    .from("exhibitions")
+    .select("id, title, slug, description")
+    .eq("type", "group")
+    .eq("slug", slug)
+    .maybeSingle()
+
+  if (exhibitionError) {
+    console.error("Failed to load group exhibition", {
+      slug,
+      error: exhibitionError,
+    })
+  }
+
+  const { data: imageRows, error: imagesError } = await supabase
+    .from("exhibition_images")
+    .select("id, storage_path, caption, display_order, is_primary")
+    .eq("exhibition_id", exhibition?.id ?? "")
     .order("display_order", { ascending: true })
 
-  if (error) {
-    console.error("Failed to load group exhibition", { slug, error })
+  if (imagesError) {
+    console.error("Failed to load group exhibition images", {
+      slug,
+      error: imagesError,
+    })
   }
 
   const images =
-    rows
-      ?.filter((row) => (row.title ? toSlug(row.title) === slug : false))
-      .map((row) => {
+    imageRows
+      ?.map((row) => {
         if (!row.storage_path) return null
         const { data: publicData } = supabase.storage
           .from(bucketName)
@@ -44,19 +53,17 @@ export default async function GroupExhibitionPage({
         return {
           id: row.id,
           src: publicData.publicUrl,
-          alt: row.title ?? row.caption ?? "Exhibition image",
-          title: row.title ?? "",
-          description: row.description ?? "",
+          alt: row.caption ?? "Exhibition image",
+          isPrimary: row.is_primary ?? false,
         }
       })
       .filter((item): item is NonNullable<typeof item> => Boolean(item)) ?? []
 
-  const mainImage = images[0]
-  const detailImages = images.slice(1)
+  const mainImage = images.find((image) => image.isPrimary) ?? images[0]
+  const detailImages = images.filter((image) => image.id !== mainImage?.id)
   const fallbackTitle = formatSlug(slug)
-  const exhibitionTitle = mainImage?.title || fallbackTitle
-  const exhibitionDescription =
-    images.find((item) => item.description.length > 0)?.description ?? ""
+  const exhibitionTitle = exhibition?.title ?? fallbackTitle
+  const exhibitionDescription = exhibition?.description ?? ""
 
   const items = mainImage
     ? [

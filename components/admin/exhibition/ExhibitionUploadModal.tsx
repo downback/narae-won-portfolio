@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import { X } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -20,11 +21,11 @@ export type ExhibitionCategory = "solo-exhibitions" | "group-exhibitions"
 export type ExhibitionFormValues = {
   mainImageFile: File | null
   category: ExhibitionCategory
-  year: string
   exhibitionTitle: string
   caption: string
   description: string
   additionalImages: File[]
+  removedAdditionalImageIds?: string[]
 }
 
 type ExhibitionUploadModalProps = {
@@ -36,10 +37,10 @@ type ExhibitionUploadModalProps = {
   initialValues?: {
     mainImageUrl?: string
     category?: ExhibitionCategory
-    year?: string
     exhibitionTitle?: string
     caption?: string
     description?: string
+    additionalImages?: { id: string; url: string }[]
   }
   isEditMode?: boolean
   confirmLabel?: string
@@ -67,11 +68,40 @@ export default function ExhibitionUploadModal({
   const [initialMainImageUrl, setInitialMainImageUrl] = useState("")
   const [category, setCategory] =
     useState<ExhibitionCategory>("solo-exhibitions")
-  const [year, setYear] = useState("")
   const [exhibitionTitle, setExhibitionTitle] = useState("")
   const [caption, setCaption] = useState("")
   const [details, setDetails] = useState("")
   const [additionalImages, setAdditionalImages] = useState<File[]>([])
+  const [existingAdditionalImages, setExistingAdditionalImages] = useState<
+    { id: string; url: string }[]
+  >([])
+  const [removedAdditionalImageIds, setRemovedAdditionalImageIds] = useState<
+    string[]
+  >([])
+  const [additionalPreviewUrls, setAdditionalPreviewUrls] = useState<string[]>(
+    [],
+  )
+
+  const handleRemoveAdditionalImage = (indexToRemove: number) => {
+    setAdditionalImages((prev) =>
+      prev.filter((_, index) => index !== indexToRemove),
+    )
+    setAdditionalPreviewUrls((prev) => {
+      const next = prev.filter((_, index) => index !== indexToRemove)
+      const url = prev[indexToRemove]
+      if (url) {
+        URL.revokeObjectURL(url)
+      }
+      return next
+    })
+  }
+
+  const handleRemoveExistingAdditionalImage = (id: string) => {
+    setExistingAdditionalImages((prev) => prev.filter((item) => item.id !== id))
+    setRemovedAdditionalImageIds((prev) =>
+      prev.includes(id) ? prev : [...prev, id],
+    )
+  }
 
   const handleMainImageDrop = (event: React.DragEvent<HTMLLabelElement>) => {
     event.preventDefault()
@@ -88,8 +118,9 @@ export default function ExhibitionUploadModal({
       if (mainImagePreviewUrl) {
         URL.revokeObjectURL(mainImagePreviewUrl)
       }
+      additionalPreviewUrls.forEach((url) => URL.revokeObjectURL(url))
     }
-  }, [mainImagePreviewUrl])
+  }, [mainImagePreviewUrl, additionalPreviewUrls])
 
   useEffect(() => {
     if (!open) return
@@ -98,11 +129,14 @@ export default function ExhibitionUploadModal({
       setMainImageFile(null)
       setMainImagePreviewUrl("")
       setCategory(initialValues?.category ?? "solo-exhibitions")
-      setYear(initialValues?.year ?? "")
       setExhibitionTitle(initialValues?.exhibitionTitle ?? "")
       setCaption(initialValues?.caption ?? "")
       setDetails(initialValues?.description ?? "")
       setInitialMainImageUrl(initialValues?.mainImageUrl ?? "")
+      setExistingAdditionalImages(initialValues?.additionalImages ?? [])
+      setRemovedAdditionalImageIds([])
+      setAdditionalImages([])
+      setAdditionalPreviewUrls([])
     }, 0)
     return () => clearTimeout(resetTimeout)
   }, [open, initialValues])
@@ -114,11 +148,13 @@ export default function ExhibitionUploadModal({
       setMainImageFile(null)
       setInitialMainImageUrl("")
       setCategory("solo-exhibitions")
-      setYear("")
       setExhibitionTitle("")
       setCaption("")
       setDetails("")
       setAdditionalImages([])
+      setExistingAdditionalImages([])
+      setRemovedAdditionalImageIds([])
+      setAdditionalPreviewUrls([])
     }
 
     onOpenChange(nextOpen)
@@ -184,17 +220,6 @@ export default function ExhibitionUploadModal({
             ) : null}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="exhibition-year">Year *</Label>
-            <Input
-              id="exhibition-year"
-              type="number"
-              inputMode="numeric"
-              value={year}
-              onChange={(event) => setYear(event.target.value)}
-              placeholder="2025"
-            />
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="exhibition-title">Exhibition title *</Label>
             <Input
               id="exhibition-title"
@@ -204,7 +229,7 @@ export default function ExhibitionUploadModal({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="exhibition-caption">Description *</Label>
+            <Label htmlFor="exhibition-caption">Caption *</Label>
             <Input
               id="exhibition-caption"
               value={caption}
@@ -231,13 +256,78 @@ export default function ExhibitionUploadModal({
               multiple
               onChange={(event) => {
                 const files = Array.from(event.target.files ?? [])
-                setAdditionalImages(files)
+                if (files.length === 0) return
+                const existingKeys = new Set(
+                  additionalImages.map(
+                    (file) => `${file.name}-${file.size}-${file.lastModified}`,
+                  ),
+                )
+                const newFiles = files.filter((file) => {
+                  const key = `${file.name}-${file.size}-${file.lastModified}`
+                  if (existingKeys.has(key)) return false
+                  existingKeys.add(key)
+                  return true
+                })
+                if (newFiles.length === 0) {
+                  event.target.value = ""
+                  return
+                }
+                const newPreviews = newFiles.map((file) =>
+                  URL.createObjectURL(file),
+                )
+                setAdditionalImages((prev) => [...prev, ...newFiles])
+                setAdditionalPreviewUrls((prev) => [...prev, ...newPreviews])
+                event.target.value = ""
               }}
             />
-            {additionalImages.length > 0 ? (
-              <div className="space-y-1 text-xs text-muted-foreground">
-                {additionalImages.map((file) => (
-                  <p key={`${file.name}-${file.size}`}>{file.name}</p>
+            {existingAdditionalImages.length > 0 ||
+            additionalPreviewUrls.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {existingAdditionalImages.map((item, index) => (
+                  <div
+                    key={`${item.url}-existing-${index}`}
+                    className="relative h-12 w-12 rounded-md border border-border"
+                  >
+                    <Image
+                      src={item.url}
+                      alt={`Additional image ${index + 1}`}
+                      width={48}
+                      height={48}
+                      className="h-full w-full object-cover"
+                      unoptimized
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveExistingAdditionalImage(item.id)}
+                      className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-white text-[10px] leading-none shadow text-red-400"
+                      aria-label={`Remove additional image ${index + 1}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                {additionalPreviewUrls.map((url, index) => (
+                  <div
+                    key={`${url}-${index}`}
+                    className="relative h-12 w-12 rounded-md border border-border"
+                  >
+                    <Image
+                      src={url}
+                      alt={`Additional preview ${index + 1}`}
+                      width={48}
+                      height={48}
+                      className="h-full w-full object-cover"
+                      unoptimized
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAdditionalImage(index)}
+                      className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-white text-[10px] leading-none shadow text-red-400"
+                      aria-label={`Remove additional image ${index + 1}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
                 ))}
               </div>
             ) : null}
@@ -262,11 +352,11 @@ export default function ExhibitionUploadModal({
               onSave?.({
                 mainImageFile,
                 category,
-                year,
                 exhibitionTitle,
                 caption,
                 description: details,
                 additionalImages,
+                removedAdditionalImageIds,
               })
             }
             disabled={isConfirmDisabled || isSubmitting}

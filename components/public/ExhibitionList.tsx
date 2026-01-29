@@ -25,7 +25,7 @@ export default function ExhibitionList({
       {items.map((item) => (
         <div
           key={item.id}
-          className="mx-auto w-full max-w-2xl xl:max-w-3xl space-y-4"
+          className="mx-auto  w-full md:w-xl xl:max-w-3xl space-y-4"
         >
           <div className="h-[60vh] w-full md:h-auto">
             <LightboxImage

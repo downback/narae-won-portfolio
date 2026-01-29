@@ -22,7 +22,7 @@ export default async function WorksByYearPage({
   let query = supabase
     .from("artworks")
     .select(
-      "id, storage_path, title, caption, description, year, display_order",
+      "id, storage_path, title, caption, year, display_order",
     )
     .eq("category", "works")
     .order("display_order", { ascending: false })

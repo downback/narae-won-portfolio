@@ -41,7 +41,6 @@ export async function POST(request: Request) {
     const yearRaw = formData.get("year")?.toString().trim()
     const title = formData.get("title")?.toString().trim()
     const caption = formData.get("caption")?.toString().trim()
-    const description = formData.get("description")?.toString().trim()
 
     if (!(file instanceof File)) {
       return NextResponse.json(
@@ -123,7 +122,6 @@ export async function POST(request: Request) {
         year,
         title,
         caption,
-        description: description || null,
         display_order: nextDisplayOrder,
       })
       .select("id, created_at")

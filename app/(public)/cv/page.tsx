@@ -85,8 +85,8 @@ export default async function Bio() {
           <div className="text-[14px] font-medium mb-2 mt-2 md:mt-0">
             원나래 | Narae Won
           </div>
-          <div className="text-sm/4 font-light">1992 출생</div>
-          <div className="text-sm/4 font-light">born in 1992</div>
+          <div className="text-sm/4 font-light">1991 출생</div>
+          <div className="text-sm/4 font-light">born in 1991</div>
         </div>
         <div className="mt-16 md:mt-0 flex-4 flex flex-col gap-16 md:gap-24">
           <div className="flex flex-col gap-4 md:gap-6">
