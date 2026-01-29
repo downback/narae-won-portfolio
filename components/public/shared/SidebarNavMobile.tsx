@@ -72,7 +72,7 @@ export default function SidebarNavMobile({
       </header>
 
       {isNavVisible && (
-        <aside className="fixed left-0 top-0 z-50 h-screen w-full bg-white md:hidden min-h-screen flex flex-col justify-between overflow-y-auto">
+        <aside className="fixed left-0 top-0 z-50 h-dvh w-full bg-white md:hidden min-h-dvh flex flex-col justify-between overflow-y-auto">
           <div className="flex items-start justify-between pl-6 pt-8 pb-6">
             <div className="text-base font-medium">NARAE WON</div>
             <Button
