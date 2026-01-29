@@ -90,7 +90,7 @@ export default function SidebarNavMobile({
         <aside
           className={cn(
             "fixed inset-0 z-50 md:hidden",
-            "min-h-dvh w-full bg-white",
+            "h-svh min-h-svh w-full bg-white",
             "flex flex-col",
           )}
         >

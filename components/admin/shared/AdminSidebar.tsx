@@ -59,7 +59,7 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:fixed md:left-0 md:top-0 md:flex h-dvh md:w-64 md:flex-col md:border-r md:border-border">
+      <aside className="hidden md:fixed md:left-0 md:top-0 md:flex h-svh min-h-svh md:w-64 md:flex-col md:border-r md:border-border">
         <div className="px-6 py-6 border-b border-border">
           <h1 className="text-xl font-semibold">admin</h1>
         </div>
