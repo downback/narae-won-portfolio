@@ -59,7 +59,7 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:fixed md:left-0 md:top-0 md:flex md:h-screen md:w-64 md:flex-col md:border-r md:border-border">
+      <aside className="hidden md:fixed md:left-0 md:top-0 md:flex h-dvh md:w-64 md:flex-col md:border-r md:border-border">
         <div className="px-6 py-6 border-b border-border">
           <h1 className="text-xl font-semibold">admin</h1>
         </div>
@@ -75,7 +75,7 @@ export default function AdminSidebar() {
                     "flex items-center gap-3 px-3 py-2 text-sm font-light rounded-md transition-colors",
                     pathname === link.href
                       ? "bg-secondary text-secondary-foreground"
-                      : "hover:bg-secondary/50"
+                      : "hover:bg-secondary/50",
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -144,7 +144,7 @@ export default function AdminSidebar() {
                         "flex items-center gap-3 px-3 py-2 text-sm font-light rounded-md transition-colors",
                         pathname === link.href
                           ? "bg-secondary text-secondary-foreground"
-                          : "hover:bg-secondary/50"
+                          : "hover:bg-secondary/50",
                       )}
                     >
                       <Icon className="h-4 w-4" />

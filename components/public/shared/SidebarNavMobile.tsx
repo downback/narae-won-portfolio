@@ -37,14 +37,26 @@ export default function SidebarNavMobile({
   const isHomeRoute = pathname === "/"
   const isNavVisible = isHomeRoute || isMobileNavOpen
 
+  /**
+   * SAFARI-SAFE SCROLL LOCK
+   * - Lock both html & body
+   * - Prevent background scroll
+   */
   useEffect(() => {
-    if (!isMobileNavOpen) {
-      return
-    }
-    const originalOverflow = document.body.style.overflow
-    document.body.style.overflow = "hidden"
+    if (!isMobileNavOpen) return
+
+    const html = document.documentElement
+    const body = document.body
+
+    const prevHtmlOverflow = html.style.overflow
+    const prevBodyOverflow = body.style.overflow
+
+    html.style.overflow = "hidden"
+    body.style.overflow = "hidden"
+
     return () => {
-      document.body.style.overflow = originalOverflow
+      html.style.overflow = prevHtmlOverflow
+      body.style.overflow = prevBodyOverflow
     }
   }, [isMobileNavOpen])
 
@@ -52,7 +64,8 @@ export default function SidebarNavMobile({
 
   return (
     <div className="w-full md:hidden flex flex-col justify-between">
-      <header className=" md:w-full md:hidden flex items-start pl-6 pt-8 pb-6">
+      {/* Header */}
+      <header className="flex items-start pl-6 pt-8 pb-6">
         <Link
           className="text-base font-medium"
           href="/"
@@ -60,40 +73,63 @@ export default function SidebarNavMobile({
         >
           NARAE WON
         </Link>
+
         <Button
           variant="default"
           size="icon"
           aria-label="Open menu"
           onClick={() => setIsMobileNavOpen(true)}
-          className={cn(isHomeRoute ? "invisible" : "fixed right-3 top-5")}
+          className={cn("fixed right-3 top-5 z-50", isHomeRoute && "invisible")}
         >
           <Menu className="h-5 w-5" strokeWidth={1.5} />
         </Button>
       </header>
 
+      {/* Mobile Nav Overlay */}
       {isNavVisible && (
-        <aside className="fixed left-0 top-0 z-50 h-dvh w-full bg-white md:hidden min-h-dvh flex flex-col justify-between overflow-y-auto">
-          <div className="flex items-start justify-between pl-6 pt-8 pb-6">
+        <aside
+          className={cn(
+            "fixed inset-0 z-50 md:hidden",
+            "h-dvh w-full bg-white",
+            "flex flex-col",
+            "overflow-hidden", // IMPORTANT: overlay does NOT scroll
+          )}
+        >
+          {/* Overlay Header */}
+          <div className="flex items-start justify-between pl-6 pt-8 pb-6 shrink-0">
             <div className="text-base font-medium">NARAE WON</div>
             <Button
               variant="default"
               size="icon"
               aria-label="Close menu"
               onClick={closeMobileNav}
-              className={cn(isHomeRoute ? "invisible" : "fixed right-3 top-5")}
+              className={cn(
+                "fixed right-3 top-5 z-50",
+                isHomeRoute && "invisible",
+              )}
             >
               <X className="h-5 w-5" strokeWidth={1.5} />
             </Button>
           </div>
-          <SidebarNavContent
-            worksYears={worksYears}
-            soloExhibitions={soloExhibitions}
-            groupExhibitions={groupExhibitions}
-            navLinks={navLinks}
-            pathname={pathname}
-            onNavigate={closeMobileNav}
-            className="px-8 pb-6 md:mt-8 flex-auto"
-          />
+
+          {/* Scrollable Nav Content (ONLY SCROLL AREA) */}
+          <div
+            className={cn(
+              "flex-1",
+              "overflow-y-auto",
+              "overscroll-contain", // prevents scroll chaining
+              "px-8 pb-6",
+            )}
+          >
+            <SidebarNavContent
+              worksYears={worksYears}
+              soloExhibitions={soloExhibitions}
+              groupExhibitions={groupExhibitions}
+              navLinks={navLinks}
+              pathname={pathname}
+              onNavigate={closeMobileNav}
+            />
+          </div>
         </aside>
       )}
     </div>

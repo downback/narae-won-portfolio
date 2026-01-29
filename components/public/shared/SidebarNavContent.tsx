@@ -65,7 +65,7 @@ export default function SidebarNavContent({
     }, [])
 
   return (
-    <nav className={cn("flex flex-col justify-between md:h-full", className)}>
+    <nav className={cn("flex flex-col justify-between h-full", className)}>
       <div className="space-y-6">
         <div className="space-y-2">
           <span className="text-sm inline-block w-full border-b-[0.9px] border-black">
