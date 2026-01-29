@@ -109,12 +109,12 @@
 - [x] ADMIN : exhibition & works image preview square
 - [x] ADMIN : login-modal btn
 
-- [ ] PUBLIC : works & exhibition pages start from the top
-- [ ] PUBLIC : text item ui mobile - grid
-- [ ] PUBLIC : text open -> scroll -> list position changing
+- [x] PUBLIC : works & exhibition pages start from the top
+- [x] PUBLIC : text item ui mobile - grid
+- [x] PUBLIC : text open -> scroll -> list position changing
 
-- [ ] Favicon
-- [ ] instagram link
+- [x] Favicon
+- [x] instagram link
 - [x] PUBLIC : text input
 
 ---

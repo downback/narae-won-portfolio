@@ -25,7 +25,7 @@ export default function ExhibitionList({
       {items.map((item) => (
         <div
           key={item.id}
-          className="mx-auto  w-full md:w-xl xl:max-w-3xl space-y-4"
+          className="mx-auto w-full md:w-lg xl:max-w-3xl space-y-4"
         >
           <div className="h-[60vh] w-full md:h-auto">
             <LightboxImage
@@ -43,7 +43,7 @@ export default function ExhibitionList({
             {item.title}
           </div>
 
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6 mt-24">
             {(item.detailImages ?? []).map((image) => (
               <div key={image.id} className="h-[60vh] w-full md:h-auto">
                 <LightboxImage

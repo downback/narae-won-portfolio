@@ -1,4 +1,6 @@
 // import BioSection from "@/components/public/BioSection"
+import Link from "next/link"
+import { Instagram } from "lucide-react"
 import DetailSubHeader from "@/components/public/shared/DetailSubHeader"
 import { supabaseServer } from "@/lib/server"
 import CvList from "@/components/public/CvList"
@@ -87,8 +89,18 @@ export default async function Bio() {
           </div>
           <div className="text-sm/4 font-light">1991 출생</div>
           <div className="text-sm/4 font-light">born in 1991</div>
+          <Link
+            href="https://www.instagram.com/naraeworks/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-1 text-xs text-black hover:text-red-500 transition-colors"
+            aria-label="Visit Instagram profile"
+          >
+            <Instagram className="h-4 w-4" strokeWidth={1} />
+            <span>@naraeworks</span>
+          </Link>
         </div>
-        <div className="mt-16 md:mt-0 flex-4 flex flex-col gap-16 md:gap-24">
+        <div className="mt-12 md:mt-0 flex-4 flex flex-col gap-16 md:gap-24">
           <div className="flex flex-col gap-4 md:gap-6">
             <CvList
               category="학력"
