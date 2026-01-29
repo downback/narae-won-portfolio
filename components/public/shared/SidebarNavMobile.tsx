@@ -90,9 +90,8 @@ export default function SidebarNavMobile({
         <aside
           className={cn(
             "fixed inset-0 z-50 md:hidden",
-            "h-dvh w-full bg-white",
+            "min-h-dvh w-full bg-white",
             "flex flex-col",
-            "overflow-hidden", // IMPORTANT: overlay does NOT scroll
           )}
         >
           {/* Overlay Header */}
