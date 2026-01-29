@@ -36,6 +36,7 @@ type WorkUploadModalProps = {
   onSave?: (values: WorkFormValues) => void
   yearOptions?: string[]
   isYearSelectDisabled?: boolean
+  selectedYearCategory?: string
   initialValues?: {
     imageUrl?: string
     year?: string
@@ -57,6 +58,7 @@ export default function WorkUploadModal({
   onSave,
   yearOptions = [],
   isYearSelectDisabled = false,
+  selectedYearCategory,
   initialValues,
   isEditMode = false,
   confirmLabel = "Confirm change",
@@ -74,9 +76,6 @@ export default function WorkUploadModal({
   const [titleValue, setTitleValue] = useState(initialValues?.title ?? "")
   const [caption, setCaption] = useState(initialValues?.caption ?? "")
   const wasSubmittingRef = useRef(false)
-  const yearPlaceholder = isYearSelectDisabled
-    ? `Selected year: ${year || "-"}`
-    : "Select year"
 
   const handleImageDrop = (event: React.DragEvent<HTMLLabelElement>) => {
     event.preventDefault()
@@ -203,25 +202,30 @@ export default function WorkUploadModal({
             ) : null}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="work-year">Year</Label>
-            <Select
-              value={year || undefined}
-              onValueChange={setYear}
-              disabled={isYearSelectDisabled}
-            >
-              <SelectTrigger id="work-year" disabled={isYearSelectDisabled}>
-                <SelectValue
-                  placeholder={yearPlaceholder}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {yearOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="work-year">
+              Year{isYearSelectDisabled ? "" : " *"}
+            </Label>
+            {isYearSelectDisabled ? (
+              <div
+                id="work-year"
+                className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground"
+              >
+                {selectedYearCategory || "-"}
+              </div>
+            ) : (
+              <Select value={year || undefined} onValueChange={setYear}>
+                <SelectTrigger id="work-year">
+                  <SelectValue placeholder="Select year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {yearOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="work-title">Title *</Label>

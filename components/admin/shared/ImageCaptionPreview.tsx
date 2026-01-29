@@ -48,7 +48,7 @@ export default function ImageCaptionPreview({
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-3">
-        <div className="h-12 w-12 overflow-hidden rounded-md border border-border bg-muted/20">
+        <div className="h-12 w-12 shrink-0 aspect-square overflow-hidden rounded-md border border-border bg-muted/20">
           <Image
             src={imageUrl}
             alt={caption}
@@ -57,8 +57,9 @@ export default function ImageCaptionPreview({
             className="h-full w-full object-cover"
           />
         </div>
-        <p className="text-sm text-muted-foreground">
-          {title}, {caption}
+        <p className="text-sm text-muted-foreground wrap-break-word">
+          <span className="inline-block">{title}</span>
+          <span className="hidden sm:inline-block">, {caption}</span>
         </p>
       </div>
       <div className="flex gap-1 md:gap-2 items-center">

@@ -105,9 +105,9 @@
 - [x] ADMIN : separate tables of exhibition and works
 - [x] ADMIN : apply tables in ui
 - [x] -> check it on public page
-- [ ] ADMIN : works uploader 2018 - 2021 -> mandatory
-- [ ] ADMIN : exhibition & works image preview square
-- [ ] ADMIN : login-modal btn
+- [x] ADMIN : works uploader 2018 - 2021 -> mandatory
+- [x] ADMIN : exhibition & works image preview square
+- [x] ADMIN : login-modal btn
 
 - [ ] PUBLIC : works & exhibition pages start from the top
 - [ ] PUBLIC : text item ui mobile - grid

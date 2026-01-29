@@ -94,10 +94,17 @@ export default function WorksPanel() {
       return
     }
 
-    const resolvedYear =
-      values.year.trim() ||
-      (editingItem?.year ? String(editingItem.year) : "") ||
-      selectedYear
+    const isYearSelectEnabled = selectedYearCategory === rangeLabel
+    let resolvedYear = ""
+
+    if (isYearSelectEnabled) {
+      resolvedYear = values.year.trim()
+    } else {
+      resolvedYear =
+        values.year.trim() ||
+        (editingItem?.year ? String(editingItem.year) : "") ||
+        selectedYear
+    }
 
     if (!resolvedYear) {
       setErrorMessage("Select year is required.")
@@ -283,6 +290,7 @@ export default function WorksPanel() {
         description="Upload a work image and caption text"
         yearOptions={["2018", "2019", "2020", "2021"]}
         isYearSelectDisabled={selectedYearCategory !== rangeLabel}
+        selectedYearCategory={selectedYearCategory}
         onSave={handleSave}
         initialValues={
           editingItem

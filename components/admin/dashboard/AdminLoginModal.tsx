@@ -114,7 +114,7 @@ export default function AdminLoginModal() {
             />
           </div>
           <DialogFooter>
-            <Button disabled={isSubmitting} type="submit">
+            <Button disabled={isSubmitting} type="submit" variant="highlight">
               {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
           </DialogFooter>
