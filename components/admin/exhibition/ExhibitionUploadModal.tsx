@@ -125,14 +125,14 @@ export default function ExhibitionUploadModal({
   useEffect(() => {
     if (!open) return
     const resetTimeout = setTimeout(() => {
-      setSelectedMainImageName("")
-      setMainImageFile(null)
-      setMainImagePreviewUrl("")
-      setCategory(initialValues?.category ?? "solo-exhibitions")
+    setSelectedMainImageName("")
+    setMainImageFile(null)
+    setMainImagePreviewUrl("")
+    setCategory(initialValues?.category ?? "solo-exhibitions")
       setExhibitionTitle(initialValues?.exhibitionTitle ?? "")
-      setCaption(initialValues?.caption ?? "")
-      setDetails(initialValues?.description ?? "")
-      setInitialMainImageUrl(initialValues?.mainImageUrl ?? "")
+    setCaption(initialValues?.caption ?? "")
+    setDetails(initialValues?.description ?? "")
+    setInitialMainImageUrl(initialValues?.mainImageUrl ?? "")
       setExistingAdditionalImages(initialValues?.additionalImages ?? [])
       setRemovedAdditionalImageIds([])
       setAdditionalImages([])

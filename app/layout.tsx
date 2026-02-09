@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
   title: "Narae Won",
-  description: "Narae Won Artist Portfolio Website",
+  description: "Narae Won Artist Portfolio Websit",
 }
 
 export default function RootLayout({

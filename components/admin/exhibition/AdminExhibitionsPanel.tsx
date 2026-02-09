@@ -118,6 +118,23 @@ export default function AdminExhibitionsPanel() {
     [previewItems],
   )
 
+  const modalInitialValues = useMemo(() => {
+    if (editingItem) {
+      return {
+        mainImageUrl: editingItem.imageUrl,
+        category: editingItem.category,
+        exhibitionTitle: editingItem.exhibitionTitle,
+        caption: editingItem.caption,
+        description: editingItem.description,
+        additionalImages: editingAdditionalImages,
+      }
+    }
+    return {
+      category: selectedCategory,
+      additionalImages: [],
+    }
+  }, [editingItem, editingAdditionalImages, selectedCategory])
+
   const handleSave = async (values: ExhibitionFormValues) => {
     const isEditMode = Boolean(editingItem)
     if (!values.mainImageFile && !isEditMode) {
@@ -402,21 +419,7 @@ export default function AdminExhibitionsPanel() {
         title={editingItem ? "Edit exhibition" : "Add exhibition"}
         description="Upload exhibition images and provide the metadata."
         onSave={handleSave}
-        initialValues={
-          editingItem
-            ? {
-                mainImageUrl: editingItem.imageUrl,
-                category: editingItem.category,
-                exhibitionTitle: editingItem.exhibitionTitle,
-                caption: editingItem.caption,
-                description: editingItem.description,
-                additionalImages: editingAdditionalImages,
-              }
-            : {
-                category: selectedCategory,
-                additionalImages: [],
-              }
-        }
+        initialValues={modalInitialValues}
         isEditMode={Boolean(editingItem)}
         confirmLabel={editingItem ? "Update exhibition" : "Save exhibition"}
         isConfirmDisabled={isUploading}

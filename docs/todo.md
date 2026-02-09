@@ -119,15 +119,12 @@
 
 ---
 
-## Phase 6 — Activity Logging & Error Handling
+## Phase 6 — Error Handling & refactoring
 
-**Goal:** Make admin actions auditable and failures safe.
-
-- [ ] Log every admin mutation to `activity_log`
-- [ ] Ensure logging is automatic and non-blocking
-- [ ] Surface clear, friendly error messages to admin users
-- [ ] Avoid exposing internal errors on public pages
-- [ ] Ensure partial failures do not break public state
+- [ ] edit mode additional image not saved
+- [ ] exhibition section in admin drag and drop not working
+- [ ] mobile navbar
+- [ ] exhibition 페이지에서 사진을 여러장 업데이트 하는 경우
 
 ---
 
@@ -135,9 +132,10 @@
 
 **Goal:** Validate correctness, safety, and alignment with PRD.
 
-- [ ] Verify all public pages work without authentication
-- [ ] Verify admin-only writes are fully enforced
-- [ ] Confirm RLS errors are handled gracefully in UI
-- [ ] Test image upload/update/delete edge cases
-- [ ] Test empty DB scenarios (fresh project)
-- [ ] Run mobile and basic performance sanity checks
+- [ ] 캡션은 작업 제목과 캡션텍스트를 원하는 구간에서 줄 바꿈을 모두 할 수 있으면 좋겠습니다.
+- [ ] 제목과 캡션의 텍스트 크기가 조금 작아져도 좋을 것 같아요.
+      영문과 국문제목을 모두 기재할 경우(혹은 긴 제목과 캡션일 경우) 제목이 길어지더라고요.
+
+- [ ] 관리자 페이지에 사용할 이메일과 비밀번호도 공유드리겠습니다.
+      ID: woennarae@gmail.com
+      PW: naraeworks123

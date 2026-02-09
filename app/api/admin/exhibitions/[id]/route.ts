@@ -49,6 +49,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const exhibitionTitle = formData.get("exhibition_title")?.toString().trim()
     const caption = formData.get("caption")?.toString().trim()
     const description = formData.get("description")?.toString().trim()
+    const additionalFiles = formData
+      .getAll("additional_images")
+      .filter((value): value is File => value instanceof File)
 
     const isAllowedCategory = (
       value: string,
@@ -69,6 +72,16 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     if (!caption) {
       return NextResponse.json(
         { error: "Caption is required." },
+        { status: 400 },
+      )
+    }
+
+    const hasInvalidAdditional = additionalFiles.some(
+      (additional) => additional.type && !additional.type.startsWith("image/"),
+    )
+    if (hasInvalidAdditional) {
+      return NextResponse.json(
+        { error: "Only image uploads are allowed." },
         { status: 400 },
       )
     }
@@ -171,6 +184,79 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     if (nextStoragePath !== imageRow.storage_path) {
       await supabase.storage.from(bucketName).remove([imageRow.storage_path])
+    }
+
+    if (additionalFiles.length > 0) {
+      const { data: latestImage, error: latestImageError } = await supabase
+        .from("exhibition_images")
+        .select("display_order")
+        .eq("exhibition_id", imageRow.exhibition_id)
+        .order("display_order", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (latestImageError) {
+        return NextResponse.json(
+          { error: latestImageError.message },
+          { status: 500 },
+        )
+      }
+
+      const baseDisplayOrder = (latestImage?.display_order ?? -1) + 1
+      const uploadedPaths: string[] = []
+      const inserts: {
+        exhibition_id: string
+        storage_path: string
+        caption: string
+        display_order: number
+        is_primary: boolean
+      }[] = []
+
+      for (let index = 0; index < additionalFiles.length; index += 1) {
+        const additional = additionalFiles[index]
+        const additionalPath = buildStoragePath(category, slug, additional)
+        const { error: additionalUploadError } = await supabase.storage
+          .from(bucketName)
+          .upload(additionalPath, additional, {
+            contentType: additional.type || "application/octet-stream",
+            upsert: false,
+          })
+        if (additionalUploadError) {
+          for (const path of uploadedPaths) {
+            await supabase.storage.from(bucketName).remove([path])
+          }
+          return NextResponse.json(
+            {
+              error:
+                additionalUploadError.message ||
+                "Upload failed. Please try again.",
+            },
+            { status: 500 },
+          )
+        }
+        uploadedPaths.push(additionalPath)
+        inserts.push({
+          exhibition_id: imageRow.exhibition_id,
+          storage_path: additionalPath,
+          caption,
+          display_order: baseDisplayOrder + index,
+          is_primary: false,
+        })
+      }
+
+      const { error: additionalInsertError } = await supabase
+        .from("exhibition_images")
+        .insert(inserts)
+
+      if (additionalInsertError) {
+        for (const path of uploadedPaths) {
+          await supabase.storage.from(bucketName).remove([path])
+        }
+        return NextResponse.json(
+          { error: additionalInsertError.message },
+          { status: 500 },
+        )
+      }
     }
 
     const { error: activityError } = await supabase
