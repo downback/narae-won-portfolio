@@ -39,7 +39,7 @@ export default function ExhibitionList({
             />
           </div>
 
-          <div className="px-1 text-sm md:text-[14px] font-light capitalize">
+          <div className="px-1 text-sm md:text-[14px] font-light capitalize whitespace-pre-wrap">
             {item.title}
           </div>
 
@@ -59,7 +59,7 @@ export default function ExhibitionList({
             ))}
           </div>
 
-          <div className="px-1 text-sm md:text-[14px] font-light">
+          <div className="px-1 text-sm md:text-[14px] font-light whitespace-pre-wrap">
             {item.description}
           </div>
         </div>

@@ -167,7 +167,7 @@ export default function WorkUploadModal({
               onDragOver={handleDragOver}
             >
               <span>
-                Drop image or click to upload
+                Drop image here or click to upload
                 {selectedImageName ? (
                   <span className="mt-2 block text-xs text-muted-foreground">
                     Selected: {selectedImageName}
@@ -234,7 +234,7 @@ export default function WorkUploadModal({
               id="work-title"
               value={titleValue}
               onChange={(event) => setTitleValue(event.target.value)}
-              placeholder="Work title"
+              placeholder="작업 타이틀을 입력해주세요"
               className="min-h-[60px]"
             />
           </div>
@@ -244,7 +244,7 @@ export default function WorkUploadModal({
               id="work-caption"
               value={caption}
               onChange={(event) => setCaption(event.target.value)}
-              placeholder="Caption text"
+              placeholder="작업 캡션을 입력해주세요"
               className="min-h-[60px]"
             />
           </div>

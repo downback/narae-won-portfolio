@@ -125,14 +125,14 @@ export default function ExhibitionUploadModal({
   useEffect(() => {
     if (!open) return
     const resetTimeout = setTimeout(() => {
-    setSelectedMainImageName("")
-    setMainImageFile(null)
-    setMainImagePreviewUrl("")
-    setCategory(initialValues?.category ?? "solo-exhibitions")
+      setSelectedMainImageName("")
+      setMainImageFile(null)
+      setMainImagePreviewUrl("")
+      setCategory(initialValues?.category ?? "solo-exhibitions")
       setExhibitionTitle(initialValues?.exhibitionTitle ?? "")
-    setCaption(initialValues?.caption ?? "")
-    setDetails(initialValues?.description ?? "")
-    setInitialMainImageUrl(initialValues?.mainImageUrl ?? "")
+      setCaption(initialValues?.caption ?? "")
+      setDetails(initialValues?.description ?? "")
+      setInitialMainImageUrl(initialValues?.mainImageUrl ?? "")
       setExistingAdditionalImages(initialValues?.additionalImages ?? [])
       setRemovedAdditionalImageIds([])
       setAdditionalImages([])
@@ -184,7 +184,7 @@ export default function ExhibitionUploadModal({
               onDragOver={handleDragOver}
             >
               <span>
-                Drop image or click to upload
+                Drop image here or click to upload
                 {selectedMainImageName ? (
                   <span className="mt-2 block text-xs text-muted-foreground">
                     Selected: {selectedMainImageName}
@@ -221,20 +221,22 @@ export default function ExhibitionUploadModal({
           </div>
           <div className="space-y-2">
             <Label htmlFor="exhibition-title">Exhibition title *</Label>
-            <Input
+            <Textarea
               id="exhibition-title"
               value={exhibitionTitle}
               onChange={(event) => setExhibitionTitle(event.target.value)}
-              placeholder="Exhibition title"
+              placeholder="전시 타이틀을 입력해주세요"
+              className="min-h-[60px]"
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="exhibition-caption">Caption *</Label>
-            <Input
+            <Textarea
               id="exhibition-caption"
               value={caption}
               onChange={(event) => setCaption(event.target.value)}
-              placeholder="Caption text"
+              placeholder="전시 캡션을 입력해주세요"
+              className="min-h-[60px]"
             />
           </div>
           <div className="space-y-2">
@@ -243,7 +245,7 @@ export default function ExhibitionUploadModal({
               id="exhibition-description"
               value={details}
               onChange={(event) => setDetails(event.target.value)}
-              placeholder="Optional description"
+              placeholder="전시 상세설명을 입력해주세요(선택사항)"
               className="min-h-[120px]"
             />
           </div>
@@ -298,7 +300,9 @@ export default function ExhibitionUploadModal({
                     />
                     <button
                       type="button"
-                      onClick={() => handleRemoveExistingAdditionalImage(item.id)}
+                      onClick={() =>
+                        handleRemoveExistingAdditionalImage(item.id)
+                      }
                       className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-white text-[10px] leading-none shadow text-red-400"
                       aria-label={`Remove additional image ${index + 1}`}
                     >

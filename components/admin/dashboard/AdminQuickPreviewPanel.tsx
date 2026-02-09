@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 import {
   Card,
   CardContent,
@@ -10,11 +11,10 @@ import { Button } from "@/components/ui/button"
 import { supabaseServer } from "@/lib/server"
 
 type PreviewCard = {
-  title: "Works" | "Biography"
+  title: "Works" | "CV" | "Exhibitions" | "Texts"
   updatedAt: string
-  previewTitle: string
-  previewText: string
   adminLink: string
+  count?: number | null
 }
 
 const formatUpdatedAt = (value?: string | null) => {
@@ -39,77 +39,154 @@ const getLatestTimestamp = (timestamps: (string | null | undefined)[]) => {
 export default async function AdminQuickPreviewPanel() {
   const supabase = await supabaseServer()
 
-  const [worksAssetResult, soloResult, groupResult] = await Promise.all([
+  const [
+    worksResult,
+    soloResult,
+    groupResult,
+    educationResult,
+    residencyResult,
+    awardsResult,
+    collectionsResult,
+    exhibitionsResult,
+    textsResult,
+    worksCountResult,
+    exhibitionsCountResult,
+    textsCountResult,
+  ] = await Promise.all([
     supabase
-      .from("assets")
-      .select("created_at")
-      .eq("asset_kind", "works_pdf")
-      .order("created_at", { ascending: false })
+      .from("artworks")
+      .select("updated_at")
+      .eq("category", "works")
+      .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
     supabase
       .from("bio_solo_exhibitions")
+      .select("created_at")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("bio_group_exhibitions")
+      .select("created_at")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("bio_education")
+      .select("created_at")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("bio_residency")
+      .select("created_at")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("bio_awards")
+      .select("created_at")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("bio_collections")
+      .select("created_at")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("exhibitions")
       .select("updated_at")
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
     supabase
-      .from("bio_group_exhibitions")
+      .from("texts")
       .select("updated_at")
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    supabase
+      .from("artworks")
+      .select("id", { count: "exact", head: true })
+      .eq("category", "works"),
+    supabase.from("exhibitions").select("id", { count: "exact", head: true }),
+    supabase.from("texts").select("id", { count: "exact", head: true }),
   ])
 
   const biographyUpdatedAt = getLatestTimestamp([
-    soloResult.data?.updated_at,
-    groupResult.data?.updated_at,
+    soloResult.data?.created_at,
+    groupResult.data?.created_at,
+    educationResult.data?.created_at,
+    residencyResult.data?.created_at,
+    awardsResult.data?.created_at,
+    collectionsResult.data?.created_at,
   ])
+
+  const exhibitionsUpdatedAt = exhibitionsResult.data?.updated_at ?? null
+  const textsUpdatedAt = textsResult.data?.updated_at ?? null
 
   const previewCards: PreviewCard[] = [
     {
       title: "Works",
-      updatedAt: formatUpdatedAt(worksAssetResult.data?.created_at),
-      previewTitle: "",
-      previewText: "",
+      updatedAt: formatUpdatedAt(worksResult.data?.updated_at),
       adminLink: "/admin/works",
+      count: worksCountResult.count ?? 0,
     },
     {
-      title: "Biography",
+      title: "Exhibitions",
+      updatedAt: formatUpdatedAt(exhibitionsUpdatedAt),
+      adminLink: "/admin/exhibitions",
+      count: exhibitionsCountResult.count ?? 0,
+    },
+    {
+      title: "Texts",
+      updatedAt: formatUpdatedAt(textsUpdatedAt),
+      adminLink: "/admin/text",
+      count: textsCountResult.count ?? 0,
+    },
+    {
+      title: "CV",
       updatedAt: formatUpdatedAt(biographyUpdatedAt),
-      previewTitle: "Latest update",
-      previewText: "Recent solo or group show update.",
-      adminLink: "/admin/biography",
+      adminLink: "/admin/cv",
     },
   ]
 
   return (
-    <Card>
+    <Card className="">
       <CardHeader>
         <CardTitle>Preview & Quick Actions</CardTitle>
       </CardHeader>
-      <CardContent className="grid gap-4 xl:grid-cols-3">
+      <CardContent className="grid gap-4 md:grid-cols-2">
         {previewCards.map((card) => (
-          <Card key={card.title} className="h-full">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">{card.title}</CardTitle>
-              <p className="text-xs text-muted-foreground">
-                Last updated {card.updatedAt}
-              </p>
+          <Card
+            key={card.title}
+            className="h-full flex flex-col justify-between"
+          >
+            <CardHeader className="p-4 h-auto">
+              <div className="flex items-center justify-between h-full">
+                <CardTitle className="text-base">{card.title}</CardTitle>
+                <div className="text-xs text-muted-foreground">
+                  Last update: {card.updatedAt}
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {card.title !== "Works" ? (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">{card.previewTitle}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {card.previewText}
-                  </p>
+            <CardContent className="px-4 ">
+              {card.count !== undefined ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground ">
+                  <span className="">총</span>
+                  <span className="text-2xl font-bold">{card.count}</span>
+                  <span>{card.title.toLowerCase()} 등록됨</span>
                 </div>
               ) : null}
             </CardContent>
-            <CardFooter>
-              <Button asChild variant="secondary" size="sm">
-                <Link href={card.adminLink}>Manage</Link>
+            <CardFooter className="mt-auto flex justify-end p-0">
+              <Button asChild variant="default" size="sm" aria-label="Open">
+                <Link href={card.adminLink}>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
             </CardFooter>
           </Card>

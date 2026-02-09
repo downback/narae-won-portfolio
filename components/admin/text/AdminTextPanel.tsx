@@ -80,16 +80,18 @@ export default function AdminTextPanel() {
     try {
       const isEditMode = Boolean(editingEntry)
       const response = await fetch(
-        isEditMode ? `/api/admin/texts/${editingEntry?.id}` : "/api/admin/texts",
+        isEditMode
+          ? `/api/admin/texts/${editingEntry?.id}`
+          : "/api/admin/texts",
         {
           method: isEditMode ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: values.title,
-          year: parsedYear,
-          body: values.body,
-        }),
-        }
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: values.title,
+            year: parsedYear,
+            body: values.body,
+          }),
+        },
       )
 
       const payload = (await response.json()) as {
@@ -124,8 +126,8 @@ export default function AdminTextPanel() {
           prev.map((entry) =>
             entry.id === editingEntry?.id
               ? { ...entry, ...values, year: values.year }
-              : entry
-          )
+              : entry,
+          ),
         )
       }
 
@@ -170,7 +172,7 @@ export default function AdminTextPanel() {
     <div className="space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Texts</CardTitle>
+          <CardTitle>비평 | 작가노트 | 기타 텍스트</CardTitle>
           <Button
             type="button"
             variant="highlight"

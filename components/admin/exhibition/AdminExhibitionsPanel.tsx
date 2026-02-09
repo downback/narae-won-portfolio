@@ -98,8 +98,7 @@ export default function AdminExhibitionsPanel() {
       .filter((item): item is ExhibitionPreviewItem => Boolean(item))
       .sort(
         (a, b) =>
-          a.exhibitionOrder - b.exhibitionOrder ||
-          a.imageOrder - b.imageOrder,
+          a.exhibitionOrder - b.exhibitionOrder || a.imageOrder - b.imageOrder,
       )
 
     setPreviewItems(nextItems)
@@ -445,8 +444,12 @@ export default function AdminExhibitionsPanel() {
         key={`exhibition-modal-${resetSignal}`}
         open={isUploadOpen}
         onOpenChange={setIsUploadOpen}
-        title={editingItem ? "Edit exhibition" : "Add exhibition"}
-        description="Upload exhibition images and provide the metadata."
+        title={
+          editingItem
+            ? `Edit ${editingItem.category === "solo-exhibitions" ? "solo" : "group"} exhibition`
+            : `Add ${selectedCategory === "solo-exhibitions" ? "solo" : "group"} exhibition`
+        }
+        description={`${editingItem?.category === "solo-exhibitions" ? "개인" : "그룹"}전 이미지 및 세부정보를 업로드 및 수정 할 수 있습니다`}
         onSave={handleSave}
         initialValues={modalInitialValues}
         isEditMode={Boolean(editingItem)}

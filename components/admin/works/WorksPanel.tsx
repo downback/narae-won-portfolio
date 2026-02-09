@@ -287,7 +287,7 @@ export default function WorksPanel() {
         open={isUploadOpen}
         onOpenChange={setIsUploadOpen}
         title={editingItem ? "Edit work" : "Add work"}
-        description="Upload a work image and caption text"
+        description="작업 이미지와 캡션 텍스트를 업로드 및 수정할 수 있습니다"
         yearOptions={["2018", "2019", "2020", "2021"]}
         isYearSelectDisabled={selectedYearCategory !== rangeLabel}
         selectedYearCategory={selectedYearCategory}

@@ -83,30 +83,30 @@ export default function TextUploadModal({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="text-title">Title</Label>
+            <Label htmlFor="text-title">Title *</Label>
             <Input
               id="text-title"
               value={formValues.title}
               onChange={(event) => updateField("title", event.target.value)}
-              placeholder="Text title"
+              placeholder="텍스트 타이틀을 입력해주세요"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="text-year">Year</Label>
+            <Label htmlFor="text-year">Year *</Label>
             <Input
               id="text-year"
               value={formValues.year}
               onChange={(event) => updateField("year", event.target.value)}
-              placeholder="2025"
+              placeholder="텍스트 연도를 입력해주세요"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="text-body">Body</Label>
+            <Label htmlFor="text-body">Body *</Label>
             <Textarea
               id="text-body"
               value={formValues.body}
               onChange={(event) => updateField("body", event.target.value)}
-              placeholder="Full text content"
+              placeholder="텍스트 내용을 입력해주세요"
               className="min-h-[160px]"
             />
           </div>

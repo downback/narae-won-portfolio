@@ -83,7 +83,7 @@ export default async function Bio() {
     <div className="font-light">
       <DetailSubHeader segments={[{ label: "cv" }]} />
       <div className="flex md:flex-row flex-col w-full">
-        <div className="flex-1">
+        <div className="md:flex-1">
           <div className="text-[14px] font-medium mb-2 mt-2 md:mt-0">
             원나래 | Narae Won
           </div>
@@ -100,7 +100,7 @@ export default async function Bio() {
             <span>@naraeworks</span>
           </Link>
         </div>
-        <div className="mt-12 md:mt-0 flex-4 flex flex-col gap-16 md:gap-24">
+        <div className="mt-12 md:mt-0 md:flex-5 xl:flex-4  flex flex-col gap-16 md:gap-24">
           <div className="flex flex-col gap-4 md:gap-6">
             <CvList
               category="학력"

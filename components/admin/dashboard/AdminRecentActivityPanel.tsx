@@ -42,7 +42,7 @@ const buildActivityItem = (
   entityType: ActivityItem["entityType"],
   timestamp: string,
   context?: ActivityItem["context"],
-  category?: ActivityItem["category"]
+  category?: ActivityItem["category"],
 ): ActivityItem => ({
   action,
   entityType,
@@ -65,41 +65,37 @@ const fetchRecentActivities = async (): Promise<RecentActivityResult> => {
       .order("created_at", { ascending: false })
       .limit(10)
 
-    const [
-      soloShowsResult,
-      groupShowsResult,
-      artworksResult,
-      textsResult,
-    ] = await Promise.all([
-      isMissingTableError(activityLogError)
-        ? supabase
-            .from("bio_solo_exhibitions")
-            .select("created_at")
-            .order("created_at", { ascending: false })
-            .limit(2)
-        : Promise.resolve({ data: null, error: null }),
-      isMissingTableError(activityLogError)
-        ? supabase
-            .from("bio_group_exhibitions")
-            .select("created_at")
-            .order("created_at", { ascending: false })
-            .limit(2)
-        : Promise.resolve({ data: null, error: null }),
-      isMissingTableError(activityLogError)
-        ? supabase
-            .from("artworks")
-            .select("created_at, category")
-            .order("created_at", { ascending: false })
-            .limit(4)
-        : Promise.resolve({ data: null, error: null }),
-      isMissingTableError(activityLogError)
-        ? supabase
-            .from("texts")
-            .select("created_at")
-            .order("created_at", { ascending: false })
-            .limit(4)
-        : Promise.resolve({ data: null, error: null }),
-    ])
+    const [soloShowsResult, groupShowsResult, artworksResult, textsResult] =
+      await Promise.all([
+        isMissingTableError(activityLogError)
+          ? supabase
+              .from("bio_solo_exhibitions")
+              .select("created_at")
+              .order("created_at", { ascending: false })
+              .limit(2)
+          : Promise.resolve({ data: null, error: null }),
+        isMissingTableError(activityLogError)
+          ? supabase
+              .from("bio_group_exhibitions")
+              .select("created_at")
+              .order("created_at", { ascending: false })
+              .limit(2)
+          : Promise.resolve({ data: null, error: null }),
+        isMissingTableError(activityLogError)
+          ? supabase
+              .from("artworks")
+              .select("created_at, category")
+              .order("created_at", { ascending: false })
+              .limit(4)
+          : Promise.resolve({ data: null, error: null }),
+        isMissingTableError(activityLogError)
+          ? supabase
+              .from("texts")
+              .select("created_at")
+              .order("created_at", { ascending: false })
+              .limit(4)
+          : Promise.resolve({ data: null, error: null }),
+      ])
 
     const criticalError =
       (activityLogError && !isMissingTableError(activityLogError)
@@ -130,25 +126,49 @@ const fetchRecentActivities = async (): Promise<RecentActivityResult> => {
       const entityType = item.entity_type || "Update"
       const metadata =
         item.metadata && typeof item.metadata === "object"
-          ? (item.metadata as { context?: string; section?: string; category?: string })
+          ? (item.metadata as {
+              context?: string
+              section?: string
+              category?: string
+            })
           : {}
       const context = metadata.context ?? metadata.section
       const category = metadata.category
       activities.push(
-        buildActivityItem(action, entityType, item.created_at, context, category)
+        buildActivityItem(
+          action,
+          entityType,
+          item.created_at,
+          context,
+          category,
+        ),
       )
     })
 
     if (isMissingTableError(activityLogError)) {
       soloShowsResult.data?.forEach((item) => {
         if (item.created_at) {
-          activities.push(buildActivityItem("add", "CV detail", item.created_at, "solo exhibition"))
+          activities.push(
+            buildActivityItem(
+              "add",
+              "CV detail",
+              item.created_at,
+              "solo exhibition",
+            ),
+          )
         }
       })
 
       groupShowsResult.data?.forEach((item) => {
         if (item.created_at) {
-          activities.push(buildActivityItem("add", "CV detail", item.created_at, "group exhibition"))
+          activities.push(
+            buildActivityItem(
+              "add",
+              "CV detail",
+              item.created_at,
+              "group exhibition",
+            ),
+          )
         }
       })
 
@@ -183,9 +203,7 @@ export default async function AdminRecentActivityPanel() {
       return activity.category === "works" ? "Work" : "Exhibition"
     }
     if (activity.entityType === "cv_detail") {
-      return activity.context
-        ? `CV detail (${activity.context})`
-        : "CV detail"
+      return activity.context ? `CV (${activity.context})` : "CV"
     }
     if (activity.entityType === "text") {
       return "Text"
@@ -194,7 +212,7 @@ export default async function AdminRecentActivityPanel() {
   }
 
   return (
-    <Card>
+    <Card className="">
       <CardHeader>
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
@@ -215,8 +233,8 @@ export default async function AdminRecentActivityPanel() {
                 <div className="flex items-center gap-2">
                   <span
                     className={cn(
-                      "rounded-full px-2 py-1 text-xs uppercase tracking-wide",
-                      actionBadgeClasses[activity.action]
+                      "rounded-full py-1 w-14 text-center text-[11px] uppercase tracking-wide",
+                      actionBadgeClasses[activity.action],
                     )}
                   >
                     {actionLabels[activity.action]}

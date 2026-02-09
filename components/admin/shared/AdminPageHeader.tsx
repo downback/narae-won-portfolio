@@ -14,27 +14,32 @@ type PageConfig = {
 const pageConfigs: Record<string, PageConfig> = {
   "/admin": {
     title: "Dashboard",
-    description: "Welcome to the admin panel",
+    description:
+      "포트폴리오 웹사이트에 새로운 이미지 | 텍스트를 추가하거나 수정하실 수 있는 관리자 페이지입니다",
     viewLink: "/",
   },
   "/admin/works": {
     title: "Works",
-    description: "Add, edit, or remove works from your works page",
+    description:
+      "Works page에 새로운 작품을 추가하거나 수정, 삭제하실 수 있습니다",
     viewLink: "/works",
   },
   "/admin/exhibitions": {
     title: "Exhibitions",
-    description: "Manage solo and group exhibitions",
+    description:
+      "Exhibitions page에 새로운 전시 정보를 추가하거나 수정, 삭제하실 수 있습니다",
     viewLink: "/",
   },
   "/admin/cv": {
     title: "CV",
-    description: "Add, edit, or remove your CV detail",
+    description:
+      "CV page에 새로운 이력을 추가하거나 수정, 삭제하실 수 있습니다",
     viewLink: "/cv",
   },
   "/admin/text": {
     title: "Text",
-    description: "Create and edit text entries for the public texts page",
+    description:
+      "Texts page에 새로운 텍스트를 추가하거나 수정, 삭제하실 수 있습니다",
     viewLink: "/texts",
   },
 }
@@ -47,7 +52,9 @@ export default function AdminPageHeader() {
     <div className="flex items-end justify-between gap-4 pb-6 border-b border-border h-20">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold">{config.title}</h1>
-        <p className="text-sm text-muted-foreground">{config.description}</p>
+        <p className="text-sm md:text-[13px] text-muted-foreground">
+          {config.description}
+        </p>
       </div>
       <Link href={config.viewLink} target="_blank" rel="noopener noreferrer">
         <Button variant="outline" size="sm" className="gap-2">

@@ -23,8 +23,8 @@ const adminNavLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/works", label: "Works", icon: FolderOpen },
   { href: "/admin/exhibitions", label: "Exhibitions", icon: Calendar },
-  { href: "/admin/cv", label: "CV", icon: UserCircle },
   { href: "/admin/text", label: "Text", icon: FileText },
+  { href: "/admin/cv", label: "CV", icon: UserCircle },
 ]
 
 export default function AdminSidebar() {
@@ -97,7 +97,7 @@ export default function AdminSidebar() {
     <>
       {/* Desktop Sidebar */}
       <aside className="hidden md:fixed md:left-0 md:top-0 md:flex h-svh min-h-svh md:w-56 md:flex-col md:border-r md:border-border">
-        <div className="px-6 py-6 border-b border-border flex items-center gap-4">
+        <div className="px-6 py-6 flex items-center gap-4">
           <div className="w-11 h-11 bg-secondary rounded-full flex items-center justify-center">
             <User className="h-6 w-6 text-muted-foreground" strokeWidth={1.2} />
           </div>
