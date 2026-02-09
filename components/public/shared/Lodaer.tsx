@@ -1,10 +1,42 @@
-export default function Loader() {
+import { LoaderCircle } from "lucide-react"
+
+type LoaderProps = {
+  boxSize?: "md" | "lg"
+  size?: "sm" | "md" | "lg"
+  background?: boolean
+  className?: string
+}
+
+const iconSizeClasses = {
+  sm: "h-4 w-4",
+  md: "h-8 w-8",
+  lg: "h-12 w-12",
+}
+
+const boxSizeClasses = {
+  md: "w-full",
+  lg: "w-1/2",
+}
+
+export default function Loader({
+  boxSize = "md",
+  size = "md",
+  background = true,
+  className = "",
+}: LoaderProps) {
+  const iconClasses = iconSizeClasses[size]
+  const widthClass = boxSizeClasses[boxSize]
+  const bgClass = background ? "animate-pulse bg-gray-200/50" : ""
+  const centerClass = boxSize === "lg" ? "mx-auto" : ""
+
   return (
-    <div className="flex items-center justify-center w-full h-full min-h-[200px]">
-      <div className="relative h-8 w-8">
-        <div className="absolute inset-0 rounded-full border-2 border-border"></div>
-        <div className="absolute inset-0 rounded-full border-2 border-foreground border-t-transparent animate-spin"></div>
-      </div>
+    <div
+      className={`flex items-center justify-center h-full ${widthClass} ${centerClass} ${bgClass} ${className}`}
+    >
+      <LoaderCircle
+        className={`${iconClasses} text-black animate-spin`}
+        strokeWidth={1}
+      />
     </div>
   )
 }

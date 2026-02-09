@@ -5,6 +5,7 @@ import LightboxImage from "@/components/public/LightboxImage"
 type Exhibition = {
   id: string
   title: string
+  caption: string
   description: string
   mainImageSrc: string
   mainImageAlt?: string
@@ -27,7 +28,7 @@ export default function ExhibitionList({
           key={item.id}
           className="mx-auto w-full md:w-lg xl:max-w-3xl space-y-4"
         >
-          <div className="h-[60vh] w-full md:h-auto">
+          <div className="w-full">
             <LightboxImage
               src={item.mainImageSrc}
               alt={item.mainImageAlt ?? "Exhibition main image"}
@@ -35,17 +36,17 @@ export default function ExhibitionList({
               height={800}
               sizes="(min-width: 768px) 768px, 100vw"
               className="block h-full w-full"
-              imageClassName="h-full w-full object-cover md:h-auto md:w-full"
+              imageClassName="h-auto w-full object-cover md:h-auto md:w-full"
             />
           </div>
 
-          <div className="px-1 text-sm md:text-[14px] font-light capitalize whitespace-pre-wrap">
-            {item.title}
+          <div className="px-1 text-sm md:text-[14px] font-light whitespace-pre-wrap">
+            {item.caption}
           </div>
 
           <div className="flex flex-col gap-6 mt-12 md:mt-24">
             {(item.detailImages ?? []).map((image) => (
-              <div key={image.id} className="h-[60vh] w-full md:h-auto">
+              <div key={image.id} className=" w-full">
                 <LightboxImage
                   src={image.src}
                   alt={image.alt}
@@ -53,7 +54,7 @@ export default function ExhibitionList({
                   height={800}
                   sizes="(min-width: 768px) 768px, 100vw"
                   className="block h-full w-full"
-                  imageClassName="h-full w-full object-cover md:h-auto md:w-full"
+                  imageClassName="h-auto w-full object-cover md:h-auto md:w-full"
                 />
               </div>
             ))}

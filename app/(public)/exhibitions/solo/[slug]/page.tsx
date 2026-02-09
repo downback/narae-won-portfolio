@@ -66,6 +66,7 @@ export default async function SoloExhibitionPage({
         {
           id: `solo-${slug}`,
           title: exhibitionTitle,
+          caption: mainImage.alt,
           description: exhibitionDescription,
           mainImageSrc: mainImage.src,
           mainImageAlt: mainImage.alt,

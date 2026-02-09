@@ -4,6 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import Loader from "@/components/public/shared/Lodaer"
 
 type LightboxImageProps = {
   src: string
@@ -27,15 +28,27 @@ export default function LightboxImage({
   priority = false,
 }: LightboxImageProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isModalImageLoading, setIsModalImageLoading] = useState(true)
+
+  const handleOpenModal = () => {
+    setIsOpen(true)
+    setIsModalImageLoading(true)
+  }
 
   return (
     <>
       <button
         type="button"
-        className={className}
-        onClick={() => setIsOpen(true)}
+        className={`relative ${className}`}
+        onClick={handleOpenModal}
         aria-label="Open image preview"
       >
+        {isLoading && (
+          <div className="absolute inset-0 z-10">
+            <Loader boxSize="md" size="md" />
+          </div>
+        )}
         <Image
           src={src}
           alt={alt}
@@ -44,6 +57,7 @@ export default function LightboxImage({
           sizes={sizes}
           priority={priority}
           className={imageClassName}
+          onLoad={() => setIsLoading(false)}
         />
       </button>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -54,15 +68,17 @@ export default function LightboxImage({
         >
           <DialogTitle className="sr-only">Image preview</DialogTitle>
           <div className="relative h-full w-full">
+            {isModalImageLoading && <Loader boxSize="lg" size="lg" />}
             <Image
               src={src}
               alt={alt}
               fill
               sizes="95vw"
-              className="object-contain px-4 py-4"
+              className="object-contain"
               priority
+              onLoad={() => setIsModalImageLoading(false)}
             />
-            <div className="absolute right-3 top-2">
+            <div className="absolute right-3 top-2 z-20">
               <Button
                 type="button"
                 variant="svg"

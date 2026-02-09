@@ -20,7 +20,7 @@ export default function ArtworkItem({
 }: ArtworkItemProps) {
   return (
     <div className="mx-auto w-full md:w-lg xl:max-w-3xl">
-      <div className="h-[60vh] w-full md:h-auto">
+      <div className=" w-full ">
         <LightboxImage
           src={imageSrc}
           alt={imageAlt}
@@ -28,7 +28,7 @@ export default function ArtworkItem({
           height={800}
           sizes="(min-width: 768px) 768px, 100vw"
           className="block h-full w-full"
-          imageClassName="h-full w-full object-cover md:h-auto md:w-full"
+          imageClassName="h-auto w-full object-cover md:h-auto md:w-full"
         />
       </div>
       <div className="px-1 mt-2 md:mt-4 flex md:flex-row flex-col justify-between w-full md:gap-4">

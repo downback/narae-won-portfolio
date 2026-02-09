@@ -225,22 +225,33 @@ export default function ExhibitionUploadModal({
               id="exhibition-title"
               value={exhibitionTitle}
               onChange={(event) => setExhibitionTitle(event.target.value)}
-              placeholder="전시 타이틀을 입력해주세요(메뉴바에 표시되는 텍스트이니, 가능한 영문으로 간결하게 작성해주세요)"
+              placeholder="메뉴바에 들어갈 전시 타이틀을 입력해주세요"
               className="min-h-[60px]"
+              disabled={isEditMode}
             />
+            <div className="flex flex-col gap-0">
+              <div className="text-xs text-muted-foreground">
+                *위 타이틀은 최초 업로드 후 수정이 불가능 합니다.
+              </div>
+              <div className="text-xs text-muted-foreground">
+                메뉴바에 표시되는 텍스트이니, 가능한 간결하게 작성해주세요.
+              </div>
+            </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="exhibition-caption">Caption *</Label>
+            <Label htmlFor="exhibition-caption">Exhibition information *</Label>
             <Textarea
               id="exhibition-caption"
               value={caption}
               onChange={(event) => setCaption(event.target.value)}
-              placeholder="전시 캡션을 입력해주세요"
+              placeholder="전시 메인 이미지 하단에 들어갈 전시 설명 텍스트를 입력해주세요"
               className="min-h-[60px]"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="exhibition-description">Exhibition text</Label>
+            <Label htmlFor="exhibition-description">
+              Exhibition description
+            </Label>
             <Textarea
               id="exhibition-description"
               value={details}

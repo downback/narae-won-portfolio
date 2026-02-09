@@ -70,6 +70,7 @@ export default async function GroupExhibitionPage({
         {
           id: `group-${slug}`,
           title: exhibitionTitle,
+          caption: mainImage.alt,
           description: exhibitionDescription,
           mainImageSrc: mainImage.src,
           mainImageAlt: mainImage.alt,
