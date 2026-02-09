@@ -34,7 +34,7 @@ export default function DeleteConfirmDialog({
   trigger,
   disabled = false,
   title = "Delete item?",
-  description = "삭제 후 복구할 수 없습니다",
+  description = "삭제 후 복구할 수 없습니다. 진행하시겠습니까?",
   confirmLabel = "Delete",
   deletingLabel = "Deleting...",
 }: DeleteConfirmDialogProps) {

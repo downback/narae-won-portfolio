@@ -40,7 +40,7 @@ export default function ExhibitionList({
             />
           </div>
 
-          <div className="px-1 text-sm md:text-[14px] font-light whitespace-pre-wrap">
+          <div className="px-1 text-sm md:text-[13px] font-light whitespace-pre-wrap">
             {item.caption}
           </div>
 
