@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
@@ -33,30 +33,43 @@ export default function SidebarNavMobile({
 }: SidebarNavMobileProps) {
   const pathname = usePathname()
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
+  const scrollPositionRef = useRef(0)
 
   const isHomeRoute = pathname === "/"
   const isNavVisible = isHomeRoute || isMobileNavOpen
 
-  /**
-   * SAFARI-SAFE SCROLL LOCK
-   * - Lock both html & body
-   * - Prevent background scroll
-   */
   useEffect(() => {
-    if (!isMobileNavOpen) return
+    if (!isMobileNavOpen) {
+      return
+    }
 
-    const html = document.documentElement
+    const isIos =
+      typeof navigator !== "undefined" &&
+      /iP(hone|ad|od)/.test(navigator.userAgent)
     const body = document.body
 
-    const prevHtmlOverflow = html.style.overflow
-    const prevBodyOverflow = body.style.overflow
-
-    html.style.overflow = "hidden"
-    body.style.overflow = "hidden"
+    if (isIos) {
+      scrollPositionRef.current = window.scrollY
+      body.style.position = "fixed"
+      body.style.top = `-${scrollPositionRef.current}px`
+      body.style.left = "0"
+      body.style.right = "0"
+      body.style.width = "100%"
+    } else {
+      body.style.overflow = "hidden"
+    }
 
     return () => {
-      html.style.overflow = prevHtmlOverflow
-      body.style.overflow = prevBodyOverflow
+      if (isIos) {
+        body.style.position = ""
+        body.style.top = ""
+        body.style.left = ""
+        body.style.right = ""
+        body.style.width = ""
+        window.scrollTo(0, scrollPositionRef.current)
+      } else {
+        body.style.overflow = ""
+      }
     }
   }, [isMobileNavOpen])
 
@@ -90,9 +103,10 @@ export default function SidebarNavMobile({
         <aside
           className={cn(
             "fixed inset-0 z-50 md:hidden",
-            "h-svh min-h-svh w-full bg-white",
+            "w-full bg-white",
             "flex flex-col",
           )}
+          style={{ height: "100dvh" }}
         >
           {/* Overlay Header */}
           <div className="flex items-start justify-between pl-6 pt-8 pb-6 shrink-0">
