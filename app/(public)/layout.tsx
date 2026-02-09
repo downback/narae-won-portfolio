@@ -57,7 +57,9 @@ export default async function PublicLayout({
     ),
   )
 
-  const buildExhibitions = (rows: { title?: string | null; slug?: string | null }[]) => {
+  const buildExhibitions = (
+    rows: { title?: string | null; slug?: string | null }[],
+  ) => {
     const seen = new Set<string>()
     return rows
       .map((row) => ({
@@ -95,9 +97,7 @@ export default async function PublicLayout({
         />
       </div>
       <main className="flex-auto md:w-auto">
-        <div className="px-6 mb-32 sm:px-0 md:py-0 md:mt-28 md:pr-8">
-          {children}
-        </div>
+        <div className="px-6 mb-32  md:py-0 md:mt-28 md:pr-8">{children}</div>
       </main>
     </div>
   )

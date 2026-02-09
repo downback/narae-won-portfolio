@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 
 export type WorkFormValues = {
   imageFile: File | null
@@ -229,20 +230,22 @@ export default function WorkUploadModal({
           </div>
           <div className="space-y-2">
             <Label htmlFor="work-title">Title *</Label>
-            <Input
+            <Textarea
               id="work-title"
               value={titleValue}
               onChange={(event) => setTitleValue(event.target.value)}
               placeholder="Work title"
+              className="min-h-[60px]"
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="work-caption">Caption *</Label>
-            <Input
+            <Textarea
               id="work-caption"
               value={caption}
               onChange={(event) => setCaption(event.target.value)}
               placeholder="Caption text"
+              className="min-h-[60px]"
             />
           </div>
         </div>

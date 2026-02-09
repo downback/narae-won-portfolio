@@ -123,8 +123,7 @@
 
 - [x] edit mode additional image not saved
 - [x] exhibition section in admin drag and drop not working
-- [ ] mobile navbar
-- [ ] exhibition 페이지에서 사진을 여러장 업데이트 하는 경우
+- [x] mobile navbar
 
 ---
 
@@ -132,8 +131,8 @@
 
 **Goal:** Validate correctness, safety, and alignment with PRD.
 
-- [ ] 캡션은 작업 제목과 캡션텍스트를 원하는 구간에서 줄 바꿈을 모두 할 수 있으면 좋겠습니다.
-- [ ] 제목과 캡션의 텍스트 크기가 조금 작아져도 좋을 것 같아요.
+- [x] 캡션은 작업 제목과 캡션텍스트를 원하는 구간에서 줄 바꿈을 모두 할 수 있으면 좋겠습니다.
+- [x] 제목과 캡션의 텍스트 크기가 조금 작아져도 좋을 것 같아요.
       영문과 국문제목을 모두 기재할 경우(혹은 긴 제목과 캡션일 경우) 제목이 길어지더라고요.
 
 - [ ] 관리자 페이지에 사용할 이메일과 비밀번호도 공유드리겠습니다.

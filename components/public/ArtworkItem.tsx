@@ -31,11 +31,11 @@ export default function ArtworkItem({
           imageClassName="h-full w-full object-cover md:h-auto md:w-full"
         />
       </div>
-      <div className="px-1 mt-2 md:mt-4 flex md:flex-row flex-col justify-between w-full md:gap-4 text-sm md:text-[14px]">
-        <p className="md:font-light font-base md:w-auto md:shrink-0 md:whitespace-nowrap  capitalize">
+      <div className="px-1 mt-2 md:mt-4 flex md:flex-row flex-col justify-between w-full md:gap-4">
+        <p className="md:font-light font-base md:flex-1 text-sm whitespace-pre-wrap">
           {title}
         </p>
-        <p className="md:min-w-0 md:flex-1 md:text-right font-light">
+        <p className="md:flex-1 md:text-right font-light text-xs whitespace-pre-wrap">
           {caption}
         </p>
       </div>
