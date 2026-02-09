@@ -121,8 +121,8 @@
 
 ## Phase 6 — Error Handling & refactoring
 
-- [ ] edit mode additional image not saved
-- [ ] exhibition section in admin drag and drop not working
+- [x] edit mode additional image not saved
+- [x] exhibition section in admin drag and drop not working
 - [ ] mobile navbar
 - [ ] exhibition 페이지에서 사진을 여러장 업데이트 하는 경우
 
