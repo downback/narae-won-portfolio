@@ -10,7 +10,7 @@ type LoaderProps = {
 const iconSizeClasses = {
   sm: "h-4 w-4",
   md: "h-8 w-8",
-  lg: "h-12 w-12",
+  lg: "h-10 w-10",
 }
 
 const boxSizeClasses = {
@@ -34,8 +34,8 @@ export default function Loader({
       className={`flex items-center justify-center h-full ${widthClass} ${centerClass} ${bgClass} ${className}`}
     >
       <LoaderCircle
-        className={`${iconClasses} text-black animate-spin`}
-        strokeWidth={1}
+        className={`${iconClasses} text-black/50 animate-spin`}
+        strokeWidth={0.8}
       />
     </div>
   )

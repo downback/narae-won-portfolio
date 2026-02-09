@@ -234,7 +234,7 @@ export default function ExhibitionUploadModal({
                 *위 타이틀은 최초 업로드 후 수정이 불가능 합니다.
               </div>
               <div className="text-xs text-muted-foreground">
-                메뉴바에 표시되는 텍스트이니, 가능한 간결하게 작성해주세요.
+                가능한 간결하게 띄어쓰기에 유의하여 작성해주세요.
               </div>
             </div>
           </div>
