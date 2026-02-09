@@ -225,7 +225,7 @@ export default function ExhibitionUploadModal({
               id="exhibition-title"
               value={exhibitionTitle}
               onChange={(event) => setExhibitionTitle(event.target.value)}
-              placeholder="전시 타이틀을 입력해주세요"
+              placeholder="전시 타이틀을 입력해주세요(메뉴바에 표시되는 텍스트이니, 가능한 영문으로 간결하게 작성해주세요)"
               className="min-h-[60px]"
             />
           </div>

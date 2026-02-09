@@ -57,12 +57,12 @@ export default function ImageCaptionPreview({
             className="h-full w-full object-cover"
           />
         </div>
-        <p className="text-sm text-muted-foreground wrap-break-word">
-          <span className="inline-block">{title}</span>
-          <span className="hidden sm:inline-block">, {caption}</span>
-        </p>
+        <div className="text-muted-foreground wrap-break-word flex flex-col gap-1">
+          <span className="inline-block text-sm ">{title}</span>
+          <span className="inline-block text-xs">{caption}</span>
+        </div>
       </div>
-      <div className="flex gap-1 md:gap-2 items-center">
+      <div className="flex gap-0 md:gap-2 items-center">
         <Button
           type="button"
           variant="default"
@@ -72,7 +72,10 @@ export default function ImageCaptionPreview({
           onClick={onEdit}
           disabled={!onEdit}
         >
-          <Pencil className="h-3 w-3 md:h-4 md:w-4 text-zinc-600 hover:text-zinc-400" />
+          <Pencil
+            className="h-4 w-4 text-zinc-600 hover:text-zinc-400"
+            strokeWidth={2}
+          />
         </Button>
         <DeleteConfirmDialog
           open={isDialogOpen}
@@ -92,7 +95,10 @@ export default function ImageCaptionPreview({
               className="shadow-none"
               disabled={!onDelete}
             >
-              <Trash2 className="h-3 w-3 md:h-4 md:w-4 text-red-500 hover:text-red-300" />
+              <Trash2
+                className="h-4 w-4 text-red-500 hover:text-red-300"
+                strokeWidth={1.5}
+              />
             </Button>
           }
         />

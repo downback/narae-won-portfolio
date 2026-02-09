@@ -15,6 +15,10 @@ export default function AdminExhibitions() {
         <CardContent className="text-sm text-muted-foreground">
           <ul className="list-disc space-y-2 pl-5">
             <li>
+              전시 타이틀 텍스트는 메뉴바에 표시되는 텍스트입니다. 가능한 한
+              영문으로 간결하게 작성해주세요.
+            </li>
+            <li>
               각 전시의 메인 이미지는 한 장의 이미지만 업로드할 수 있습니다.
             </li>
             <li>

@@ -33,8 +33,8 @@ export default function DeleteConfirmDialog({
   onConfirm,
   trigger,
   disabled = false,
-  title = "Delete entry?",
-  description = "This action cannot be undone.",
+  title = "Delete item?",
+  description = "삭제 후 복구할 수 없습니다",
   confirmLabel = "Delete",
   deletingLabel = "Deleting...",
 }: DeleteConfirmDialogProps) {

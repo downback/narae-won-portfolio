@@ -329,10 +329,26 @@ export async function DELETE(_: Request, { params }: RouteContext) {
       })
     }
 
+    const { data: allImages, error: allImagesError } = await supabase
+      .from("exhibition_images")
+      .select("id, storage_path")
+      .eq("exhibition_id", imageRow.exhibition_id)
+
+    if (allImagesError) {
+      console.error("Failed to load all exhibition images", {
+        message: allImagesError.message,
+      })
+    }
+
+    const storagePaths =
+      allImages
+        ?.map((img) => img.storage_path)
+        .filter((path): path is string => Boolean(path)) ?? []
+
     const { error: deleteError } = await supabase
       .from("exhibition_images")
       .delete()
-      .eq("id", id)
+      .eq("exhibition_id", imageRow.exhibition_id)
 
     if (deleteError) {
       return NextResponse.json(
@@ -341,30 +357,19 @@ export async function DELETE(_: Request, { params }: RouteContext) {
       )
     }
 
-    await supabase.storage.from(bucketName).remove([imageRow.storage_path])
-
-    const { count: remainingCount, error: remainingError } = await supabase
-      .from("exhibition_images")
-      .select("id", { count: "exact", head: true })
-      .eq("exhibition_id", imageRow.exhibition_id)
-
-    if (remainingError) {
-      console.error("Failed to count remaining exhibition images", {
-        message: remainingError.message,
-      })
+    if (storagePaths.length > 0) {
+      await supabase.storage.from(bucketName).remove(storagePaths)
     }
 
-    if (!remainingError && (remainingCount ?? 0) === 0) {
-      const { error: exhibitionDeleteError } = await supabase
-        .from("exhibitions")
-        .delete()
-        .eq("id", imageRow.exhibition_id)
+    const { error: exhibitionDeleteError } = await supabase
+      .from("exhibitions")
+      .delete()
+      .eq("id", imageRow.exhibition_id)
 
-      if (exhibitionDeleteError) {
-        console.error("Failed to delete empty exhibition", {
-          message: exhibitionDeleteError.message,
-        })
-      }
+    if (exhibitionDeleteError) {
+      console.error("Failed to delete exhibition", {
+        message: exhibitionDeleteError.message,
+      })
     }
 
     const { error: activityError } = await supabase
