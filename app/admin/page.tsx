@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic"
 export default async function Admin() {
   let connectionStatus = {
     status: "connected",
-    message: "Connected to Supabase.",
+    message: "Connection to server successful",
   }
 
   try {
@@ -24,7 +24,8 @@ export default async function Admin() {
     console.error("Supabase connection test failed", { error })
     connectionStatus = {
       status: "error",
-      message: "Unable to connect to Supabase. Check server logs and env vars.",
+      message:
+        "There might be ongoing issue connecting to the server. Try to refresh page, or contact to administrator.",
     }
   }
 

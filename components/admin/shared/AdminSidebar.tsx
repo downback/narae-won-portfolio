@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
@@ -12,6 +12,7 @@ import {
   UserCircle,
   FileText,
   Calendar,
+  User,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -33,8 +34,44 @@ export default function AdminSidebar() {
   const { toast } = useToast()
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const scrollPositionRef = useRef(0)
 
   const closeMobileNav = () => setIsMobileNavOpen(false)
+
+  useEffect(() => {
+    if (!isMobileNavOpen) {
+      return
+    }
+
+    const isIos =
+      typeof navigator !== "undefined" &&
+      /iP(hone|ad|od)/.test(navigator.userAgent)
+    const body = document.body
+
+    if (isIos) {
+      scrollPositionRef.current = window.scrollY
+      body.style.position = "fixed"
+      body.style.top = `-${scrollPositionRef.current}px`
+      body.style.left = "0"
+      body.style.right = "0"
+      body.style.width = "100%"
+    } else {
+      body.style.overflow = "hidden"
+    }
+
+    return () => {
+      if (isIos) {
+        body.style.position = ""
+        body.style.top = ""
+        body.style.left = ""
+        body.style.right = ""
+        body.style.width = ""
+        window.scrollTo(0, scrollPositionRef.current)
+      } else {
+        body.style.overflow = ""
+      }
+    }
+  }, [isMobileNavOpen])
 
   const handleSignOut = async () => {
     if (isSigningOut) return
@@ -59,9 +96,15 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:fixed md:left-0 md:top-0 md:flex h-svh min-h-svh md:w-64 md:flex-col md:border-r md:border-border">
-        <div className="px-6 py-6 border-b border-border">
-          <h1 className="text-xl font-semibold">admin</h1>
+      <aside className="hidden md:fixed md:left-0 md:top-0 md:flex h-svh min-h-svh md:w-56 md:flex-col md:border-r md:border-border">
+        <div className="px-6 py-6 border-b border-border flex items-center gap-4">
+          <div className="w-11 h-11 bg-secondary rounded-full flex items-center justify-center">
+            <User className="h-6 w-6 text-muted-foreground" strokeWidth={1.2} />
+          </div>
+          <div>
+            <div className="text-sm font-medium">Narae Won</div>
+            <div className="text-xs text-muted-foreground">관리자</div>
+          </div>
         </div>
         <nav className="flex-1 flex flex-col px-4 py-4">
           <div className="space-y-1">
@@ -99,16 +142,16 @@ export default function AdminSidebar() {
       </aside>
 
       {/* Mobile Header */}
-      <header className="fixed left-0 right-0 top-0 z-40 flex md:hidden items-center justify-start md:justify-between border-b border-border bg-white px-4 py-3">
+      <header className="fixed left-0 right-0 top-0 z-40 flex md:hidden items-center justify-between md:justify-between border-b border-border bg-white px-4 py-3">
+        <h1 className="text-sm font-medium">Narae Won | 관리자 페이지</h1>
         <Button
-          variant="ghost"
+          variant="default"
           size="icon"
           aria-label="Open menu"
           onClick={() => setIsMobileNavOpen(true)}
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <h1 className="text-lg font-semibold">admin</h1>
       </header>
 
       {/* Mobile Overlay and Sidebar */}
@@ -119,11 +162,22 @@ export default function AdminSidebar() {
             onClick={closeMobileNav}
             aria-hidden="true"
           />
-          <aside className="fixed left-0 top-0 z-50 h-full w-64 bg-white border-r border-border md:hidden flex flex-col">
+          <aside className="fixed right-0 top-0 z-50 h-full w-64 bg-white border-r border-border md:hidden flex flex-col">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <h1 className="text-lg font-semibold">admin</h1>
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 bg-secondary rounded-full flex items-center justify-center">
+                  <User
+                    className="h-6 w-6 text-muted-foreground"
+                    strokeWidth={1.2}
+                  />
+                </div>
+                <div>
+                  <div className="text-sm font-medium">Narae Won</div>
+                  <div className="text-xs text-muted-foreground">관리자</div>
+                </div>
+              </div>
               <Button
-                variant="ghost"
+                variant="default"
                 size="icon"
                 aria-label="Close menu"
                 onClick={closeMobileNav}

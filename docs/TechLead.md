@@ -1,16 +1,14 @@
 ## Development task breakdown
 
-### 0) Project setup (foundation)
+### 0 Project setup (foundation)
 
 1. **Repo setup**
-
    - Initialize Next.js (App Router)
    - Configure TailwindCSS
    - Initialize ShadCN and add baseline components needed for forms/layout (as required by the existing design)
    - Add Supabase client setup (env vars, helper modules)
 
 2. **Supabase project setup**
-
    - Create Supabase project
    - Configure Auth (email/password)
    - Create the single admin user (manual setup in Supabase)
@@ -18,17 +16,14 @@
 
 ---
 
-### 1) Supabase backend (minimal + secure)
+### 1 Supabase backend (minimal + secure)
 
 3. **Storage**
-
    - Create Storage buckets (e.g., `hero`, `works`) or a single bucket with folders
    - Define object naming strategy for “replace” behavior (replace-in-place vs new key per upload)
 
 4. **Database**
-
    - Create minimal tables for:
-
      - Hero media metadata (type, storage path, updated timestamp)
      - Works PDF metadata (storage path, updated timestamp)
      - Bio structured fields (matching PRD’s existing structure)
@@ -36,26 +31,21 @@
    - Seed initial rows so public pages always have content to render
 
 5. **Security / RLS**
-
    - Enable RLS on tables
    - Policies:
-
      - Public read for current content rows (needed by public pages)
      - Admin-only insert/update (restricted to the single admin user)
 
    - Storage policies:
-
      - Public read or signed URL approach (per chosen access model)
      - Admin-only upload/update/delete
 
 ---
 
-### 2) Public pages (preserve existing design)
+### 2 Public pages (preserve existing design)
 
 6. **Route scaffolding (Next.js App Router)**
-
    - Implement public routes:
-
      - Home
      - Works (PDF viewer)
      - Bio
@@ -64,17 +54,14 @@
    - Create shared public layout(s) consistent with the existing design
 
 7. **Supabase read integration**
-
    - Server-side reads for hero media, works PDF metadata, bio content
    - Implement caching strategy to satisfy “immediate reflection” (no stale content)
 
 8. **Home page: hero media rendering**
-
    - Render image or looped video based on stored metadata
    - Ensure responsive behavior
 
 9. **Works page: PDF viewing**
-
    - Implement PDF display behavior per existing design constraints
    - Provide mobile-safe fallback behavior (if embedded PDF is unreliable)
 
@@ -89,7 +76,7 @@
 
 ---
 
-### 3) Admin authentication + protected area
+### 3 Admin authentication + protected area
 
 12. **Admin login**
 
@@ -143,7 +130,7 @@
 
 ---
 
-### 5) Reliability, QA, and release
+### 5 Reliability, QA, and release
 
 20. **Validation & constraints**
 
@@ -171,7 +158,6 @@
 - Deploy Next.js app
 - Configure production env vars
 - Run smoke tests in production:
-
   - Admin login
   - Upload hero
   - Upload PDF
