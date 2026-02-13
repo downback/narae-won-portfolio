@@ -134,14 +134,34 @@ export default function WorksPanel() {
         },
       )
 
-      const payload = (await response.json()) as {
-        ok?: boolean
-        createdAt?: string
-        error?: string
-      }
-
       if (!response.ok) {
-        throw new Error(payload.error || "Unable to save the work.")
+        let errorMessage = "Unable to save the work."
+
+        if (response.status === 413) {
+          errorMessage =
+            "File size is too large. Please reduce the image size and try again."
+        } else if (response.status === 415) {
+          errorMessage =
+            "Unsupported file format. Please use PNG or JPG images."
+        } else if (response.status === 401) {
+          errorMessage = "Your session has expired. Please sign in again."
+        } else if (response.status === 500) {
+          errorMessage = "Server error. Please try again later."
+        } else if (response.status === 504) {
+          errorMessage =
+            "Upload timeout. The file may be too large or your connection is slow."
+        }
+
+        try {
+          const payload = (await response.json()) as { error?: string }
+          if (payload.error) {
+            errorMessage = payload.error
+          }
+        } catch {
+          // If JSON parsing fails, use the default error message
+        }
+
+        throw new Error(errorMessage)
       }
 
       if (previewUrl) {
@@ -166,7 +186,21 @@ export default function WorksPanel() {
       setSelectedYear("")
     } catch (error) {
       console.error("Failed to save work entry", { error })
-      setErrorMessage("Unable to save the work entry. Please try again.")
+      if (error instanceof Error) {
+        if (error.message.includes("fetch failed")) {
+          setErrorMessage(
+            "Network error. Please check your connection and try again.",
+          )
+        } else if (error.message.includes("timeout")) {
+          setErrorMessage(
+            "Request timeout. Please check your connection or try with a smaller file.",
+          )
+        } else {
+          setErrorMessage(error.message)
+        }
+      } else {
+        setErrorMessage("Unable to save the work entry. Please try again.")
+      }
     } finally {
       setIsUploading(false)
     }
@@ -300,7 +334,7 @@ export default function WorksPanel() {
               : undefined
         }
         isEditMode={Boolean(editingItem)}
-        confirmLabel={editingItem ? "Update work" : "Save work"}
+        confirmLabel={editingItem ? "Save updates" : "Save work"}
         isConfirmDisabled={isUploading}
         isSubmitting={isUploading}
         errorMessage={errorMessage}

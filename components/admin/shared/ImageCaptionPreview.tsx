@@ -4,7 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import { Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import DeleteConfirmDialog from "@/components/admin/shared/DeleteConfirmDialog"
+import AdminDialog from "@/components/admin/shared/AdminDialog"
 
 type ImageCaptionPreviewProps = {
   imageUrl: string
@@ -77,9 +77,9 @@ export default function ImageCaptionPreview({
             strokeWidth={2}
           />
         </Button>
-        <DeleteConfirmDialog
+        <AdminDialog
           open={isDialogOpen}
-          isDeleting={isDeleting}
+          isLoading={isDeleting}
           onOpenChange={(nextOpen) => {
             if (isDeleting) return
             setIsDialogOpen(nextOpen)
@@ -101,6 +101,12 @@ export default function ImageCaptionPreview({
               />
             </Button>
           }
+          title="Delete item?"
+          description="삭제 후 복구할 수 없습니다. 진행하시겠습니까?"
+          confirmLabel="Delete"
+          loadingLabel="Deleting..."
+          showCancel={true}
+          variant="destructive"
         />
       </div>
     </div>

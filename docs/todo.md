@@ -1,9 +1,17 @@
 - [x] Dashboard connected state
-- [ ] quick action panel
-- [ ] en -> kor
+- [x] quick action panel
+- [x] en -> kor
 
-refactor
+Refactoring
 
-- cookies
-- Security
-- db
+- [ ] cookies
+- [ ] test
+- [ ] Security
+- [ ] db
+
+ERROR Handling
+
+- [x] admin exhibition section : error specify - file size
+  - [] dialog confirm to file size
+- [ ] admin work section : drag and drop to order doesn't work
+      saving.....

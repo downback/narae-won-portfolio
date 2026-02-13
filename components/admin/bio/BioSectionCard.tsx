@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react"
 import BioUploadModal from "@/components/admin/bio/BioUploadModal"
-import DeleteConfirmDialog from "@/components/admin/shared/DeleteConfirmDialog"
+import AdminDialog from "@/components/admin/shared/AdminDialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -326,9 +326,9 @@ export default function BioSectionCard({
               >
                 <Pencil className="h-3 w-3 md:h-4 md:w-4 text-zinc-600 hover:text-zinc-400" />
               </Button>
-              <DeleteConfirmDialog
+              <AdminDialog
                 open={deleteDialogId === item.id}
-                isDeleting={deletingId === item.id}
+                isLoading={deletingId === item.id}
                 onOpenChange={(nextOpen) => {
                   if (deletingId === item.id) return
                   setDeleteDialogId(nextOpen ? (item.id ?? null) : null)
@@ -347,6 +347,12 @@ export default function BioSectionCard({
                     <Trash2 className="h-3 w-3 md:h-4 md:w-4 text-red-500 hover:text-red-300" />
                   </Button>
                 }
+                title="Delete item?"
+                description="삭제 후 복구할 수 없습니다. 진행하시겠습니까?"
+                confirmLabel="Delete"
+                loadingLabel="Deleting..."
+                showCancel={true}
+                variant="destructive"
               />
             </div>
           </div>

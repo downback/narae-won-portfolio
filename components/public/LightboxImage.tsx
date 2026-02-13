@@ -62,7 +62,7 @@ export default function LightboxImage({
       </button>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent
-          className="max-w-[95vw] w-[95vw] h-[95vh] max-h-[95vh] border-none bg-transparent p-0 shadow-none"
+          className="max-w-[95vw] w-[95vw] h-[95vh] max-h-[85vh] md:max-h-[95vh] border-none bg-transparent p-0 shadow-none"
           hideCloseButton
           onClick={() => setIsOpen(false)}
         >
@@ -88,7 +88,7 @@ export default function LightboxImage({
                 Close
               </Button>
             </div>
-            <div className="absolute md:hidden right-2 top-0 z-20">
+            <div className="absolute md:hidden right-0 top-0 z-20">
               <Button
                 type="button"
                 variant="svg"
