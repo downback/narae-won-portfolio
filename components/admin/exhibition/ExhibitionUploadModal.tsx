@@ -186,6 +186,21 @@ export default function ExhibitionUploadModal({
     event.preventDefault()
   }
 
+  const initialExhibitionTitle = initialValues?.exhibitionTitle ?? ""
+  const initialCaption = initialValues?.caption ?? ""
+  const initialDescription = initialValues?.description ?? ""
+
+  const hasChanges =
+    mainImageFile !== null ||
+    exhibitionTitle !== initialExhibitionTitle ||
+    caption !== initialCaption ||
+    details !== initialDescription ||
+    additionalImages.length > 0 ||
+    removedAdditionalImageIds.length > 0
+
+  const isSaveDisabled =
+    isConfirmDisabled || isSubmitting || (isEditMode && !hasChanges)
+
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -384,7 +399,7 @@ export default function ExhibitionUploadModal({
                         alt={`Additional preview ${index + 1}`}
                         width={48}
                         height={48}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover rounded-md"
                         unoptimized
                       />
                       <button
@@ -427,7 +442,7 @@ export default function ExhibitionUploadModal({
                   removedAdditionalImageIds,
                 })
               }
-              disabled={isConfirmDisabled || isSubmitting}
+              disabled={isSaveDisabled}
             >
               {isSubmitting ? "Saving..." : confirmLabel}
             </Button>

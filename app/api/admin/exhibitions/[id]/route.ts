@@ -88,7 +88,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     const { data: imageRow, error: imageError } = await supabase
       .from("exhibition_images")
-      .select("storage_path, exhibition_id")
+      .select("storage_path, exhibition_id, is_primary")
       .eq("id", id)
       .maybeSingle()
 
@@ -306,7 +306,7 @@ export async function DELETE(_: Request, { params }: RouteContext) {
 
     const { data: imageRow, error: imageError } = await supabase
       .from("exhibition_images")
-      .select("storage_path, exhibition_id")
+      .select("storage_path, exhibition_id, is_primary")
       .eq("id", id)
       .maybeSingle()
 
@@ -327,6 +327,47 @@ export async function DELETE(_: Request, { params }: RouteContext) {
       console.error("Failed to load exhibition for delete", {
         message: exhibitionError.message,
       })
+    }
+
+    if (!imageRow.is_primary) {
+      const { error: deleteImageError } = await supabase
+        .from("exhibition_images")
+        .delete()
+        .eq("id", id)
+
+      if (deleteImageError) {
+        return NextResponse.json(
+          { error: deleteImageError.message || "Unable to delete image." },
+          { status: 500 },
+        )
+      }
+
+      await supabase.storage.from(bucketName).remove([imageRow.storage_path])
+
+      const { error: activityError } = await supabase.from("activity_log").insert({
+        admin_id: user.id,
+        action_type: "delete",
+        entity_type: "exhibition_image",
+        entity_id: id,
+        metadata: {
+          category:
+            exhibitionRow?.type === "solo"
+              ? "solo-exhibitions"
+              : exhibitionRow?.type === "group"
+                ? "group-exhibitions"
+                : "exhibitions",
+        },
+      })
+
+      if (activityError) {
+        console.warn("Activity log insert failed", {
+          message: activityError.message,
+          details: activityError.details,
+          hint: activityError.hint,
+        })
+      }
+
+      return NextResponse.json({ ok: true })
     }
 
     const { data: allImages, error: allImagesError } = await supabase
