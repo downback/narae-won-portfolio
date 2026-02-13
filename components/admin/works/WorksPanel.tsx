@@ -15,6 +15,7 @@ type WorkPreviewItem = {
   title: string
   caption: string
   year: number | null
+  displayOrder: number
   createdAt: string
 }
 
@@ -45,8 +46,9 @@ export default function WorksPanel() {
   const loadPreviewItems = useCallback(async () => {
     const { data, error } = await supabase
       .from("artworks")
-      .select("id, storage_path, title, caption, year, created_at")
+      .select("id, storage_path, title, caption, year, display_order, created_at")
       .eq("category", "works")
+      .order("display_order", { ascending: false })
       .order("created_at", { ascending: false })
 
     if (error) {
@@ -67,6 +69,7 @@ export default function WorksPanel() {
           title: item.title ?? "",
           caption: item.caption ?? "",
           year: item.year ?? null,
+          displayOrder: item.display_order ?? 0,
           createdAt: item.created_at ?? new Date().toISOString(),
         }
       })
@@ -175,6 +178,7 @@ export default function WorksPanel() {
             title: values.title,
             caption: values.caption,
             year: Number(resolvedYear),
+            displayOrder: 0,
             createdAt: new Date().toISOString(),
           },
           ...prev,
@@ -255,12 +259,37 @@ export default function WorksPanel() {
     grouped.forEach((items, year) => {
       items.sort(
         (a, b) =>
+          b.displayOrder - a.displayOrder ||
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       )
       grouped.set(year, items)
     })
     return grouped
   }, [previewItems, yearOptions])
+
+  const persistReorder = async (
+    yearLabel: string,
+    orderedItems: WorkPreviewItem[],
+  ) => {
+    try {
+      const response = await fetch("/api/admin/works/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          yearLabel,
+          orderedWorkIds: orderedItems.map((item) => item.id),
+        }),
+      })
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string }
+        throw new Error(payload.error || "Unable to reorder works.")
+      }
+    } catch (error) {
+      console.error("Failed to persist works order", { error })
+      setErrorMessage("Unable to save the work order. Please try again.")
+      await loadPreviewItems()
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -311,6 +340,22 @@ export default function WorksPanel() {
                     "Unable to delete the work entry. Please try again.",
                   )
                 }
+              }}
+              onReorder={(orderedItems) => {
+                const nextOrderMap = new Map(
+                  orderedItems.map((item, index) => [
+                    item.id,
+                    orderedItems.length - index,
+                  ]),
+                )
+                setPreviewItems((prev) =>
+                  prev.map((item) =>
+                    nextOrderMap.has(item.id)
+                      ? { ...item, displayOrder: nextOrderMap.get(item.id) ?? 0 }
+                      : item,
+                  ),
+                )
+                void persistReorder(year, orderedItems)
               }}
             />
           ))}

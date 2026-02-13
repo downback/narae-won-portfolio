@@ -169,6 +169,19 @@ export default function WorkUploadModal({
     event.preventDefault()
   }
 
+  const initialYear = initialValues?.year ?? ""
+  const initialTitle = initialValues?.title ?? ""
+  const initialCaption = initialValues?.caption ?? ""
+
+  const hasChanges =
+    imageFile !== null ||
+    year !== initialYear ||
+    titleValue !== initialTitle ||
+    caption !== initialCaption
+
+  const isSaveDisabled =
+    isConfirmDisabled || isSubmitting || (isEditMode && !hasChanges)
+
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -302,7 +315,7 @@ export default function WorkUploadModal({
                   caption,
                 })
               }
-              disabled={isConfirmDisabled || isSubmitting}
+              disabled={isSaveDisabled}
             >
               {isSubmitting ? "Saving..." : confirmLabel}
             </Button>

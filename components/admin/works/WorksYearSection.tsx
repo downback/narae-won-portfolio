@@ -12,6 +12,7 @@ type WorkPreviewItem = {
   title: string
   caption: string
   year: number | null
+  displayOrder: number
   createdAt: string
 }
 
@@ -42,13 +43,11 @@ export default function WorksYearSection({
 
   const moveItem = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return
-    setOrderedItems((prevItems) => {
-      const nextItems = [...prevItems]
-      const [moved] = nextItems.splice(fromIndex, 1)
-      nextItems.splice(toIndex, 0, moved)
-      onReorder?.(nextItems)
-      return nextItems
-    })
+    const nextItems = [...orderedItems]
+    const [moved] = nextItems.splice(fromIndex, 1)
+    nextItems.splice(toIndex, 0, moved)
+    setOrderedItems(nextItems)
+    onReorder?.(nextItems)
   }
 
   return (
