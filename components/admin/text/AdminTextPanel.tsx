@@ -105,11 +105,6 @@ export default function AdminTextPanel() {
         return
       }
 
-      if (!response.ok) {
-        setErrorMessage(payload.error || "Unable to save text entry.")
-        return
-      }
-
       if (!isEditMode) {
         if (payload.id && payload.createdAt) {
           const nextEntry: TextEntry = {
@@ -167,6 +162,15 @@ export default function AdminTextPanel() {
       setDeletingId(null)
     }
   }
+
+  const modalInitialValues = useMemo(() => {
+    if (!editingEntry) return undefined
+    return {
+      title: editingEntry.title,
+      year: editingEntry.year,
+      body: editingEntry.body,
+    }
+  }, [editingEntry])
 
   return (
     <div className="space-y-6">
@@ -259,15 +263,7 @@ export default function AdminTextPanel() {
         onSave={handleSave}
         title={editingEntry ? "Edit text" : "Add text"}
         confirmLabel={editingEntry ? "Update text" : "Save text"}
-        initialValues={
-          editingEntry
-            ? {
-                title: editingEntry.title,
-                year: editingEntry.year,
-                body: editingEntry.body,
-              }
-            : undefined
-        }
+        initialValues={modalInitialValues}
         isSubmitting={isSubmitting}
         isConfirmDisabled={isSubmitting}
         errorMessage={errorMessage}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -54,14 +54,25 @@ export default function TextUploadModal({
 }: TextUploadModalProps) {
   const [formValues, setFormValues] =
     useState<TextFormValues>(defaultTextValues)
+  const initialTitle = initialValues?.title ?? ""
+  const initialYear = initialValues?.year ?? ""
+  const initialBody = initialValues?.body ?? ""
+  const normalizedInitialValues = useMemo(
+    () => ({
+      title: initialTitle,
+      year: initialYear,
+      body: initialBody,
+    }),
+    [initialTitle, initialYear, initialBody],
+  )
 
   useEffect(() => {
     if (!open) return
     const resetTimeout = setTimeout(() => {
-      setFormValues(initialValues ?? defaultTextValues)
+      setFormValues(normalizedInitialValues)
     }, 0)
     return () => clearTimeout(resetTimeout)
-  }, [open, initialValues])
+  }, [open, normalizedInitialValues])
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -73,6 +84,15 @@ export default function TextUploadModal({
   const updateField = (key: keyof TextFormValues, value: string) => {
     setFormValues((prev) => ({ ...prev, [key]: value }))
   }
+
+  const isEditMode = Boolean(initialValues)
+  const hasChanges =
+    formValues.title !== normalizedInitialValues.title ||
+    formValues.year !== normalizedInitialValues.year ||
+    formValues.body !== normalizedInitialValues.body
+
+  const isSaveDisabled =
+    isConfirmDisabled || isSubmitting || (isEditMode && !hasChanges)
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -128,7 +148,7 @@ export default function TextUploadModal({
             type="button"
             variant="highlight"
             onClick={() => onSave?.(formValues)}
-            disabled={isConfirmDisabled || isSubmitting}
+            disabled={isSaveDisabled}
           >
             {isSubmitting ? <SavingDotsLabel /> : confirmLabel}
           </Button>
