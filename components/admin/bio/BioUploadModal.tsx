@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
 
 type BioFormValues = {
   description: string
@@ -103,7 +104,7 @@ export default function BioUploadModal({
             onClick={onConfirm}
             disabled={!hasRequiredValues || isConfirmDisabled || isSubmitting}
           >
-            {isSubmitting ? "Saving..." : confirmLabel}
+            {isSubmitting ? <SavingDotsLabel /> : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

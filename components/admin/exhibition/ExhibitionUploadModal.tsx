@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import AdminDialog from "@/components/admin/shared/AdminDialog"
+import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
 
 const MAX_FILE_SIZE = 1.5 * 1024 * 1024 // 1.5MB in bytes
 
@@ -444,7 +445,7 @@ export default function ExhibitionUploadModal({
               }
               disabled={isSaveDisabled}
             >
-              {isSubmitting ? "Saving..." : confirmLabel}
+              {isSubmitting ? <SavingDotsLabel /> : confirmLabel}
             </Button>
           </DialogFooter>
         </DialogContent>

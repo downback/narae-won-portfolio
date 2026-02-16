@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
 
 export type TextFormValues = {
   title: string
@@ -129,7 +130,7 @@ export default function TextUploadModal({
             onClick={() => onSave?.(formValues)}
             disabled={isConfirmDisabled || isSubmitting}
           >
-            {isSubmitting ? "Saving..." : confirmLabel}
+            {isSubmitting ? <SavingDotsLabel /> : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
