@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server"
+import {
+  requireAdminUser,
+} from "@/lib/server/adminRoute"
 import { supabaseServer } from "@/lib/server"
-
-const isUuid = (value: string) =>
-  /^[0-9a-fA-F-]{36}$/.test(value) && !value.includes("undefined")
+import { isUuid } from "@/lib/validation"
 
 export async function POST(request: Request) {
   try {
     const supabase = await supabaseServer()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
+    const { user, errorResponse } = await requireAdminUser(supabase)
+    if (!user || errorResponse) {
+      return errorResponse
     }
 
     const body = (await request.json()) as {

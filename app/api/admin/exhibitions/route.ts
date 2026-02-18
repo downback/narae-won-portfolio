@@ -1,21 +1,16 @@
 "use server"
 
 import { NextResponse } from "next/server"
+import { exhibitionCategories, type ExhibitionCategory, siteAssetsBucketName } from "@/lib/constants"
+import { buildStoragePathWithPrefix } from "@/lib/storage"
+import {
+  mapSupabaseErrorMessage,
+  requireAdminUser,
+} from "@/lib/server/adminRoute"
 import { supabaseServer } from "@/lib/server"
+import { validateImageUploadFile } from "@/lib/uploadValidation"
 
-const bucketName = "site-assets"
-const allowedCategories = ["solo-exhibitions", "group-exhibitions"] as const
-
-const mapSupabaseError = (message: string) => {
-  const normalizedMessage = message.toLowerCase()
-  if (normalizedMessage.includes("does not exist")) {
-    return "Required tables are missing. Check exhibitions."
-  }
-  if (normalizedMessage.includes("permission") || normalizedMessage.includes("rls")) {
-    return "Permission denied. Check RLS policies for exhibitions."
-  }
-  return "Unable to save exhibition entry."
-}
+const bucketName = siteAssetsBucketName
 
 const toSlug = (value: string) =>
   value
@@ -25,23 +20,12 @@ const toSlug = (value: string) =>
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
 
-const buildStoragePath = (category: string, slug: string, file: File) => {
-  const extension = file.name.split(".").pop() || ""
-  const safeExtension = extension.replace(/[^a-zA-Z0-9]/g, "")
-  const suffix = safeExtension ? `.${safeExtension}` : ""
-  return `${category}/${slug}/${Date.now()}-${crypto.randomUUID()}${suffix}`
-}
-
 export async function POST(request: Request) {
   try {
     const supabase = await supabaseServer()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
+    const { user, errorResponse } = await requireAdminUser(supabase)
+    if (!user || errorResponse) {
+      return errorResponse
     }
 
     const formData = await request.formData()
@@ -54,10 +38,8 @@ export async function POST(request: Request) {
       .getAll("additional_images")
       .filter((value): value is File => value instanceof File)
 
-    const isAllowedCategory = (
-      value: string,
-    ): value is (typeof allowedCategories)[number] =>
-      allowedCategories.includes(value as (typeof allowedCategories)[number])
+    const isAllowedCategory = (value: string): value is ExhibitionCategory =>
+      exhibitionCategories.includes(value as ExhibitionCategory)
 
     if (!(file instanceof File)) {
       return NextResponse.json(
@@ -70,19 +52,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid category." }, { status: 400 })
     }
 
-    if (file.type && !file.type.startsWith("image/")) {
-      return NextResponse.json(
-        { error: "Only image uploads are allowed." },
-        { status: 400 },
-      )
+    const mainImageValidationError = validateImageUploadFile(file)
+    if (mainImageValidationError) {
+      return NextResponse.json({ error: mainImageValidationError }, { status: 400 })
     }
 
-    const hasInvalidAdditional = additionalFiles.some(
-      (additional) => additional.type && !additional.type.startsWith("image/"),
+    const invalidAdditionalImage = additionalFiles.find(
+      (additional) => validateImageUploadFile(additional) !== null,
     )
-    if (hasInvalidAdditional) {
+    if (invalidAdditionalImage) {
+      const additionalValidationError = validateImageUploadFile(invalidAdditionalImage)
       return NextResponse.json(
-        { error: "Only image uploads are allowed." },
+        { error: additionalValidationError || "Only image uploads are allowed." },
         { status: 400 },
       )
     }
@@ -119,7 +100,13 @@ export async function POST(request: Request) {
 
     if (existingError) {
       return NextResponse.json(
-        { error: mapSupabaseError(existingError.message) },
+        {
+          error: mapSupabaseErrorMessage({
+            message: existingError.message,
+            tableHint: "exhibitions",
+            fallbackMessage: "Unable to save exhibition entry.",
+          }),
+        },
         { status: 500 },
       )
     }
@@ -136,7 +123,13 @@ export async function POST(request: Request) {
 
       if (latestError) {
         return NextResponse.json(
-          { error: mapSupabaseError(latestError.message) },
+          {
+            error: mapSupabaseErrorMessage({
+              message: latestError.message,
+              tableHint: "exhibitions",
+              fallbackMessage: "Unable to save exhibition entry.",
+            }),
+          },
           { status: 500 },
         )
       }
@@ -156,7 +149,13 @@ export async function POST(request: Request) {
 
       if (insertError || !insertedExhibition) {
         return NextResponse.json(
-          { error: mapSupabaseError(insertError?.message || "") },
+          {
+            error: mapSupabaseErrorMessage({
+              message: insertError?.message || "",
+              tableHint: "exhibitions",
+              fallbackMessage: "Unable to save exhibition entry.",
+            }),
+          },
           { status: 500 },
         )
       }
@@ -173,7 +172,13 @@ export async function POST(request: Request) {
 
       if (updateError) {
         return NextResponse.json(
-          { error: mapSupabaseError(updateError.message) },
+          {
+            error: mapSupabaseErrorMessage({
+              message: updateError.message,
+              tableHint: "exhibitions",
+              fallbackMessage: "Unable to save exhibition entry.",
+            }),
+          },
           { status: 500 },
         )
       }
@@ -189,7 +194,13 @@ export async function POST(request: Request) {
 
     if (latestImageError) {
       return NextResponse.json(
-        { error: mapSupabaseError(latestImageError.message) },
+        {
+          error: mapSupabaseErrorMessage({
+            message: latestImageError.message,
+            tableHint: "exhibition_images",
+            fallbackMessage: "Unable to save exhibition entry.",
+          }),
+        },
         { status: 500 },
       )
     }
@@ -203,12 +214,21 @@ export async function POST(request: Request) {
 
     if (primaryResetError) {
       return NextResponse.json(
-        { error: mapSupabaseError(primaryResetError.message) },
+        {
+          error: mapSupabaseErrorMessage({
+            message: primaryResetError.message,
+            tableHint: "exhibition_images",
+            fallbackMessage: "Unable to save exhibition entry.",
+          }),
+        },
         { status: 500 },
       )
     }
 
-    const storagePath = buildStoragePath(category, slug, file)
+    const storagePath = buildStoragePathWithPrefix({
+      prefix: `${category}/${slug}`,
+      file,
+    })
     const { error: uploadError } = await supabase.storage
       .from(bucketName)
       .upload(storagePath, file, {
@@ -241,12 +261,19 @@ export async function POST(request: Request) {
     if (imageError || !imageRow) {
       await supabase.storage.from(bucketName).remove([storagePath])
       return NextResponse.json(
-        { error: mapSupabaseError(imageError?.message || "") },
+        {
+          error: mapSupabaseErrorMessage({
+            message: imageError?.message || "",
+            tableHint: "exhibition_images",
+            fallbackMessage: "Unable to save exhibition entry.",
+          }),
+        },
         { status: 500 },
       )
     }
 
     if (additionalFiles.length > 0) {
+      const uploadedPaths: string[] = []
       const inserts: {
         exhibition_id: string
         storage_path: string
@@ -257,7 +284,10 @@ export async function POST(request: Request) {
 
       for (let index = 0; index < additionalFiles.length; index += 1) {
         const additional = additionalFiles[index]
-        const additionalPath = buildStoragePath(category, slug, additional)
+        const additionalPath = buildStoragePathWithPrefix({
+          prefix: `${category}/${slug}`,
+          file: additional,
+        })
         const { error: additionalUploadError } = await supabase.storage
           .from(bucketName)
           .upload(additionalPath, additional, {
@@ -265,6 +295,9 @@ export async function POST(request: Request) {
             upsert: false,
           })
         if (additionalUploadError) {
+          for (const path of uploadedPaths) {
+            await supabase.storage.from(bucketName).remove([path])
+          }
           console.error("Exhibition additional upload failed", {
             message: additionalUploadError.message,
           })
@@ -277,6 +310,7 @@ export async function POST(request: Request) {
             { status: 500 },
           )
         }
+        uploadedPaths.push(additionalPath)
         inserts.push({
           exhibition_id: exhibitionId,
           storage_path: additionalPath,
@@ -291,11 +325,20 @@ export async function POST(request: Request) {
         .insert(inserts)
 
       if (additionalInsertError) {
+        for (const path of uploadedPaths) {
+          await supabase.storage.from(bucketName).remove([path])
+        }
         console.error("Exhibition additional insert failed", {
           message: additionalInsertError.message,
         })
         return NextResponse.json(
-          { error: mapSupabaseError(additionalInsertError.message) },
+          {
+            error: mapSupabaseErrorMessage({
+              message: additionalInsertError.message,
+              tableHint: "exhibition_images",
+              fallbackMessage: "Unable to save exhibition entry.",
+            }),
+          },
           { status: 500 },
         )
       }

@@ -17,6 +17,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import AdminDialog from "@/components/admin/shared/AdminDialog"
 import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
+import { exhibitionCategories } from "@/lib/constants"
+export type { ExhibitionCategory } from "@/lib/constants"
+import type { ExhibitionCategory } from "@/lib/constants"
 
 const MAX_FILE_SIZE = 1.5 * 1024 * 1024 // 1.5MB in bytes
 
@@ -25,8 +28,6 @@ const formatFileSize = (bytes: number): string => {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
-
-export type ExhibitionCategory = "solo-exhibitions" | "group-exhibitions"
 
 export type ExhibitionFormValues = {
   mainImageFile: File | null
@@ -77,7 +78,7 @@ export default function ExhibitionUploadModal({
   const [mainImageFile, setMainImageFile] = useState<File | null>(null)
   const [initialMainImageUrl, setInitialMainImageUrl] = useState("")
   const [category, setCategory] =
-    useState<ExhibitionCategory>("solo-exhibitions")
+    useState<ExhibitionCategory>(exhibitionCategories[0])
   const [exhibitionTitle, setExhibitionTitle] = useState("")
   const [caption, setCaption] = useState("")
   const [details, setDetails] = useState("")
@@ -151,7 +152,7 @@ export default function ExhibitionUploadModal({
       setSelectedMainImageName("")
       setMainImageFile(null)
       setMainImagePreviewUrl("")
-      setCategory(initialValues?.category ?? "solo-exhibitions")
+      setCategory(initialValues?.category ?? exhibitionCategories[0])
       setExhibitionTitle(initialValues?.exhibitionTitle ?? "")
       setCaption(initialValues?.caption ?? "")
       setDetails(initialValues?.description ?? "")
@@ -170,7 +171,7 @@ export default function ExhibitionUploadModal({
       setMainImagePreviewUrl("")
       setMainImageFile(null)
       setInitialMainImageUrl("")
-      setCategory("solo-exhibitions")
+      setCategory(exhibitionCategories[0])
       setExhibitionTitle("")
       setCaption("")
       setDetails("")

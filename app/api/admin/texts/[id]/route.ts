@@ -1,22 +1,10 @@
 import { NextResponse } from "next/server"
+import { mapSupabaseErrorMessage, requireAdminUser } from "@/lib/server/adminRoute"
 import { supabaseServer } from "@/lib/server"
+import { isUuid } from "@/lib/validation"
 
 type RouteContext = {
   params: Promise<{ id: string }>
-}
-
-const isUuid = (value: string) =>
-  /^[0-9a-fA-F-]{36}$/.test(value) && !value.includes("undefined")
-
-const mapSupabaseError = (message: string) => {
-  const normalizedMessage = message.toLowerCase()
-  if (normalizedMessage.includes("does not exist")) {
-    return "Required tables are missing. Check texts."
-  }
-  if (normalizedMessage.includes("permission") || normalizedMessage.includes("rls")) {
-    return "Permission denied. Check RLS policies for texts."
-  }
-  return "Unable to update text entry."
 }
 
 const logTextActivity = async (
@@ -50,13 +38,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     const supabase = await supabaseServer()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
+    const { user, errorResponse } = await requireAdminUser(supabase)
+    if (!user || errorResponse) {
+      return errorResponse
     }
 
     const payload = (await request.json()) as {
@@ -101,7 +85,13 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     if (updateError || !updated) {
       return NextResponse.json(
-        { error: mapSupabaseError(updateError?.message || "") },
+        {
+          error: mapSupabaseErrorMessage({
+            message: updateError?.message || "",
+            tableHint: "texts",
+            fallbackMessage: "Unable to update text entry.",
+          }),
+        },
         { status: 500 }
       )
     }
@@ -125,13 +115,9 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     }
 
     const supabase = await supabaseServer()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
+    const { user, errorResponse } = await requireAdminUser(supabase)
+    if (!user || errorResponse) {
+      return errorResponse
     }
 
     const { error: deleteError } = await supabase
@@ -141,7 +127,13 @@ export async function DELETE(_: Request, { params }: RouteContext) {
 
     if (deleteError) {
       return NextResponse.json(
-        { error: mapSupabaseError(deleteError.message) },
+        {
+          error: mapSupabaseErrorMessage({
+            message: deleteError.message,
+            tableHint: "texts",
+            fallbackMessage: "Unable to update text entry.",
+          }),
+        },
         { status: 500 }
       )
     }

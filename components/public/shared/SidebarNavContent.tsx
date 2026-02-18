@@ -1,6 +1,12 @@
 "use client"
 
 import Link from "next/link"
+import {
+  worksYearRangeDisplay,
+  worksYearRangeEnd,
+  worksYearRangeStart,
+  worksYearRangeValue,
+} from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 type ExhibitionItem = {
@@ -32,10 +38,10 @@ export default function SidebarNavContent({
   className,
   onNavigate,
 }: SidebarNavContentProps) {
-  const rangeStart = 2018
-  const rangeEnd = 2021
-  const rangeLabel = `${rangeStart} - ${rangeEnd}`
-  const rangeSlug = `${rangeStart}-${rangeEnd}`
+  const rangeStart = worksYearRangeStart
+  const rangeEnd = worksYearRangeEnd
+  const rangeLabel = worksYearRangeDisplay
+  const rangeSlug = worksYearRangeValue
   const workLinks = worksYears
     .filter((year) => year.trim().length > 0)
     .reduce<{ label: string; href: string; key: string }[]>((acc, year) => {

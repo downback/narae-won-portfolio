@@ -35,13 +35,13 @@ alter table public.app_admin enable row level security;
 create policy "app_admin_select_authenticated"
 on public.app_admin
 for select
-using (auth.uid() is not null);
+using ((select auth.uid()) is not null);
 
 create policy "app_admin_update_admin_only"
 on public.app_admin
 for update
-using (auth.uid() = admin_user_id)
-with check (auth.uid() = admin_user_id);
+using ((select auth.uid()) = admin_user_id)
+with check ((select auth.uid()) = admin_user_id);
 
 
 
@@ -73,10 +73,10 @@ create policy "artworks_admin_write"
 on public.artworks
 for all
 using (
-  auth.uid() = (select admin_user_id from public.app_admin where singleton_id = true)
+  (select auth.uid()) = (select admin_user_id from public.app_admin where singleton_id = true)
 )
 with check (
-  auth.uid() = (select admin_user_id from public.app_admin where singleton_id = true)
+  (select auth.uid()) = (select admin_user_id from public.app_admin where singleton_id = true)
 );
 
 
@@ -108,10 +108,10 @@ create policy "exhibitions_admin_write"
 on public.exhibitions
 for all
 using (
-  auth.uid() = (select admin_user_id from public.app_admin where singleton_id = true)
+  (select auth.uid()) = (select admin_user_id from public.app_admin where singleton_id = true)
 )
 with check (
-  auth.uid() = (select admin_user_id from public.app_admin where singleton_id = true)
+  (select auth.uid()) = (select admin_user_id from public.app_admin where singleton_id = true)
 );
 
 
@@ -143,10 +143,10 @@ create policy "exhibition_images_admin_write"
 on public.exhibition_images
 for all
 using (
-  auth.uid() = (select admin_user_id from public.app_admin where singleton_id = true)
+  (select auth.uid()) = (select admin_user_id from public.app_admin where singleton_id = true)
 )
 with check (
-  auth.uid() = (select admin_user_id from public.app_admin where singleton_id = true)
+  (select auth.uid()) = (select admin_user_id from public.app_admin where singleton_id = true)
 );
 
 
@@ -231,10 +231,10 @@ begin
       on public.%I
       for all
       using (
-        auth.uid() = (select admin_user_id from public.app_admin where singleton_id = true)
+        (select auth.uid()) = (select admin_user_id from public.app_admin where singleton_id = true)
       )
       with check (
-        auth.uid() = (select admin_user_id from public.app_admin where singleton_id = true)
+        (select auth.uid()) = (select admin_user_id from public.app_admin where singleton_id = true)
       )
     $sql$, t, t);
   end loop;
@@ -267,10 +267,10 @@ create policy "texts_admin_write"
 on public.texts
 for all
 using (
-  auth.uid() = (select admin_user_id from public.app_admin where singleton_id = true)
+  (select auth.uid()) = (select admin_user_id from public.app_admin where singleton_id = true)
 )
 with check (
-  auth.uid() = (select admin_user_id from public.app_admin where singleton_id = true)
+  (select auth.uid()) = (select admin_user_id from public.app_admin where singleton_id = true)
 );
 
 
@@ -297,12 +297,12 @@ create policy "activity_log_admin_read"
 on public.activity_log
 for select
 using (
-  auth.uid() = (select admin_user_id from public.app_admin where singleton_id = true)
+  (select auth.uid()) = (select admin_user_id from public.app_admin where singleton_id = true)
 );
 
 create policy "activity_log_admin_insert"
 on public.activity_log
 for insert
 with check (
-  auth.uid() = (select admin_user_id from public.app_admin where singleton_id = true)
+  (select auth.uid()) = (select admin_user_id from public.app_admin where singleton_id = true)
 );

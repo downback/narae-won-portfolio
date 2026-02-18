@@ -4,6 +4,7 @@ import { cookies } from "next/headers"
 const missingEnvMessage =
   "Supabase env vars NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required."
 
+// Runtime boundary: use this helper in Server Components and route handlers.
 export const supabaseServer = async () => {
   const cookieStore = await cookies()
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

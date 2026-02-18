@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
+import { requireAdminUser } from "@/lib/server/adminRoute"
 import { supabaseServer } from "@/lib/server"
+import { isUuid } from "@/lib/validation"
 
 type BioPayload = {
   description?: string
@@ -8,13 +10,6 @@ type BioPayload = {
 
 type RouteContext = {
   params: Promise<{ id: string }>
-}
-
-const normalizeId = (value?: string) => (value ?? "").trim()
-
-const isUuid = (value: string) => {
-  const normalized = normalizeId(value)
-  return /^[0-9a-fA-F-]{36}$/.test(normalized) && !normalized.includes("undefined")
 }
 
 const logActivity = async (
@@ -50,13 +45,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     const supabase = await supabaseServer()
     console.log("Awards update request", { id })
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
+    const { user, errorResponse } = await requireAdminUser(supabase)
+    if (!user || errorResponse) {
+      return errorResponse
     }
 
     let body: BioPayload
@@ -119,13 +110,9 @@ export async function DELETE(_: Request, { params }: RouteContext) {
 
     const supabase = await supabaseServer()
     console.log("Awards delete request", { id })
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
+    const { user, errorResponse } = await requireAdminUser(supabase)
+    if (!user || errorResponse) {
+      return errorResponse
     }
 
     const { error } = await supabase

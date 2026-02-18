@@ -9,6 +9,7 @@ import ExhibitionUploadModal, {
 import ImageCaptionPreview from "@/components/admin/shared/ImageCaptionPreview"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { siteAssetsBucketName } from "@/lib/constants"
 import { supabaseBrowser } from "@/lib/client"
 
 type ExhibitionPreviewItem = {
@@ -24,7 +25,7 @@ type ExhibitionPreviewItem = {
   createdAt: string
 }
 
-const bucketName = "site-assets"
+const bucketName = siteAssetsBucketName
 
 export default function AdminExhibitionsPanel() {
   const [isUploadOpen, setIsUploadOpen] = useState(false)
@@ -153,23 +154,6 @@ export default function AdminExhibitionsPanel() {
     setErrorMessage("")
 
     try {
-      if (
-        isEditMode &&
-        values.removedAdditionalImageIds &&
-        values.removedAdditionalImageIds.length > 0
-      ) {
-        const deleteResults = await Promise.all(
-          values.removedAdditionalImageIds.map((id) =>
-            fetch(`/api/admin/exhibitions/${id}`, { method: "DELETE" }),
-          ),
-        )
-        const failedDelete = deleteResults.find((response) => !response.ok)
-        if (failedDelete) {
-          const payload = (await failedDelete.json()) as { error?: string }
-          throw new Error(payload.error || "Unable to delete image.")
-        }
-      }
-
       const previewUrl = values.mainImageFile
         ? URL.createObjectURL(values.mainImageFile)
         : ""
@@ -187,6 +171,9 @@ export default function AdminExhibitionsPanel() {
       formData.append("description", values.description)
       values.additionalImages.forEach((file) => {
         formData.append("additional_images", file)
+      })
+      values.removedAdditionalImageIds?.forEach((imageId) => {
+        formData.append("removedAdditionalImageIds", imageId)
       })
 
       const response = await fetch(

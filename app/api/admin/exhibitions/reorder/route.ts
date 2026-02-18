@@ -1,22 +1,19 @@
 import { NextResponse } from "next/server"
+import { exhibitionCategories, type ExhibitionCategory } from "@/lib/constants"
+import {
+  requireAdminUser,
+} from "@/lib/server/adminRoute"
 import { supabaseServer } from "@/lib/server"
+import { isUuid } from "@/lib/validation"
 
-const allowedCategories = ["solo-exhibitions", "group-exhibitions"] as const
-type AllowedCategory = (typeof allowedCategories)[number]
-
-const isUuid = (value: string) =>
-  /^[0-9a-fA-F-]{36}$/.test(value) && !value.includes("undefined")
+type AllowedCategory = ExhibitionCategory
 
 export async function POST(request: Request) {
   try {
     const supabase = await supabaseServer()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
+    const { user, errorResponse } = await requireAdminUser(supabase)
+    if (!user || errorResponse) {
+      return errorResponse
     }
 
     const body = (await request.json()) as {
@@ -26,7 +23,7 @@ export async function POST(request: Request) {
 
     const category = body.category?.trim()
     const isAllowedCategory = (value: string): value is AllowedCategory =>
-      allowedCategories.includes(value as AllowedCategory)
+      exhibitionCategories.includes(value as AllowedCategory)
     if (!category || !isAllowedCategory(category)) {
       return NextResponse.json({ error: "Invalid category." }, { status: 400 })
     }

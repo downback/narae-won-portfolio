@@ -1,12 +1,17 @@
 import ArtworkList from "@/components/public/ArtworkList"
 import DetailSubHeader from "@/components/public/shared/DetailSubHeader"
+import {
+  siteAssetsBucketName,
+  worksYearRangeDisplay,
+  worksYearRangeValue,
+} from "@/lib/constants"
 import { supabaseServer } from "@/lib/server"
 
 type WorksByYearPageProps = {
   params: Promise<{ year: string }>
 }
 
-const bucketName = "site-assets"
+const bucketName = siteAssetsBucketName
 const rangePattern = /^(\d{4})-(\d{4})$/
 
 export default async function WorksByYearPage({
@@ -16,7 +21,7 @@ export default async function WorksByYearPage({
   const rangeMatch = year.match(rangePattern)
   const startYear = rangeMatch ? Number(rangeMatch[1]) : Number(year)
   const endYear = rangeMatch ? Number(rangeMatch[2]) : Number(year)
-  const displayYear = year === "2018-2021" ? "2018 - 2021" : year
+  const displayYear = year === worksYearRangeValue ? worksYearRangeDisplay : year
 
   const supabase = await supabaseServer()
   let query = supabase

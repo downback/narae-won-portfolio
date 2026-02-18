@@ -1,20 +1,17 @@
 import { NextResponse } from "next/server"
+import { siteAssetsBucketName } from "@/lib/constants"
+import { buildStoragePathWithPrefix } from "@/lib/storage"
+import {
+  requireAdminUser,
+} from "@/lib/server/adminRoute"
 import { supabaseServer } from "@/lib/server"
+import { validateImageUploadFile } from "@/lib/uploadValidation"
+import { isUuid } from "@/lib/validation"
 
-const bucketName = "site-assets"
+const bucketName = siteAssetsBucketName
 
 type RouteContext = {
   params: Promise<{ id: string }>
-}
-
-const isUuid = (value: string) =>
-  /^[0-9a-fA-F-]{36}$/.test(value) && !value.includes("undefined")
-
-const buildStoragePath = (file: File) => {
-  const extension = file.name.split(".").pop() || ""
-  const safeExtension = extension.replace(/[^a-zA-Z0-9]/g, "")
-  const suffix = safeExtension ? `.${safeExtension}` : ""
-  return `works/${Date.now()}-${crypto.randomUUID()}${suffix}`
 }
 
 export async function PATCH(request: Request, { params }: RouteContext) {
@@ -25,13 +22,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     const supabase = await supabaseServer()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
+    const { user, errorResponse } = await requireAdminUser(supabase)
+    if (!user || errorResponse) {
+      return errorResponse
     }
 
     const formData = await request.formData()
@@ -72,13 +65,14 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     let nextStoragePath = artwork.storage_path
     if (file instanceof File) {
-      if (file.type && !file.type.startsWith("image/")) {
-        return NextResponse.json(
-          { error: "Only image uploads are allowed." },
-          { status: 400 }
-        )
+      const fileValidationError = validateImageUploadFile(file)
+      if (fileValidationError) {
+        return NextResponse.json({ error: fileValidationError }, { status: 400 })
       }
-      nextStoragePath = buildStoragePath(file)
+      nextStoragePath = buildStoragePathWithPrefix({
+        prefix: "works",
+        file,
+      })
       const { error: uploadError } = await supabase.storage
         .from(bucketName)
         .upload(nextStoragePath, file, {
@@ -157,13 +151,9 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     }
 
     const supabase = await supabaseServer()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
+    const { user, errorResponse } = await requireAdminUser(supabase)
+    if (!user || errorResponse) {
+      return errorResponse
     }
 
     const { data: artwork, error: artworkError } = await supabase

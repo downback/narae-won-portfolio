@@ -1,5 +1,6 @@
 import ExhibitionList from "@/components/public/ExhibitionList"
 import DetailSubHeader from "@/components/public/shared/DetailSubHeader"
+import { siteAssetsBucketName } from "@/lib/constants"
 import { supabaseServer } from "@/lib/server"
 
 type GroupExhibitionPageProps = {
@@ -8,7 +9,7 @@ type GroupExhibitionPageProps = {
 
 const formatSlug = (slug: string) => slug.replace(/-/g, " ")
 
-const bucketName = "site-assets"
+const bucketName = siteAssetsBucketName
 
 export default async function GroupExhibitionPage({
   params,

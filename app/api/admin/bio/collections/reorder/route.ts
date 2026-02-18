@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
+import { requireAdminUser } from "@/lib/server/adminRoute"
 import { supabaseServer } from "@/lib/server"
+import { isUuid } from "@/lib/validation"
 
 type ReorderItem = {
   id: string
@@ -9,13 +11,9 @@ type ReorderItem = {
 export async function POST(request: Request) {
   try {
     const supabase = await supabaseServer()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
+    const { user, errorResponse } = await requireAdminUser(supabase)
+    if (!user || errorResponse) {
+      return errorResponse
     }
 
     const body = (await request.json()) as { items?: ReorderItem[] }
@@ -23,6 +21,10 @@ export async function POST(request: Request) {
 
     if (items.length === 0) {
       return NextResponse.json({ error: "No items provided." }, { status: 400 })
+    }
+
+    if (items.some((item) => !isUuid(item.id))) {
+      return NextResponse.json({ error: "Invalid id in items." }, { status: 400 })
     }
 
     const updates = items.map((item) =>

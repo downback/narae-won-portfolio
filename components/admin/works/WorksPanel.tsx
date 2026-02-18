@@ -6,6 +6,12 @@ import WorkUploadModal, {
 } from "@/components/admin/works/WorkUploadModal"
 import WorksYearSection from "@/components/admin/works/WorksYearSection"
 import YearInputDialog from "@/components/admin/shared/YearInputDialog"
+import {
+  siteAssetsBucketName,
+  worksYearRangeEnd,
+  worksYearRangeStart,
+  worksYearRangeValue,
+} from "@/lib/constants"
 import { supabaseBrowser } from "@/lib/client"
 import { Plus } from "lucide-react"
 
@@ -31,10 +37,10 @@ export default function WorksPanel() {
   const [isYearDialogOpen, setIsYearDialogOpen] = useState(false)
   const previewUrlsRef = useRef<string[]>([])
   const supabase = useMemo(() => supabaseBrowser(), [])
-  const bucketName = "site-assets"
-  const rangeLabel = "2018-2021"
-  const rangeStart = 2018
-  const rangeEnd = 2021
+  const bucketName = siteAssetsBucketName
+  const rangeLabel = worksYearRangeValue
+  const rangeStart = worksYearRangeStart
+  const rangeEnd = worksYearRangeEnd
 
   useEffect(() => {
     const previewUrls = previewUrlsRef.current
