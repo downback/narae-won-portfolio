@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import {
   Dialog,
@@ -23,6 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import AdminDialog from "@/components/admin/shared/AdminDialog"
 import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
+import { useModalOpenTransition } from "@/components/admin/shared/useModalOpenTransition"
 
 const MAX_FILE_SIZE = 1.5 * 1024 * 1024 // 1.5MB in bytes
 
@@ -95,6 +96,16 @@ export default function WorkUploadModal({
     setErrorDialogOpen(true)
   }
 
+  const applyInitialValues = useCallback(() => {
+    setSelectedImageName("")
+    setImageFile(null)
+    setImagePreviewUrl("")
+    setYear(initialValues?.year ?? "")
+    setTitleValue(initialValues?.title ?? "")
+    setCaption(initialValues?.caption ?? "")
+    setInitialImageUrl(initialValues?.imageUrl ?? "")
+  }, [initialValues])
+
   const handleImageDrop = (event: React.DragEvent<HTMLLabelElement>) => {
     event.preventDefault()
     const file = event.dataTransfer.files?.[0]
@@ -144,6 +155,8 @@ export default function WorkUploadModal({
     }
   }, [open, isSubmitting, errorMessage])
 
+  useModalOpenTransition({ open, onOpen: applyInitialValues })
+
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setSelectedImageName("")
@@ -153,14 +166,6 @@ export default function WorkUploadModal({
       setYear("")
       setTitleValue("")
       setCaption("")
-    } else {
-      setSelectedImageName("")
-      setImageFile(null)
-      setImagePreviewUrl("")
-      setYear(initialValues?.year ?? "")
-      setTitleValue(initialValues?.title ?? "")
-      setCaption(initialValues?.caption ?? "")
-      setInitialImageUrl(initialValues?.imageUrl ?? "")
     }
 
     onOpenChange(nextOpen)

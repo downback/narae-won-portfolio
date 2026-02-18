@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
+import { useModalOpenTransition } from "@/components/admin/shared/useModalOpenTransition"
 
 export type TextFormValues = {
   title: string
@@ -66,13 +67,11 @@ export default function TextUploadModal({
     [initialTitle, initialYear, initialBody],
   )
 
-  useEffect(() => {
-    if (!open) return
-    const animationFrameId = requestAnimationFrame(() => {
-      setFormValues(normalizedInitialValues)
-    })
-    return () => cancelAnimationFrame(animationFrameId)
-  }, [open, normalizedInitialValues])
+  const applyInitialValues = useCallback(() => {
+    setFormValues(normalizedInitialValues)
+  }, [normalizedInitialValues])
+
+  useModalOpenTransition({ open, onOpen: applyInitialValues })
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {

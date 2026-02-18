@@ -6,10 +6,11 @@ Create low-risk, high-impact refactor proposals that can be executed in small PR
 
 ## Prioritized Next 2 Batches
 
-1) **Batch A (first)** - shared admin API helpers  
-2) **Batch D (second)** - reorder route unification
+1. **Batch A (first)** - shared admin API helpers
+2. **Batch D (second)** - reorder route unification
 
 Reason for priority:
+
 - Both are high duplication areas.
 - Both are low to low-medium risk when done incrementally.
 - Both reduce maintenance burden broadly across `app/api/admin/**`.

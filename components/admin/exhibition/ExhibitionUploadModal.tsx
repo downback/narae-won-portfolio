@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Image from "next/image"
 import { X } from "lucide-react"
 import {
@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import AdminDialog from "@/components/admin/shared/AdminDialog"
 import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
+import { useModalOpenTransition } from "@/components/admin/shared/useModalOpenTransition"
 import { exhibitionCategories } from "@/lib/constants"
 export type { ExhibitionCategory } from "@/lib/constants"
 import type { ExhibitionCategory } from "@/lib/constants"
@@ -94,7 +95,6 @@ export default function ExhibitionUploadModal({
   )
   const [errorDialogOpen, setErrorDialogOpen] = useState(false)
   const [errorDialogMessage, setErrorDialogMessage] = useState("")
-  const wasOpenRef = useRef(false)
 
   const showError = (message: string) => {
     setErrorDialogMessage(message)
@@ -170,18 +170,7 @@ export default function ExhibitionUploadModal({
     }
   }, [mainImagePreviewUrl, additionalPreviewUrls])
 
-  useEffect(() => {
-    if (open && !wasOpenRef.current) {
-      const animationFrameId = requestAnimationFrame(() => {
-        applyInitialValues()
-      })
-      wasOpenRef.current = open
-      return () => cancelAnimationFrame(animationFrameId)
-    }
-
-    wasOpenRef.current = open
-    return undefined
-  }, [open, applyInitialValues])
+  useModalOpenTransition({ open, onOpen: applyInitialValues })
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
