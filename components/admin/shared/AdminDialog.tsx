@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
 
 type AdminDialogProps = {
   open: boolean
@@ -46,6 +47,8 @@ export default function AdminDialog({
   disabled = false,
   className,
 }: AdminDialogProps) {
+  const normalizedLoadingLabel = loadingLabel.replace(/\.+$/, "")
+
   const handleConfirm = () => {
     if (onConfirm) {
       onConfirm()
@@ -80,7 +83,11 @@ export default function AdminDialog({
                 : ""
             }
           >
-            {isLoading ? loadingLabel : confirmLabel}
+            {isLoading ? (
+              <SavingDotsLabel label={normalizedLoadingLabel} />
+            ) : (
+              confirmLabel
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
