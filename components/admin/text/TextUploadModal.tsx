@@ -68,10 +68,10 @@ export default function TextUploadModal({
 
   useEffect(() => {
     if (!open) return
-    const resetTimeout = setTimeout(() => {
+    const animationFrameId = requestAnimationFrame(() => {
       setFormValues(normalizedInitialValues)
-    }, 0)
-    return () => clearTimeout(resetTimeout)
+    })
+    return () => cancelAnimationFrame(animationFrameId)
   }, [open, normalizedInitialValues])
 
   const handleOpenChange = (nextOpen: boolean) => {

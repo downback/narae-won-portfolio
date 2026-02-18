@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Image from "next/image"
 import { X } from "lucide-react"
 import {
@@ -100,6 +100,29 @@ export default function ExhibitionUploadModal({
     setErrorDialogOpen(true)
   }
 
+  const clearLocalPreviewUrls = useCallback(() => {
+    if (mainImagePreviewUrl) {
+      URL.revokeObjectURL(mainImagePreviewUrl)
+    }
+    additionalPreviewUrls.forEach((url) => URL.revokeObjectURL(url))
+  }, [additionalPreviewUrls, mainImagePreviewUrl])
+
+  const applyInitialValues = useCallback(() => {
+    clearLocalPreviewUrls()
+    setSelectedMainImageName("")
+    setMainImageFile(null)
+    setMainImagePreviewUrl("")
+    setCategory(initialValues?.category ?? exhibitionCategories[0])
+    setExhibitionTitle(initialValues?.exhibitionTitle ?? "")
+    setCaption(initialValues?.caption ?? "")
+    setDetails(initialValues?.description ?? "")
+    setInitialMainImageUrl(initialValues?.mainImageUrl ?? "")
+    setExistingAdditionalImages(initialValues?.additionalImages ?? [])
+    setRemovedAdditionalImageIds([])
+    setAdditionalImages([])
+    setAdditionalPreviewUrls([])
+  }, [clearLocalPreviewUrls, initialValues])
+
   const handleRemoveAdditionalImage = (indexToRemove: number) => {
     setAdditionalImages((prev) =>
       prev.filter((_, index) => index !== indexToRemove),
@@ -148,25 +171,15 @@ export default function ExhibitionUploadModal({
 
   useEffect(() => {
     if (!open) return
-    const resetTimeout = setTimeout(() => {
-      setSelectedMainImageName("")
-      setMainImageFile(null)
-      setMainImagePreviewUrl("")
-      setCategory(initialValues?.category ?? exhibitionCategories[0])
-      setExhibitionTitle(initialValues?.exhibitionTitle ?? "")
-      setCaption(initialValues?.caption ?? "")
-      setDetails(initialValues?.description ?? "")
-      setInitialMainImageUrl(initialValues?.mainImageUrl ?? "")
-      setExistingAdditionalImages(initialValues?.additionalImages ?? [])
-      setRemovedAdditionalImageIds([])
-      setAdditionalImages([])
-      setAdditionalPreviewUrls([])
-    }, 0)
-    return () => clearTimeout(resetTimeout)
-  }, [open, initialValues])
+    const animationFrameId = requestAnimationFrame(() => {
+      applyInitialValues()
+    })
+    return () => cancelAnimationFrame(animationFrameId)
+  }, [open, applyInitialValues])
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
+      clearLocalPreviewUrls()
       setSelectedMainImageName("")
       setMainImagePreviewUrl("")
       setMainImageFile(null)

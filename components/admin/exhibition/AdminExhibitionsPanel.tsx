@@ -49,12 +49,16 @@ export default function AdminExhibitionsPanel() {
   const previewUrlsRef = useRef<string[]>([])
   const supabase = useMemo(() => supabaseBrowser(), [])
 
-  useEffect(() => {
-    const previewUrls = previewUrlsRef.current
-    return () => {
-      previewUrls.forEach((url) => URL.revokeObjectURL(url))
-    }
+  const revokePendingPreviewUrls = useCallback(() => {
+    previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+    previewUrlsRef.current = []
   }, [])
+
+  useEffect(() => {
+    return () => {
+      revokePendingPreviewUrls()
+    }
+  }, [revokePendingPreviewUrls])
 
   const loadPreviewItems = useCallback(async () => {
     const { data, error } = await supabase
@@ -65,7 +69,7 @@ export default function AdminExhibitionsPanel() {
 
     if (error) {
       console.error("Failed to load exhibition previews", { error })
-      return
+      return false
     }
 
     const nextItems = (data ?? [])
@@ -103,6 +107,7 @@ export default function AdminExhibitionsPanel() {
       )
 
     setPreviewItems(nextItems)
+    return true
   }, [supabase])
 
   useEffect(() => {
@@ -152,6 +157,7 @@ export default function AdminExhibitionsPanel() {
 
     setIsUploading(true)
     setErrorMessage("")
+    let shouldRevokePendingUrls = true
 
     try {
       const previewUrl = values.mainImageFile
@@ -234,7 +240,8 @@ export default function AdminExhibitionsPanel() {
         ])
       }
 
-      await loadPreviewItems()
+      const didReloadPreviewItems = await loadPreviewItems()
+      shouldRevokePendingUrls = didReloadPreviewItems
       setIsUploadOpen(false)
       setEditingItem(null)
       setEditingAdditionalImages([])
@@ -257,6 +264,9 @@ export default function AdminExhibitionsPanel() {
         setErrorMessage("Unable to save the exhibition. Please try again.")
       }
     } finally {
+      if (shouldRevokePendingUrls) {
+        revokePendingPreviewUrls()
+      }
       setIsUploading(false)
     }
   }

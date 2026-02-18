@@ -9,6 +9,8 @@ import { validateImageUploadFile } from "@/lib/uploadValidation"
 import { isUuid } from "@/lib/validation"
 
 const bucketName = siteAssetsBucketName
+const minimumYear = 1900
+const maximumYear = 2100
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -40,6 +42,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const year = Number(yearRaw)
     if (Number.isNaN(year)) {
       return NextResponse.json({ error: "Year must be a number." }, { status: 400 })
+    }
+    if (year < minimumYear || year > maximumYear) {
+      return NextResponse.json(
+        { error: `Year must be between ${minimumYear} and ${maximumYear}.` },
+        { status: 400 }
+      )
     }
 
     if (!title) {

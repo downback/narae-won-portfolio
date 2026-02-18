@@ -103,7 +103,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     const { data: exhibition, error: exhibitionError } = await supabase
       .from("exhibitions")
-      .select("id")
+      .select("id, type, title, slug, description")
       .eq("id", imageRow.exhibition_id)
       .maybeSingle()
 
@@ -121,6 +121,25 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         { error: "Exhibition title is required." },
         { status: 400 },
       )
+    }
+
+    const rollbackExhibitionUpdate = async () => {
+      const { error } = await supabase
+        .from("exhibitions")
+        .update({
+          type: exhibition.type,
+          title: exhibition.title,
+          slug: exhibition.slug,
+          description: exhibition.description ?? null,
+        })
+        .eq("id", exhibition.id)
+      if (error) {
+        console.error("Exhibition rollback failed", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+        })
+      }
     }
 
     const { error: exhibitionUpdateError } = await supabase
@@ -158,6 +177,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         })
 
       if (uploadError) {
+        await rollbackExhibitionUpdate()
         return NextResponse.json(
           { error: "Upload failed. Please try again." },
           { status: 500 },
@@ -179,6 +199,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       if (nextStoragePath !== imageRow.storage_path) {
         await supabase.storage.from(bucketName).remove([nextStoragePath])
       }
+      await rollbackExhibitionUpdate()
       return NextResponse.json(
         { error: updateError?.message || "Unable to update exhibition." },
         { status: 500 },
@@ -199,6 +220,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         .maybeSingle()
 
       if (latestImageError) {
+        await rollbackExhibitionUpdate()
         return NextResponse.json(
           { error: latestImageError.message },
           { status: 500 },
@@ -231,6 +253,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
           for (const path of uploadedPaths) {
             await supabase.storage.from(bucketName).remove([path])
           }
+          await rollbackExhibitionUpdate()
           return NextResponse.json(
             {
               error:
@@ -258,6 +281,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         for (const path of uploadedPaths) {
           await supabase.storage.from(bucketName).remove([path])
         }
+        await rollbackExhibitionUpdate()
         return NextResponse.json(
           { error: additionalInsertError.message },
           { status: 500 },
@@ -273,6 +297,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         .in("id", removedAdditionalImageIds)
 
       if (removableRowsError) {
+        await rollbackExhibitionUpdate()
         return NextResponse.json(
           { error: removableRowsError.message || "Unable to delete images." },
           { status: 500 },
@@ -280,6 +305,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       }
 
       if ((removableRows ?? []).some((row) => row.is_primary)) {
+        await rollbackExhibitionUpdate()
         return NextResponse.json(
           { error: "Primary image cannot be deleted in this operation." },
           { status: 400 },
@@ -294,6 +320,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
           .in("id", removableIds)
 
         if (removeDbError) {
+          await rollbackExhibitionUpdate()
           return NextResponse.json(
             { error: removeDbError.message || "Unable to delete images." },
             { status: 500 },

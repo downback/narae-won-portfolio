@@ -23,13 +23,13 @@ Refactoring
 - [x] Step 3 - Align RLS policy style to recommended `(select auth.uid())` pattern during schema hardening.
 
 - [x] Step 4 - Correctness/maintainability review completed.
-- [ ] Step 4 - Fix exhibition delete success/failure semantics in `app/api/admin/exhibitions/[id]/route.ts` (do not return success on parent delete failure).
-- [ ] Step 4 - Make exhibition edit flow atomic from user perspective (avoid deleting additional images before full PATCH success).
-- [ ] Step 4 - Prevent partial-update semantics in exhibition PATCH (safe operation order + rollback strategy).
-- [ ] Step 4 - Standardize year validation rules between works/texts APIs.
-- [ ] Step 4 - Remove `setTimeout(0)`-based modal reset patterns in upload modals and use deterministic reset logic.
-- [ ] Step 4 - Improve object URL lifecycle management in admin panels (revoke after refresh, not only on unmount).
-- [ ] Step 4 - Replace hardcoded year options in `components/admin/works/WorksPanel.tsx` with range-derived options.
+- [x] Step 4 - Fix exhibition delete success/failure semantics in `app/api/admin/exhibitions/[id]/route.ts` (do not return success on parent delete failure).
+- [x] Step 4 - Make exhibition edit flow atomic from user perspective (avoid deleting additional images before full PATCH success).
+- [x] Step 4 - Prevent partial-update semantics in exhibition PATCH (safe operation order + rollback strategy).
+- [x] Step 4 - Standardize year validation rules between works/texts APIs.
+- [x] Step 4 - Remove `setTimeout(0)`-based modal reset patterns in upload modals and use deterministic reset logic.
+- [x] Step 4 - Improve object URL lifecycle management in admin panels (revoke after refresh, not only on unmount).
+- [x] Step 4 - Replace hardcoded year options in `components/admin/works/WorksPanel.tsx` with range-derived options.
 
 - [ ] Dead code and cleanup pass: identify unused imports/exports/components/paths and legacy/commented code; only recommend safe removals, flag uncertain candidates instead of deleting.
 - [x] Dead code and cleanup pass - candidate removal traced for `app/api/admin/hero-image/route.ts` and `app/api/admin/works-pdf/route.ts` (`docs/CleanupImpact-Step3.md`).

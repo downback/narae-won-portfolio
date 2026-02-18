@@ -42,24 +42,30 @@ export default function WorksPanel() {
   const rangeStart = worksYearRangeStart
   const rangeEnd = worksYearRangeEnd
 
-  useEffect(() => {
-    const previewUrls = previewUrlsRef.current
-    return () => {
-      previewUrls.forEach((url) => URL.revokeObjectURL(url))
-    }
+  const revokePendingPreviewUrls = useCallback(() => {
+    previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+    previewUrlsRef.current = []
   }, [])
+
+  useEffect(() => {
+    return () => {
+      revokePendingPreviewUrls()
+    }
+  }, [revokePendingPreviewUrls])
 
   const loadPreviewItems = useCallback(async () => {
     const { data, error } = await supabase
       .from("artworks")
-      .select("id, storage_path, title, caption, year, display_order, created_at")
+      .select(
+        "id, storage_path, title, caption, year, display_order, created_at",
+      )
       .eq("category", "works")
       .order("display_order", { ascending: false })
       .order("created_at", { ascending: false })
 
     if (error) {
       console.error("Failed to load work previews", { error })
-      return
+      return false
     }
 
     const nextItems = (data ?? [])
@@ -82,7 +88,8 @@ export default function WorksPanel() {
       .filter((item): item is WorkPreviewItem => Boolean(item))
 
     setPreviewItems(nextItems)
-  }, [supabase])
+    return true
+  }, [bucketName, supabase])
 
   useEffect(() => {
     void loadPreviewItems()
@@ -122,6 +129,7 @@ export default function WorksPanel() {
 
     setIsUploading(true)
     setErrorMessage("")
+    let shouldRevokePendingUrls = true
 
     try {
       const previewUrl = values.imageFile
@@ -190,7 +198,8 @@ export default function WorksPanel() {
           ...prev,
         ])
       }
-      await loadPreviewItems()
+      const didReloadPreviewItems = await loadPreviewItems()
+      shouldRevokePendingUrls = didReloadPreviewItems
       setIsUploadOpen(false)
       setEditingItem(null)
       setSelectedYear("")
@@ -212,6 +221,9 @@ export default function WorksPanel() {
         setErrorMessage("Unable to save the work entry. Please try again.")
       }
     } finally {
+      if (shouldRevokePendingUrls) {
+        revokePendingPreviewUrls()
+      }
       setIsUploading(false)
     }
   }
@@ -249,6 +261,11 @@ export default function WorksPanel() {
     return merged.sort((a, b) => sortValue(b) - sortValue(a))
   }, [previewItems, manualYears, rangeLabel, rangeEnd, rangeStart])
 
+  const yearSelectOptions = Array.from(
+    { length: rangeEnd - rangeStart + 1 },
+    (_, index) => String(rangeStart + index),
+  )
+
   const groupedByYear = useMemo(() => {
     const grouped = new Map<string, WorkPreviewItem[]>()
     yearOptions.forEach((year) => grouped.set(year, []))
@@ -271,7 +288,7 @@ export default function WorksPanel() {
       grouped.set(year, items)
     })
     return grouped
-  }, [previewItems, yearOptions])
+  }, [previewItems, rangeEnd, rangeLabel, rangeStart, yearOptions])
 
   const persistReorder = async (
     yearLabel: string,
@@ -357,7 +374,10 @@ export default function WorksPanel() {
                 setPreviewItems((prev) =>
                   prev.map((item) =>
                     nextOrderMap.has(item.id)
-                      ? { ...item, displayOrder: nextOrderMap.get(item.id) ?? 0 }
+                      ? {
+                          ...item,
+                          displayOrder: nextOrderMap.get(item.id) ?? 0,
+                        }
                       : item,
                   ),
                 )
@@ -373,7 +393,7 @@ export default function WorksPanel() {
         onOpenChange={setIsUploadOpen}
         title={editingItem ? "Edit work" : "Add work"}
         description="작업 이미지와 캡션 텍스트를 업로드 및 수정할 수 있습니다"
-        yearOptions={["2018", "2019", "2020", "2021"]}
+        yearOptions={yearSelectOptions}
         isYearSelectDisabled={selectedYearCategory !== rangeLabel}
         selectedYearCategory={selectedYearCategory}
         onSave={handleSave}

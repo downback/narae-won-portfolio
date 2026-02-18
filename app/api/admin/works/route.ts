@@ -9,6 +9,8 @@ import { supabaseServer } from "@/lib/server"
 import { validateImageUploadFile } from "@/lib/uploadValidation"
 
 const bucketName = siteAssetsBucketName
+const minimumYear = 1900
+const maximumYear = 2100
 
 export async function POST(request: Request) {
   try {
@@ -44,6 +46,12 @@ export async function POST(request: Request) {
     if (Number.isNaN(year)) {
       return NextResponse.json(
         { error: "Year must be a number." },
+        { status: 400 },
+      )
+    }
+    if (year < minimumYear || year > maximumYear) {
+      return NextResponse.json(
+        { error: `Year must be between ${minimumYear} and ${maximumYear}.` },
         { status: 400 },
       )
     }
