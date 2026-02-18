@@ -4,7 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import Loader from "@/components/ui/BoxLoader"
+import BoxLoader from "@/components/ui/BoxLoader"
 
 type LightboxImageProps = {
   src: string
@@ -46,7 +46,7 @@ export default function LightboxImage({
       >
         {isLoading && (
           <div className="absolute inset-0 z-10">
-            <Loader boxSize="md" size="md" />
+            <BoxLoader boxSize="md" size="md" />
           </div>
         )}
         <Image
@@ -68,7 +68,7 @@ export default function LightboxImage({
         >
           <DialogTitle className="sr-only">Image preview</DialogTitle>
           <div className="relative h-full w-full">
-            {isModalImageLoading && <Loader boxSize="lg" size="lg" />}
+            {isModalImageLoading && <BoxLoader boxSize="lg" size="lg" />}
             <Image
               src={src}
               alt={alt}

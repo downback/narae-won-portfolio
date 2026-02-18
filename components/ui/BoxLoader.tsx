@@ -18,7 +18,7 @@ const boxSizeClasses = {
   lg: "w-1/2",
 }
 
-export default function Loader({
+export default function BoxLoader({
   boxSize = "md",
   size = "md",
   background = true,
