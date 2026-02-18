@@ -1,29 +1,13 @@
 import { NextResponse } from "next/server"
-import { mapSupabaseErrorMessage, requireAdminUser } from "@/lib/server/adminRoute"
+import {
+  createBadRequestResponse,
+  createServerErrorResponse,
+  insertActivityLog,
+  mapSupabaseErrorMessage,
+  parseJsonBody,
+  requireAdminUser,
+} from "@/lib/server/adminRoute"
 import { supabaseServer } from "@/lib/server"
-
-const logTextActivity = async (
-  supabase: Awaited<ReturnType<typeof supabaseServer>>,
-  userId: string,
-  action: "add" | "update" | "delete",
-  textId: string
-) => {
-  const { error } = await supabase.from("activity_log").insert({
-    admin_id: userId,
-    action_type: action,
-    entity_type: "text",
-    entity_id: textId,
-    metadata: null,
-  })
-
-  if (error) {
-    console.warn("Activity log insert failed", {
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-    })
-  }
-}
 
 export async function POST(request: Request) {
   try {
@@ -33,10 +17,13 @@ export async function POST(request: Request) {
       return errorResponse
     }
 
-    const payload = (await request.json()) as {
+    const { data: payload, errorResponse: parseErrorResponse } = await parseJsonBody<{
       title?: string
       year?: number
       body?: string
+    }>(request)
+    if (!payload || parseErrorResponse) {
+      return parseErrorResponse
     }
 
     const title = payload.title?.toString().trim()
@@ -44,21 +31,15 @@ export async function POST(request: Request) {
     const year = payload.year
 
     if (!title || !body) {
-      return NextResponse.json(
-        { error: "Title and body are required." },
-        { status: 400 }
-      )
+      return createBadRequestResponse("Title and body are required.")
     }
 
     if (typeof year !== "number" || Number.isNaN(year)) {
-      return NextResponse.json({ error: "Year must be a number." }, { status: 400 })
+      return createBadRequestResponse("Year must be a number.")
     }
 
     if (year < 1900 || year > 2100) {
-      return NextResponse.json(
-        { error: "Year must be between 1900 and 2100." },
-        { status: 400 }
-      )
+      return createBadRequestResponse("Year must be between 1900 and 2100.")
     }
 
     const { data: text, error: insertError } = await supabase
@@ -84,13 +65,17 @@ export async function POST(request: Request) {
       )
     }
 
-    await logTextActivity(supabase, user.id, "add", text.id)
+    await insertActivityLog(supabase, {
+      adminId: user.id,
+      actionType: "add",
+      entityType: "text",
+      entityId: text.id,
+      metadata: null,
+      logContext: "Text create",
+    })
     return NextResponse.json({ ok: true, id: text.id, createdAt: text.created_at })
   } catch (error) {
     console.error("Text create failed", { error })
-    return NextResponse.json(
-      { error: "Server error while saving text." },
-      { status: 500 }
-    )
+    return createServerErrorResponse("Server error while saving text.")
   }
 }

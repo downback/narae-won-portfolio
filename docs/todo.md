@@ -42,7 +42,23 @@ Refactoring
 - [x] Step 5.8 - Verify cleanup safety: run lints and targeted regression checks for admin flows (works/exhibitions/texts/bio reorder).
 - [x] Step 5.9 - Publish cleanup report with: removed items, flagged items, risk level, and rollback notes.
 - [x] Dead code and cleanup pass - candidate removal traced for `app/api/admin/hero-image/route.ts` and `app/api/admin/works-pdf/route.ts` (`docs/CleanupImpact-Step3.md`).
-- [ ] Refactor proposal set (incremental): produce low-risk, high-impact refactor steps with rationale, affected area, risk level, and verification notes (what must be manually checked if tests are missing).
+
+- [x] Step 6 - Refactor proposal set (incremental, PR-sized).
+- [x] Step 6.1 - Batch A proposal: extract shared API helper module for admin route patterns (`logActivity`, JSON body parsing, common 4xx/5xx response mapping).  
+  Risk: low | Area: `app/api/admin/**`, `lib/server/**` | Verify: exhibition/works/texts/bio CRUD + reorder routes.
+- [x] Step 6.2 - Batch B proposal: normalize modal form-state reset utility across `ExhibitionUploadModal`, `WorkUploadModal`, `TextUploadModal` without changing input display behavior.  
+  Risk: low-medium | Area: `components/admin/**` | Verify: add/edit modal open-close cycles, initial values, disabled/save state.
+- [x] Step 6.3 - Batch C proposal: standardize upload transaction flow utility (upload -> DB write -> rollback cleanup) for image routes.  
+  Risk: medium | Area: `app/api/admin/exhibitions*`, `app/api/admin/works*` | Verify: forced-failure scenarios, storage orphan checks.
+- [x] Step 6.4 - Batch D proposal: unify reorder route implementation (payload validation + update loop + error aggregation).  
+  Risk: low-medium | Area: `app/api/admin/*/reorder/route.ts` | Verify: drag-and-drop reorder behavior in works/exhibitions/bio.
+- [x] Step 6.5 - Batch E proposal: introduce shared validation module for request schemas (Zod-based, incremental adoption).  
+  Risk: medium | Area: `app/api/admin/**`, `lib/validation/**` | Verify: invalid payload responses remain user-safe and consistent.
+- [x] Step 6.6 - Batch F proposal: clean naming inconsistencies and minor structural debt (`Lodaer.tsx` rename plan, optional hook extraction candidates).  
+  Risk: low | Area: `components/public/shared/**`, related imports | Verify: import paths, Lightbox flow, build/lint pass.
+- [x] Step 6.7 - For each batch, write mini RFC in docs with: rationale, affected files, risk level, rollout order, rollback notes.
+- [x] Step 6.8 - Prioritize and schedule: choose next 2 batches only (avoid broad refactor blast radius in one cycle). (`Batch A` -> `Batch D`)
+
 - [ ] Structured review report: deliver findings in your required severity order (CRITICAL -> HIGH/MEDIUM -> CLEANUP/OPTIONAL) with approval status (Approve / Warning / Block) and concrete next actions.
 
 ERROR Handling

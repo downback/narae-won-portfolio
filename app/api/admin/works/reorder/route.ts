@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server"
 import {
+  createBadRequestResponse,
+  createServerErrorResponse,
+  insertActivityLog,
+  parseJsonBody,
   requireAdminUser,
 } from "@/lib/server/adminRoute"
 import { supabaseServer } from "@/lib/server"
@@ -13,21 +17,21 @@ export async function POST(request: Request) {
       return errorResponse
     }
 
-    const body = (await request.json()) as {
+    const { data: body, errorResponse: parseErrorResponse } = await parseJsonBody<{
       yearLabel?: string
       orderedWorkIds?: string[]
+    }>(request)
+    if (!body || parseErrorResponse) {
+      return parseErrorResponse
     }
 
     const orderedIds = body.orderedWorkIds ?? []
     if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
-      return NextResponse.json(
-        { error: "Missing work order." },
-        { status: 400 },
-      )
+      return createBadRequestResponse("Missing work order.")
     }
 
     if (orderedIds.some((id) => !isUuid(id))) {
-      return NextResponse.json({ error: "Invalid work id." }, { status: 400 })
+      return createBadRequestResponse("Invalid work id.")
     }
 
     const total = orderedIds.length
@@ -48,28 +52,18 @@ export async function POST(request: Request) {
       )
     }
 
-    const { error: activityError } = await supabase.from("activity_log").insert({
-      admin_id: user.id,
-      action_type: "update",
-      entity_type: "artwork",
-      entity_id: orderedIds[0],
+    await insertActivityLog(supabase, {
+      adminId: user.id,
+      actionType: "update",
+      entityType: "artwork",
+      entityId: orderedIds[0],
       metadata: { category: "works", yearLabel: body.yearLabel ?? null },
+      logContext: "Works reorder",
     })
-
-    if (activityError) {
-      console.warn("Activity log insert failed", {
-        message: activityError.message,
-        details: activityError.details,
-        hint: activityError.hint,
-      })
-    }
 
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("Failed to reorder works", { error })
-    return NextResponse.json(
-      { error: "Server error while reordering works." },
-      { status: 500 },
-    )
+    return createServerErrorResponse("Server error while reordering works.")
   }
 }

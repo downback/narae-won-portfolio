@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { X } from "lucide-react"
 import {
@@ -94,6 +94,7 @@ export default function ExhibitionUploadModal({
   )
   const [errorDialogOpen, setErrorDialogOpen] = useState(false)
   const [errorDialogMessage, setErrorDialogMessage] = useState("")
+  const wasOpenRef = useRef(false)
 
   const showError = (message: string) => {
     setErrorDialogMessage(message)
@@ -170,11 +171,16 @@ export default function ExhibitionUploadModal({
   }, [mainImagePreviewUrl, additionalPreviewUrls])
 
   useEffect(() => {
-    if (!open) return
-    const animationFrameId = requestAnimationFrame(() => {
-      applyInitialValues()
-    })
-    return () => cancelAnimationFrame(animationFrameId)
+    if (open && !wasOpenRef.current) {
+      const animationFrameId = requestAnimationFrame(() => {
+        applyInitialValues()
+      })
+      wasOpenRef.current = open
+      return () => cancelAnimationFrame(animationFrameId)
+    }
+
+    wasOpenRef.current = open
+    return undefined
   }, [open, applyInitialValues])
 
   const handleOpenChange = (nextOpen: boolean) => {

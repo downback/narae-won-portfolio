@@ -12,6 +12,15 @@ type SupabaseErrorMessageOptions = {
 export const createUnauthorizedResponse = () =>
   NextResponse.json({ error: "Unauthorized." }, { status: 401 })
 
+export const createForbiddenResponse = (message = "Unauthorized.") =>
+  NextResponse.json({ error: message }, { status: 403 })
+
+export const createBadRequestResponse = (message: string) =>
+  NextResponse.json({ error: message }, { status: 400 })
+
+export const createServerErrorResponse = (message: string) =>
+  NextResponse.json({ error: message }, { status: 500 })
+
 export const getAuthenticatedUser = async (supabase: ServerSupabaseClient) => {
   const {
     data: { user },
@@ -39,11 +48,64 @@ export const requireAdminUser = async (supabase: ServerSupabaseClient) => {
   if (adminError || !adminRow || adminRow.admin_user_id !== user.id) {
     return {
       user: null,
-      errorResponse: NextResponse.json({ error: "Unauthorized." }, { status: 403 }),
+      errorResponse: createForbiddenResponse(),
     }
   }
 
   return { user, errorResponse: null as NextResponse | null }
+}
+
+export const parseJsonBody = async <T>(
+  request: Request,
+  invalidBodyMessage = "Invalid request body.",
+) => {
+  try {
+    const data = (await request.json()) as T
+    return { data, errorResponse: null as NextResponse | null }
+  } catch (error) {
+    console.error("Failed to parse JSON body", { error })
+    return {
+      data: null as T | null,
+      errorResponse: createBadRequestResponse(invalidBodyMessage),
+    }
+  }
+}
+
+type InsertActivityLogInput = {
+  adminId: string
+  actionType: "add" | "update" | "delete"
+  entityType: string
+  entityId: string
+  metadata?: Record<string, unknown> | null
+  logContext: string
+}
+
+export const insertActivityLog = async (
+  supabase: ServerSupabaseClient,
+  {
+    adminId,
+    actionType,
+    entityType,
+    entityId,
+    metadata = null,
+    logContext,
+  }: InsertActivityLogInput,
+) => {
+  const { error } = await supabase.from("activity_log").insert({
+    admin_id: adminId,
+    action_type: actionType,
+    entity_type: entityType,
+    entity_id: entityId,
+    metadata,
+  })
+
+  if (error) {
+    console.warn(`${logContext} activity log insert failed`, {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    })
+  }
 }
 
 export const mapSupabaseErrorMessage = ({
