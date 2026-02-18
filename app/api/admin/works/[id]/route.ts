@@ -1,16 +1,22 @@
 import { NextResponse } from "next/server"
 import { siteAssetsBucketName } from "@/lib/constants"
+import {
+  validateWorkMetadata,
+  type WorkMetadataValidationData,
+} from "@/lib/requestValidation"
 import { buildStoragePathWithPrefix } from "@/lib/storage"
 import {
   requireAdminUser,
 } from "@/lib/server/adminRoute"
+import {
+  removeStoragePathsSafely,
+  uploadStorageFile,
+} from "@/lib/server/storageTransaction"
 import { supabaseServer } from "@/lib/server"
 import { validateImageUploadFile } from "@/lib/uploadValidation"
 import { isUuid } from "@/lib/validation"
 
 const bucketName = siteAssetsBucketName
-const minimumYear = 1900
-const maximumYear = 2100
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -35,28 +41,21 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const title = formData.get("title")?.toString().trim()
     const caption = formData.get("caption")?.toString().trim()
 
-    if (!yearRaw) {
-      return NextResponse.json({ error: "Year is required." }, { status: 400 })
-    }
-
-    const year = Number(yearRaw)
-    if (Number.isNaN(year)) {
-      return NextResponse.json({ error: "Year must be a number." }, { status: 400 })
-    }
-    if (year < minimumYear || year > maximumYear) {
+    const metadataValidationResult = validateWorkMetadata({
+      yearRaw: yearRaw ?? "",
+      title: title ?? "",
+      caption: caption ?? "",
+    })
+    if (!metadataValidationResult.data || metadataValidationResult.errorMessage) {
       return NextResponse.json(
-        { error: `Year must be between ${minimumYear} and ${maximumYear}.` },
-        { status: 400 }
+        { error: metadataValidationResult.errorMessage || "Invalid request body." },
+        { status: 400 },
       )
     }
-
-    if (!title) {
-      return NextResponse.json({ error: "Title is required." }, { status: 400 })
-    }
-
-    if (!caption) {
-      return NextResponse.json({ error: "Caption is required." }, { status: 400 })
-    }
+    const validatedData =
+      metadataValidationResult.data as WorkMetadataValidationData
+    const { year, title: normalizedTitle, caption: normalizedCaption } =
+      validatedData
 
     const { data: artwork, error: artworkError } = await supabase
       .from("artworks")
@@ -81,12 +80,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         prefix: "works",
         file,
       })
-      const { error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(nextStoragePath, file, {
-          contentType: file.type || "application/octet-stream",
-          upsert: false,
-        })
+      const { error: uploadError } = await uploadStorageFile({
+        supabase,
+        bucketName,
+        storagePath: nextStoragePath,
+        file,
+      })
 
       if (uploadError) {
         return NextResponse.json(
@@ -101,8 +100,8 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       .update({
         storage_path: nextStoragePath,
         year,
-        title,
-        caption,
+        title: normalizedTitle,
+        caption: normalizedCaption,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
@@ -111,7 +110,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     if (updateError || !updated) {
       if (nextStoragePath !== artwork.storage_path) {
-        await supabase.storage.from(bucketName).remove([nextStoragePath])
+        await removeStoragePathsSafely({
+          supabase,
+          bucketName,
+          storagePaths: [nextStoragePath],
+          logContext: "Work update rollback",
+        })
       }
       return NextResponse.json(
         { error: updateError?.message || "Unable to update work." },
@@ -120,7 +124,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     if (nextStoragePath !== artwork.storage_path) {
-      await supabase.storage.from(bucketName).remove([artwork.storage_path])
+      await removeStoragePathsSafely({
+        supabase,
+        bucketName,
+        storagePaths: [artwork.storage_path],
+        logContext: "Work update old-file cleanup",
+      })
     }
 
     const { error: activityError } = await supabase
@@ -189,7 +198,12 @@ export async function DELETE(_: Request, { params }: RouteContext) {
       )
     }
 
-    await supabase.storage.from(bucketName).remove([artwork.storage_path])
+    await removeStoragePathsSafely({
+      supabase,
+      bucketName,
+      storagePaths: [artwork.storage_path],
+      logContext: "Work delete storage cleanup",
+    })
 
     const { error: activityError } = await supabase
       .from("activity_log")

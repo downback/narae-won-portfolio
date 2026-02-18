@@ -2,15 +2,21 @@ import { NextResponse } from "next/server"
 import { siteAssetsBucketName } from "@/lib/constants"
 import { buildStoragePathWithPrefix } from "@/lib/storage"
 import {
+  validateWorkMetadata,
+  type WorkMetadataValidationData,
+} from "@/lib/requestValidation"
+import {
   mapSupabaseErrorMessage,
   requireAdminUser,
 } from "@/lib/server/adminRoute"
+import {
+  removeStoragePathsSafely,
+  uploadStorageFile,
+} from "@/lib/server/storageTransaction"
 import { supabaseServer } from "@/lib/server"
 import { validateImageUploadFile } from "@/lib/uploadValidation"
 
 const bucketName = siteAssetsBucketName
-const minimumYear = 1900
-const maximumYear = 2100
 
 export async function POST(request: Request) {
   try {
@@ -38,48 +44,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: fileValidationError }, { status: 400 })
     }
 
-    if (!yearRaw) {
-      return NextResponse.json({ error: "Year is required." }, { status: 400 })
-    }
-
-    const year = Number(yearRaw)
-    if (Number.isNaN(year)) {
+    const metadataValidationResult = validateWorkMetadata({
+      yearRaw: yearRaw ?? "",
+      title: title ?? "",
+      caption: caption ?? "",
+    })
+    if (!metadataValidationResult.data || metadataValidationResult.errorMessage) {
       return NextResponse.json(
-        { error: "Year must be a number." },
+        { error: metadataValidationResult.errorMessage || "Invalid request body." },
         { status: 400 },
       )
     }
-    if (year < minimumYear || year > maximumYear) {
-      return NextResponse.json(
-        { error: `Year must be between ${minimumYear} and ${maximumYear}.` },
-        { status: 400 },
-      )
-    }
-
-    if (!title) {
-      return NextResponse.json(
-        { error: "Title is required." },
-        { status: 400 },
-      )
-    }
-
-    if (!caption) {
-      return NextResponse.json(
-        { error: "Caption is required." },
-        { status: 400 },
-      )
-    }
+    const validatedData =
+      metadataValidationResult.data as WorkMetadataValidationData
+    const { year, title: normalizedTitle, caption: normalizedCaption } =
+      validatedData
 
     const storagePath = buildStoragePathWithPrefix({
       prefix: "works",
       file,
     })
-    const { error: uploadError } = await supabase.storage
-      .from(bucketName)
-      .upload(storagePath, file, {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
-      })
+    const { error: uploadError } = await uploadStorageFile({
+      supabase,
+      bucketName,
+      storagePath,
+      file,
+    })
 
     if (uploadError) {
       return NextResponse.json(
@@ -97,7 +87,12 @@ export async function POST(request: Request) {
       .maybeSingle()
 
     if (latestError) {
-      await supabase.storage.from(bucketName).remove([storagePath])
+      await removeStoragePathsSafely({
+        supabase,
+        bucketName,
+        storagePaths: [storagePath],
+        logContext: "Work create rollback",
+      })
       return NextResponse.json(
         {
           error: mapSupabaseErrorMessage({
@@ -117,15 +112,20 @@ export async function POST(request: Request) {
         storage_path: storagePath,
         category: "works",
         year,
-        title,
-        caption,
+        title: normalizedTitle,
+        caption: normalizedCaption,
         display_order: nextDisplayOrder,
       })
       .select("id, created_at")
       .single()
 
     if (artworkError || !artwork) {
-      await supabase.storage.from(bucketName).remove([storagePath])
+      await removeStoragePathsSafely({
+        supabase,
+        bucketName,
+        storagePaths: [storagePath],
+        logContext: "Work create rollback",
+      })
       return NextResponse.json(
         {
           error: mapSupabaseErrorMessage({

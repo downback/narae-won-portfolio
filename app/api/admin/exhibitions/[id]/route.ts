@@ -4,6 +4,11 @@ import { buildStoragePathWithPrefix } from "@/lib/storage"
 import {
   requireAdminUser,
 } from "@/lib/server/adminRoute"
+import {
+  removeStoragePathsSafely,
+  uploadStorageFile,
+  uploadStorageFilesWithRollback,
+} from "@/lib/server/storageTransaction"
 import { supabaseServer } from "@/lib/server"
 import { validateImageUploadFile } from "@/lib/uploadValidation"
 import { isUuid } from "@/lib/validation"
@@ -169,12 +174,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         prefix: `${category}/${slug}`,
         file,
       })
-      const { error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(nextStoragePath, file, {
-          contentType: file.type || "application/octet-stream",
-          upsert: false,
-        })
+      const { error: uploadError } = await uploadStorageFile({
+        supabase,
+        bucketName,
+        storagePath: nextStoragePath,
+        file,
+      })
 
       if (uploadError) {
         await rollbackExhibitionUpdate()
@@ -197,7 +202,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     if (updateError || !updated) {
       if (nextStoragePath !== imageRow.storage_path) {
-        await supabase.storage.from(bucketName).remove([nextStoragePath])
+        await removeStoragePathsSafely({
+          supabase,
+          bucketName,
+          storagePaths: [nextStoragePath],
+          logContext: "Exhibition update main image rollback",
+        })
       }
       await rollbackExhibitionUpdate()
       return NextResponse.json(
@@ -207,7 +217,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     if (nextStoragePath !== imageRow.storage_path) {
-      await supabase.storage.from(bucketName).remove([imageRow.storage_path])
+      await removeStoragePathsSafely({
+        supabase,
+        bucketName,
+        storagePaths: [imageRow.storage_path],
+        logContext: "Exhibition update old main image cleanup",
+      })
     }
 
     if (additionalFiles.length > 0) {
@@ -228,7 +243,37 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       }
 
       const baseDisplayOrder = (latestImage?.display_order ?? -1) + 1
-      const uploadedPaths: string[] = []
+      const additionalUploadItems = additionalFiles.map((additional, index) => ({
+        file: additional,
+        storagePath: buildStoragePathWithPrefix({
+          prefix: `${category}/${slug}`,
+          file: additional,
+        }),
+        displayOrder: baseDisplayOrder + index,
+      }))
+
+      const { error: additionalUploadError } = await uploadStorageFilesWithRollback({
+        supabase,
+        bucketName,
+        items: additionalUploadItems.map((item) => ({
+          storagePath: item.storagePath,
+          file: item.file,
+        })),
+        logContext: "Exhibition update additional images rollback",
+      })
+
+      if (additionalUploadError) {
+        await rollbackExhibitionUpdate()
+        return NextResponse.json(
+          {
+            error:
+              additionalUploadError.message ||
+              "Upload failed. Please try again.",
+          },
+          { status: 500 },
+        )
+      }
+
       const inserts: {
         exhibition_id: string
         storage_path: string
@@ -237,38 +282,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         is_primary: boolean
       }[] = []
 
-      for (let index = 0; index < additionalFiles.length; index += 1) {
-        const additional = additionalFiles[index]
-        const additionalPath = buildStoragePathWithPrefix({
-          prefix: `${category}/${slug}`,
-          file: additional,
-        })
-        const { error: additionalUploadError } = await supabase.storage
-          .from(bucketName)
-          .upload(additionalPath, additional, {
-            contentType: additional.type || "application/octet-stream",
-            upsert: false,
-          })
-        if (additionalUploadError) {
-          for (const path of uploadedPaths) {
-            await supabase.storage.from(bucketName).remove([path])
-          }
-          await rollbackExhibitionUpdate()
-          return NextResponse.json(
-            {
-              error:
-                additionalUploadError.message ||
-                "Upload failed. Please try again.",
-            },
-            { status: 500 },
-          )
-        }
-        uploadedPaths.push(additionalPath)
+      for (const additionalItem of additionalUploadItems) {
         inserts.push({
           exhibition_id: imageRow.exhibition_id,
-          storage_path: additionalPath,
+          storage_path: additionalItem.storagePath,
           caption,
-          display_order: baseDisplayOrder + index,
+          display_order: additionalItem.displayOrder,
           is_primary: false,
         })
       }
@@ -278,9 +297,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         .insert(inserts)
 
       if (additionalInsertError) {
-        for (const path of uploadedPaths) {
-          await supabase.storage.from(bucketName).remove([path])
-        }
+        await removeStoragePathsSafely({
+          supabase,
+          bucketName,
+          storagePaths: additionalUploadItems.map((item) => item.storagePath),
+          logContext: "Exhibition update additional insert rollback",
+        })
         await rollbackExhibitionUpdate()
         return NextResponse.json(
           { error: additionalInsertError.message },
@@ -332,7 +354,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
           .filter((value): value is string => Boolean(value))
 
         if (storagePaths.length > 0) {
-          await supabase.storage.from(bucketName).remove(storagePaths)
+          await removeStoragePathsSafely({
+            supabase,
+            bucketName,
+            storagePaths,
+            logContext: "Exhibition update removed additional cleanup",
+          })
         }
       }
     }

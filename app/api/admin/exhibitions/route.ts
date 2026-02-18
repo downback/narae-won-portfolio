@@ -7,6 +7,11 @@ import {
   mapSupabaseErrorMessage,
   requireAdminUser,
 } from "@/lib/server/adminRoute"
+import {
+  removeStoragePathsSafely,
+  uploadStorageFile,
+  uploadStorageFilesWithRollback,
+} from "@/lib/server/storageTransaction"
 import { supabaseServer } from "@/lib/server"
 import { validateImageUploadFile } from "@/lib/uploadValidation"
 
@@ -229,12 +234,12 @@ export async function POST(request: Request) {
       prefix: `${category}/${slug}`,
       file,
     })
-    const { error: uploadError } = await supabase.storage
-      .from(bucketName)
-      .upload(storagePath, file, {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
-      })
+    const { error: uploadError } = await uploadStorageFile({
+      supabase,
+      bucketName,
+      storagePath,
+      file,
+    })
 
     if (uploadError) {
       console.error("Exhibition main upload failed", {
@@ -259,7 +264,12 @@ export async function POST(request: Request) {
       .single()
 
     if (imageError || !imageRow) {
-      await supabase.storage.from(bucketName).remove([storagePath])
+      await removeStoragePathsSafely({
+        supabase,
+        bucketName,
+        storagePaths: [storagePath],
+        logContext: "Exhibition create main image rollback",
+      })
       return NextResponse.json(
         {
           error: mapSupabaseErrorMessage({
@@ -273,7 +283,39 @@ export async function POST(request: Request) {
     }
 
     if (additionalFiles.length > 0) {
-      const uploadedPaths: string[] = []
+      const additionalUploadItems = additionalFiles.map((additional, index) => ({
+        file: additional,
+        storagePath: buildStoragePathWithPrefix({
+          prefix: `${category}/${slug}`,
+          file: additional,
+        }),
+        displayOrder: baseDisplayOrder + index + 1,
+      }))
+
+      const { error: additionalUploadError } = await uploadStorageFilesWithRollback({
+        supabase,
+        bucketName,
+        items: additionalUploadItems.map((item) => ({
+          storagePath: item.storagePath,
+          file: item.file,
+        })),
+        logContext: "Exhibition create additional images rollback",
+      })
+
+      if (additionalUploadError) {
+        console.error("Exhibition additional upload failed", {
+          message: additionalUploadError.message,
+        })
+        return NextResponse.json(
+          {
+            error:
+              additionalUploadError.message ||
+              "Upload failed. Please try again.",
+          },
+          { status: 500 },
+        )
+      }
+
       const inserts: {
         exhibition_id: string
         storage_path: string
@@ -282,40 +324,12 @@ export async function POST(request: Request) {
         is_primary: boolean
       }[] = []
 
-      for (let index = 0; index < additionalFiles.length; index += 1) {
-        const additional = additionalFiles[index]
-        const additionalPath = buildStoragePathWithPrefix({
-          prefix: `${category}/${slug}`,
-          file: additional,
-        })
-        const { error: additionalUploadError } = await supabase.storage
-          .from(bucketName)
-          .upload(additionalPath, additional, {
-            contentType: additional.type || "application/octet-stream",
-            upsert: false,
-          })
-        if (additionalUploadError) {
-          for (const path of uploadedPaths) {
-            await supabase.storage.from(bucketName).remove([path])
-          }
-          console.error("Exhibition additional upload failed", {
-            message: additionalUploadError.message,
-          })
-          return NextResponse.json(
-            {
-              error:
-                additionalUploadError.message ||
-                "Upload failed. Please try again.",
-            },
-            { status: 500 },
-          )
-        }
-        uploadedPaths.push(additionalPath)
+      for (const additionalItem of additionalUploadItems) {
         inserts.push({
           exhibition_id: exhibitionId,
-          storage_path: additionalPath,
+          storage_path: additionalItem.storagePath,
           caption,
-          display_order: baseDisplayOrder + index + 1,
+          display_order: additionalItem.displayOrder,
           is_primary: false,
         })
       }
@@ -325,9 +339,12 @@ export async function POST(request: Request) {
         .insert(inserts)
 
       if (additionalInsertError) {
-        for (const path of uploadedPaths) {
-          await supabase.storage.from(bucketName).remove([path])
-        }
+        await removeStoragePathsSafely({
+          supabase,
+          bucketName,
+          storagePaths: additionalUploadItems.map((item) => item.storagePath),
+          logContext: "Exhibition create additional insert rollback",
+        })
         console.error("Exhibition additional insert failed", {
           message: additionalInsertError.message,
         })

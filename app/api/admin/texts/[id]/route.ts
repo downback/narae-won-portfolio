@@ -7,6 +7,10 @@ import {
   parseJsonBody,
   requireAdminUser,
 } from "@/lib/server/adminRoute"
+import {
+  validateTextPayload,
+  type TextPayloadValidationData,
+} from "@/lib/requestValidation"
 import { supabaseServer } from "@/lib/server"
 import { isUuid } from "@/lib/validation"
 
@@ -36,21 +40,14 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       return parseErrorResponse
     }
 
-    const title = payload.title?.toString().trim()
-    const body = payload.body?.toString().trim()
-    const year = payload.year
-
-    if (!title || !body) {
-      return createBadRequestResponse("Title and body are required.")
+    const textValidationResult = validateTextPayload(payload)
+    if (!textValidationResult.data || textValidationResult.errorMessage) {
+      return createBadRequestResponse(
+        textValidationResult.errorMessage || "Invalid request body.",
+      )
     }
-
-    if (typeof year !== "number" || Number.isNaN(year)) {
-      return createBadRequestResponse("Year must be a number.")
-    }
-
-    if (year < 1900 || year > 2100) {
-      return createBadRequestResponse("Year must be between 1900 and 2100.")
-    }
+    const validatedData = textValidationResult.data as TextPayloadValidationData
+    const { title, body, year } = validatedData
 
     const { data: updated, error: updateError } = await supabase
       .from("texts")
