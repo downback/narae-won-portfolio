@@ -6,7 +6,7 @@ import { supabaseBrowser } from "@/lib/client"
 import AdminSidebar from "@/components/admin/shared/AdminSidebar"
 import AdminLoginModal from "@/components/admin/dashboard/AdminLoginModal"
 import AdminPageHeader from "@/components/admin/shared/AdminPageHeader"
-import Loading from "@/components/Loading"
+import Loading from "@/components/ui/Loader"
 
 export const dynamic = "force-dynamic"
 

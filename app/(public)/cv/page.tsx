@@ -1,4 +1,3 @@
-// import BioSection from "@/components/public/BioSection"
 import Link from "next/link"
 import { Instagram } from "lucide-react"
 import DetailSubHeader from "@/components/public/shared/DetailSubHeader"

@@ -4,7 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import Loader from "@/components/public/shared/Lodaer"
+import Loader from "@/components/ui/BoxLoader"
 
 type LightboxImageProps = {
   src: string

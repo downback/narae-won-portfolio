@@ -31,7 +31,16 @@ Refactoring
 - [x] Step 4 - Improve object URL lifecycle management in admin panels (revoke after refresh, not only on unmount).
 - [x] Step 4 - Replace hardcoded year options in `components/admin/works/WorksPanel.tsx` with range-derived options.
 
-- [ ] Dead code and cleanup pass: identify unused imports/exports/components/paths and legacy/commented code; only recommend safe removals, flag uncertain candidates instead of deleting.
+- [ ] Step 5 - Dead code and cleanup pass (detailed execution plan).
+- [x] Step 5.1 - Build cleanup inventory by category: unused imports, unused exports, unused components/files, unreachable branches, legacy comments.
+- [x] Step 5.2 - Mark each candidate with confidence label (`safe-remove` | `needs-check`) and reason.
+- [x] Step 5.3 - Run import/export usage trace across `app/**`, `components/**`, `lib/**` and capture references for each candidate.
+- [x] Step 5.4 - Remove only `safe-remove` unused imports and trivial dead local variables in touched files (no behavior change).
+- [ ] Step 5.5 - Remove orphaned files/components only when zero references are confirmed and impact radius is documented.
+- [x] Step 5.6 - For `needs-check` candidates, keep code intact and write follow-up notes with required manual verification points.
+- [x] Step 5.7 - Clean legacy/commented-out code blocks that are confirmed obsolete; keep explanatory comments only where they add future context.
+- [x] Step 5.8 - Verify cleanup safety: run lints and targeted regression checks for admin flows (works/exhibitions/texts/bio reorder).
+- [x] Step 5.9 - Publish cleanup report with: removed items, flagged items, risk level, and rollback notes.
 - [x] Dead code and cleanup pass - candidate removal traced for `app/api/admin/hero-image/route.ts` and `app/api/admin/works-pdf/route.ts` (`docs/CleanupImpact-Step3.md`).
 - [ ] Refactor proposal set (incremental): produce low-risk, high-impact refactor steps with rationale, affected area, risk level, and verification notes (what must be manually checked if tests are missing).
 - [ ] Structured review report: deliver findings in your required severity order (CRITICAL -> HIGH/MEDIUM -> CLEANUP/OPTIONAL) with approval status (Approve / Warning / Block) and concrete next actions.
