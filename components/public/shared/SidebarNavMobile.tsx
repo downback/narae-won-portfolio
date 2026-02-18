@@ -130,6 +130,7 @@ export default function SidebarNavMobile({
             className={cn(
               "flex-1",
               "overflow-y-auto",
+              "hide-scrollbar",
               "overscroll-contain", // prevents scroll chaining
               "px-8 pb-6",
             )}

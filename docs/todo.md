@@ -13,8 +13,8 @@ ERROR Handling
 
 - [x] admin exhibition section : error specify - file size
   - [x] dialog confirm to file size
-- [ ] admin work section : drag and drop to order doesn't work
+- [x] admin work section : drag and drop to order doesn't work
       saving.....
-- [ ] admin text section :
-  - [ ] edit mode - input value error
-  - [ ] edit mode - button invalid mode
+- [x] admin text section :
+  - [x] edit mode - input value error
+  - [x] edit mode - button invalid mode

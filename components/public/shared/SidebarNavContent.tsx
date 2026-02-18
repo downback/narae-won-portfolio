@@ -112,6 +112,118 @@ export default function SidebarNavContent({
                     {item.title}
                   </Link>
                 ))}
+                {soloExhibitions.map((item) => (
+                  <Link
+                    key={item.slug}
+                    className={cn(
+                      "block truncate transition-colors hover:text-red-500 capitalize",
+                      pathname === `/exhibitions/solo/${item.slug}` &&
+                        "text-red-500",
+                    )}
+                    href={`/exhibitions/solo/${item.slug}`}
+                    onClick={onNavigate}
+                  >
+                    {item.title}
+                  </Link>
+                ))}
+                {soloExhibitions.map((item) => (
+                  <Link
+                    key={item.slug}
+                    className={cn(
+                      "block truncate transition-colors hover:text-red-500 capitalize",
+                      pathname === `/exhibitions/solo/${item.slug}` &&
+                        "text-red-500",
+                    )}
+                    href={`/exhibitions/solo/${item.slug}`}
+                    onClick={onNavigate}
+                  >
+                    {item.title}
+                  </Link>
+                ))}
+                {soloExhibitions.map((item) => (
+                  <Link
+                    key={item.slug}
+                    className={cn(
+                      "block truncate transition-colors hover:text-red-500 capitalize",
+                      pathname === `/exhibitions/solo/${item.slug}` &&
+                        "text-red-500",
+                    )}
+                    href={`/exhibitions/solo/${item.slug}`}
+                    onClick={onNavigate}
+                  >
+                    {item.title}
+                  </Link>
+                ))}
+                {soloExhibitions.map((item) => (
+                  <Link
+                    key={item.slug}
+                    className={cn(
+                      "block truncate transition-colors hover:text-red-500 capitalize",
+                      pathname === `/exhibitions/solo/${item.slug}` &&
+                        "text-red-500",
+                    )}
+                    href={`/exhibitions/solo/${item.slug}`}
+                    onClick={onNavigate}
+                  >
+                    {item.title}
+                  </Link>
+                ))}
+                {soloExhibitions.map((item) => (
+                  <Link
+                    key={item.slug}
+                    className={cn(
+                      "block truncate transition-colors hover:text-red-500 capitalize",
+                      pathname === `/exhibitions/solo/${item.slug}` &&
+                        "text-red-500",
+                    )}
+                    href={`/exhibitions/solo/${item.slug}`}
+                    onClick={onNavigate}
+                  >
+                    {item.title}
+                  </Link>
+                ))}
+                {soloExhibitions.map((item) => (
+                  <Link
+                    key={item.slug}
+                    className={cn(
+                      "block truncate transition-colors hover:text-red-500 capitalize",
+                      pathname === `/exhibitions/solo/${item.slug}` &&
+                        "text-red-500",
+                    )}
+                    href={`/exhibitions/solo/${item.slug}`}
+                    onClick={onNavigate}
+                  >
+                    {item.title}
+                  </Link>
+                ))}
+                {soloExhibitions.map((item) => (
+                  <Link
+                    key={item.slug}
+                    className={cn(
+                      "block truncate transition-colors hover:text-red-500 capitalize",
+                      pathname === `/exhibitions/solo/${item.slug}` &&
+                        "text-red-500",
+                    )}
+                    href={`/exhibitions/solo/${item.slug}`}
+                    onClick={onNavigate}
+                  >
+                    {item.title}
+                  </Link>
+                ))}
+                {soloExhibitions.map((item) => (
+                  <Link
+                    key={item.slug}
+                    className={cn(
+                      "block truncate transition-colors hover:text-red-500 capitalize",
+                      pathname === `/exhibitions/solo/${item.slug}` &&
+                        "text-red-500",
+                    )}
+                    href={`/exhibitions/solo/${item.slug}`}
+                    onClick={onNavigate}
+                  >
+                    {item.title}
+                  </Link>
+                ))}
               </div>
             </div>
             <div className="flex flex-row justify-start gap-2">

@@ -124,6 +124,15 @@
   animation-delay: 0.24s;
 }
 
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
 /* @keyframes floatUp {
   0% {
     transform: translateY(0);

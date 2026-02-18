@@ -36,7 +36,7 @@ export default function SidebarNavDesktop({
           NARAE WON
         </Link>
       </div>
-      <div className="flex-auto overflow-y-auto">
+      <div className="flex-auto overflow-y-auto hide-scrollbar">
         <SidebarNavContent
           worksYears={worksYears}
           soloExhibitions={soloExhibitions}
