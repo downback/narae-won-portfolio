@@ -6,8 +6,11 @@ import {
   parseJsonBody,
   requireAdminUser,
 } from "@/lib/server/adminRoute"
+import {
+  createUpdateErrorResponse,
+  validateOrderedIds,
+} from "@/lib/server/reorderRoute"
 import { supabaseServer } from "@/lib/server"
-import { isUuid } from "@/lib/validation"
 
 export async function POST(request: Request) {
   try {
@@ -26,12 +29,13 @@ export async function POST(request: Request) {
     }
 
     const orderedIds = body.orderedWorkIds ?? []
-    if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
-      return createBadRequestResponse("Missing work order.")
-    }
-
-    if (orderedIds.some((id) => !isUuid(id))) {
-      return createBadRequestResponse("Invalid work id.")
+    const validationErrorResponse = validateOrderedIds({
+      orderedIds,
+      missingMessage: "Missing work order.",
+      invalidIdMessage: "Invalid work id.",
+    })
+    if (validationErrorResponse) {
+      return validationErrorResponse
     }
 
     const total = orderedIds.length
@@ -44,12 +48,12 @@ export async function POST(request: Request) {
     )
 
     const results = await Promise.all(updates)
-    const firstError = results.find((result) => result.error)?.error
-    if (firstError) {
-      return NextResponse.json(
-        { error: firstError.message || "Unable to reorder works." },
-        { status: 500 },
-      )
+    const updateErrorResponse = createUpdateErrorResponse(
+      results,
+      "Unable to reorder works.",
+    )
+    if (updateErrorResponse) {
+      return updateErrorResponse
     }
 
     await insertActivityLog(supabase, {

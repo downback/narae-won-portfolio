@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server"
 import { exhibitionCategories, type ExhibitionCategory } from "@/lib/constants"
 import {
+  createBadRequestResponse,
+  createServerErrorResponse,
+  parseJsonBody,
   requireAdminUser,
 } from "@/lib/server/adminRoute"
+import {
+  createUpdateErrorResponse,
+  validateOrderedIds,
+} from "@/lib/server/reorderRoute"
 import { supabaseServer } from "@/lib/server"
-import { isUuid } from "@/lib/validation"
 
 type AllowedCategory = ExhibitionCategory
 
@@ -16,30 +22,29 @@ export async function POST(request: Request) {
       return errorResponse
     }
 
-    const body = (await request.json()) as {
+    const { data: body, errorResponse: parseErrorResponse } = await parseJsonBody<{
       category?: string
       orderedExhibitionIds?: string[]
+    }>(request)
+    if (!body || parseErrorResponse) {
+      return parseErrorResponse
     }
 
     const category = body.category?.trim()
     const isAllowedCategory = (value: string): value is AllowedCategory =>
       exhibitionCategories.includes(value as AllowedCategory)
     if (!category || !isAllowedCategory(category)) {
-      return NextResponse.json({ error: "Invalid category." }, { status: 400 })
+      return createBadRequestResponse("Invalid category.")
     }
 
     const orderedIds = body.orderedExhibitionIds ?? []
-    if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
-      return NextResponse.json(
-        { error: "Missing exhibition order." },
-        { status: 400 },
-      )
-    }
-    if (orderedIds.some((id) => !isUuid(id))) {
-      return NextResponse.json(
-        { error: "Invalid exhibition id." },
-        { status: 400 },
-      )
+    const validationErrorResponse = validateOrderedIds({
+      orderedIds,
+      missingMessage: "Missing exhibition order.",
+      invalidIdMessage: "Invalid exhibition id.",
+    })
+    if (validationErrorResponse) {
+      return validationErrorResponse
     }
 
     const exhibitionType = category === "solo-exhibitions" ? "solo" : "group"
@@ -52,20 +57,17 @@ export async function POST(request: Request) {
     )
 
     const results = await Promise.all(updates)
-    const firstError = results.find((result) => result.error)?.error
-    if (firstError) {
-      return NextResponse.json(
-        { error: firstError.message || "Unable to reorder exhibitions." },
-        { status: 500 },
-      )
+    const updateErrorResponse = createUpdateErrorResponse(
+      results,
+      "Unable to reorder exhibitions.",
+    )
+    if (updateErrorResponse) {
+      return updateErrorResponse
     }
 
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("Failed to reorder exhibitions", { error })
-    return NextResponse.json(
-      { error: "Server error while reordering exhibitions." },
-      { status: 500 },
-    )
+    return createServerErrorResponse("Server error while reordering exhibitions.")
   }
 }

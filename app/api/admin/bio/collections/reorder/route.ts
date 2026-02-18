@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server"
-import { requireAdminUser } from "@/lib/server/adminRoute"
+import {
+  createServerErrorResponse,
+  parseJsonBody,
+  requireAdminUser,
+} from "@/lib/server/adminRoute"
+import {
+  createUpdateErrorResponse,
+  type ReorderItem,
+  validateReorderItems,
+} from "@/lib/server/reorderRoute"
 import { supabaseServer } from "@/lib/server"
-import { isUuid } from "@/lib/validation"
-
-type ReorderItem = {
-  id: string
-  display_order: number
-}
 
 export async function POST(request: Request) {
   try {
@@ -16,15 +19,21 @@ export async function POST(request: Request) {
       return errorResponse
     }
 
-    const body = (await request.json()) as { items?: ReorderItem[] }
+    const { data: body, errorResponse: parseErrorResponse } = await parseJsonBody<{
+      items?: ReorderItem[]
+    }>(request)
+    if (!body || parseErrorResponse) {
+      return parseErrorResponse
+    }
     const items = body.items ?? []
 
-    if (items.length === 0) {
-      return NextResponse.json({ error: "No items provided." }, { status: 400 })
-    }
-
-    if (items.some((item) => !isUuid(item.id))) {
-      return NextResponse.json({ error: "Invalid id in items." }, { status: 400 })
+    const validationErrorResponse = validateReorderItems({
+      items,
+      missingMessage: "No items provided.",
+      invalidIdMessage: "Invalid id in items.",
+    })
+    if (validationErrorResponse) {
+      return validationErrorResponse
     }
 
     const updates = items.map((item) =>
@@ -35,21 +44,17 @@ export async function POST(request: Request) {
     )
 
     const results = await Promise.all(updates)
-    const hasError = results.some((result) => result.error)
-
-    if (hasError) {
-      return NextResponse.json(
-        { error: "Unable to update collection order." },
-        { status: 500 }
-      )
+    const updateErrorResponse = createUpdateErrorResponse(
+      results,
+      "Unable to update collection order.",
+    )
+    if (updateErrorResponse) {
+      return updateErrorResponse
     }
 
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("Collection reorder failed", { error })
-    return NextResponse.json(
-      { error: "Server error while saving order." },
-      { status: 500 }
-    )
+    return createServerErrorResponse("Server error while saving order.")
   }
 }
