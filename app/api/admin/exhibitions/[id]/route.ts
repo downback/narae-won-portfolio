@@ -5,9 +5,13 @@ import {
   requireAdminUser,
 } from "@/lib/server/adminRoute"
 import {
+  insertAdditionalExhibitionImages,
+  removeAdditionalExhibitionImages,
+  rollbackExhibitionUpdate,
+} from "@/lib/server/exhibitionMutation"
+import {
   removeStoragePathsSafely,
   uploadStorageFile,
-  uploadStorageFilesWithRollback,
 } from "@/lib/server/storageTransaction"
 import { supabaseServer } from "@/lib/server"
 import { validateImageUploadFile } from "@/lib/uploadValidation"
@@ -128,25 +132,6 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       )
     }
 
-    const rollbackExhibitionUpdate = async () => {
-      const { error } = await supabase
-        .from("exhibitions")
-        .update({
-          type: exhibition.type,
-          title: exhibition.title,
-          slug: exhibition.slug,
-          description: exhibition.description ?? null,
-        })
-        .eq("id", exhibition.id)
-      if (error) {
-        console.error("Exhibition rollback failed", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-        })
-      }
-    }
-
     const { error: exhibitionUpdateError } = await supabase
       .from("exhibitions")
       .update({
@@ -182,7 +167,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       })
 
       if (uploadError) {
-        await rollbackExhibitionUpdate()
+        await rollbackExhibitionUpdate(supabase, exhibition)
         return NextResponse.json(
           { error: "Upload failed. Please try again." },
           { status: 500 },
@@ -209,7 +194,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
           logContext: "Exhibition update main image rollback",
         })
       }
-      await rollbackExhibitionUpdate()
+      await rollbackExhibitionUpdate(supabase, exhibition)
       return NextResponse.json(
         { error: updateError?.message || "Unable to update exhibition." },
         { status: 500 },
@@ -235,7 +220,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         .maybeSingle()
 
       if (latestImageError) {
-        await rollbackExhibitionUpdate()
+        await rollbackExhibitionUpdate(supabase, exhibition)
         return NextResponse.json(
           { error: latestImageError.message },
           { status: 500 },
@@ -243,124 +228,38 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       }
 
       const baseDisplayOrder = (latestImage?.display_order ?? -1) + 1
-      const additionalUploadItems = additionalFiles.map((additional, index) => ({
-        file: additional,
-        storagePath: buildStoragePathWithPrefix({
-          prefix: `${category}/${slug}`,
-          file: additional,
-        }),
-        displayOrder: baseDisplayOrder + index,
-      }))
-
-      const { error: additionalUploadError } = await uploadStorageFilesWithRollback({
+      const additionalImageInsertResult = await insertAdditionalExhibitionImages({
         supabase,
         bucketName,
-        items: additionalUploadItems.map((item) => ({
-          storagePath: item.storagePath,
-          file: item.file,
-        })),
-        logContext: "Exhibition update additional images rollback",
+        exhibitionId: imageRow.exhibition_id,
+        caption,
+        category,
+        slug,
+        additionalFiles,
+        startDisplayOrder: baseDisplayOrder,
       })
-
-      if (additionalUploadError) {
-        await rollbackExhibitionUpdate()
+      if (additionalImageInsertResult.errorMessage) {
+        await rollbackExhibitionUpdate(supabase, exhibition)
         return NextResponse.json(
-          {
-            error:
-              additionalUploadError.message ||
-              "Upload failed. Please try again.",
-          },
-          { status: 500 },
-        )
-      }
-
-      const inserts: {
-        exhibition_id: string
-        storage_path: string
-        caption: string
-        display_order: number
-        is_primary: boolean
-      }[] = []
-
-      for (const additionalItem of additionalUploadItems) {
-        inserts.push({
-          exhibition_id: imageRow.exhibition_id,
-          storage_path: additionalItem.storagePath,
-          caption,
-          display_order: additionalItem.displayOrder,
-          is_primary: false,
-        })
-      }
-
-      const { error: additionalInsertError } = await supabase
-        .from("exhibition_images")
-        .insert(inserts)
-
-      if (additionalInsertError) {
-        await removeStoragePathsSafely({
-          supabase,
-          bucketName,
-          storagePaths: additionalUploadItems.map((item) => item.storagePath),
-          logContext: "Exhibition update additional insert rollback",
-        })
-        await rollbackExhibitionUpdate()
-        return NextResponse.json(
-          { error: additionalInsertError.message },
+          { error: additionalImageInsertResult.errorMessage },
           { status: 500 },
         )
       }
     }
 
     if (removedAdditionalImageIds.length > 0) {
-      const { data: removableRows, error: removableRowsError } = await supabase
-        .from("exhibition_images")
-        .select("id, storage_path, is_primary")
-        .eq("exhibition_id", imageRow.exhibition_id)
-        .in("id", removedAdditionalImageIds)
-
-      if (removableRowsError) {
-        await rollbackExhibitionUpdate()
+      const removeAdditionalResult = await removeAdditionalExhibitionImages({
+        supabase,
+        bucketName,
+        exhibitionId: imageRow.exhibition_id,
+        removedAdditionalImageIds,
+      })
+      if (removeAdditionalResult.errorMessage) {
+        await rollbackExhibitionUpdate(supabase, exhibition)
         return NextResponse.json(
-          { error: removableRowsError.message || "Unable to delete images." },
-          { status: 500 },
+          { error: removeAdditionalResult.errorMessage },
+          { status: removeAdditionalResult.status },
         )
-      }
-
-      if ((removableRows ?? []).some((row) => row.is_primary)) {
-        await rollbackExhibitionUpdate()
-        return NextResponse.json(
-          { error: "Primary image cannot be deleted in this operation." },
-          { status: 400 },
-        )
-      }
-
-      const removableIds = (removableRows ?? []).map((row) => row.id)
-      if (removableIds.length > 0) {
-        const { error: removeDbError } = await supabase
-          .from("exhibition_images")
-          .delete()
-          .in("id", removableIds)
-
-        if (removeDbError) {
-          await rollbackExhibitionUpdate()
-          return NextResponse.json(
-            { error: removeDbError.message || "Unable to delete images." },
-            { status: 500 },
-          )
-        }
-
-        const storagePaths = (removableRows ?? [])
-          .map((row) => row.storage_path)
-          .filter((value): value is string => Boolean(value))
-
-        if (storagePaths.length > 0) {
-          await removeStoragePathsSafely({
-            supabase,
-            bucketName,
-            storagePaths,
-            logContext: "Exhibition update removed additional cleanup",
-          })
-        }
       }
     }
 

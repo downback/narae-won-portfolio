@@ -1,8 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import Image from "next/image"
-import { X } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -17,18 +16,12 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import AdminDialog from "@/components/admin/shared/AdminDialog"
 import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
+import ExhibitionAdditionalImagesPreview from "@/components/admin/exhibition/ExhibitionAdditionalImagesPreview"
+import { useExhibitionImagePreviews } from "@/components/admin/exhibition/hooks/useExhibitionImagePreviews"
 import { useModalOpenTransition } from "@/components/admin/shared/useModalOpenTransition"
 import { exhibitionCategories } from "@/lib/constants"
 export type { ExhibitionCategory } from "@/lib/constants"
 import type { ExhibitionCategory } from "@/lib/constants"
-
-const MAX_FILE_SIZE = 1.5 * 1024 * 1024 // 1.5MB in bytes
-
-const formatFileSize = (bytes: number): string => {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
 
 export type ExhibitionFormValues = {
   mainImageFile: File | null
@@ -75,7 +68,6 @@ export default function ExhibitionUploadModal({
   errorMessage,
 }: ExhibitionUploadModalProps) {
   const [selectedMainImageName, setSelectedMainImageName] = useState("")
-  const [mainImagePreviewUrl, setMainImagePreviewUrl] = useState("")
   const [mainImageFile, setMainImageFile] = useState<File | null>(null)
   const [initialMainImageUrl, setInitialMainImageUrl] = useState("")
   const [category, setCategory] =
@@ -90,29 +82,28 @@ export default function ExhibitionUploadModal({
   const [removedAdditionalImageIds, setRemovedAdditionalImageIds] = useState<
     string[]
   >([])
-  const [additionalPreviewUrls, setAdditionalPreviewUrls] = useState<string[]>(
-    [],
-  )
   const [errorDialogOpen, setErrorDialogOpen] = useState(false)
   const [errorDialogMessage, setErrorDialogMessage] = useState("")
+  const {
+    maxFileSizeBytes,
+    formatFileSize,
+    mainImagePreviewUrl,
+    additionalPreviewUrls,
+    setMainPreviewFromFile,
+    appendAdditionalPreviews,
+    removeAdditionalPreviewAt,
+    clearPreviews,
+  } = useExhibitionImagePreviews()
 
   const showError = (message: string) => {
     setErrorDialogMessage(message)
     setErrorDialogOpen(true)
   }
 
-  const clearLocalPreviewUrls = useCallback(() => {
-    if (mainImagePreviewUrl) {
-      URL.revokeObjectURL(mainImagePreviewUrl)
-    }
-    additionalPreviewUrls.forEach((url) => URL.revokeObjectURL(url))
-  }, [additionalPreviewUrls, mainImagePreviewUrl])
-
   const applyInitialValues = useCallback(() => {
-    clearLocalPreviewUrls()
+    clearPreviews()
     setSelectedMainImageName("")
     setMainImageFile(null)
-    setMainImagePreviewUrl("")
     setCategory(initialValues?.category ?? exhibitionCategories[0])
     setExhibitionTitle(initialValues?.exhibitionTitle ?? "")
     setCaption(initialValues?.caption ?? "")
@@ -121,21 +112,13 @@ export default function ExhibitionUploadModal({
     setExistingAdditionalImages(initialValues?.additionalImages ?? [])
     setRemovedAdditionalImageIds([])
     setAdditionalImages([])
-    setAdditionalPreviewUrls([])
-  }, [clearLocalPreviewUrls, initialValues])
+  }, [clearPreviews, initialValues])
 
   const handleRemoveAdditionalImage = (indexToRemove: number) => {
     setAdditionalImages((prev) =>
       prev.filter((_, index) => index !== indexToRemove),
     )
-    setAdditionalPreviewUrls((prev) => {
-      const next = prev.filter((_, index) => index !== indexToRemove)
-      const url = prev[indexToRemove]
-      if (url) {
-        URL.revokeObjectURL(url)
-      }
-      return next
-    })
+    removeAdditionalPreviewAt(indexToRemove)
   }
 
   const handleRemoveExistingAdditionalImage = (id: string) => {
@@ -149,34 +132,24 @@ export default function ExhibitionUploadModal({
     event.preventDefault()
     const file = event.dataTransfer.files?.[0]
     if (file) {
-      if (file.size > MAX_FILE_SIZE) {
+      if (file.size > maxFileSizeBytes) {
         showError(
-          `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(MAX_FILE_SIZE)}.`,
+          `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(maxFileSizeBytes)}.`,
         )
         return
       }
       setSelectedMainImageName(file.name)
       setMainImageFile(file)
-      setMainImagePreviewUrl(URL.createObjectURL(file))
+      setMainPreviewFromFile(file)
     }
   }
-
-  useEffect(() => {
-    return () => {
-      if (mainImagePreviewUrl) {
-        URL.revokeObjectURL(mainImagePreviewUrl)
-      }
-      additionalPreviewUrls.forEach((url) => URL.revokeObjectURL(url))
-    }
-  }, [mainImagePreviewUrl, additionalPreviewUrls])
 
   useModalOpenTransition({ open, onOpen: applyInitialValues })
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
-      clearLocalPreviewUrls()
+      clearPreviews()
       setSelectedMainImageName("")
-      setMainImagePreviewUrl("")
       setMainImageFile(null)
       setInitialMainImageUrl("")
       setCategory(exhibitionCategories[0])
@@ -186,7 +159,6 @@ export default function ExhibitionUploadModal({
       setAdditionalImages([])
       setExistingAdditionalImages([])
       setRemovedAdditionalImageIds([])
-      setAdditionalPreviewUrls([])
     }
 
     onOpenChange(nextOpen)
@@ -248,16 +220,16 @@ export default function ExhibitionUploadModal({
                 onChange={(event) => {
                   const file = event.target.files?.[0]
                   if (file) {
-                    if (file.size > MAX_FILE_SIZE) {
+                    if (file.size > maxFileSizeBytes) {
                       showError(
-                        `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(MAX_FILE_SIZE)}.`,
+                        `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(maxFileSizeBytes)}.`,
                       )
                       event.target.value = ""
                       return
                     }
                     setSelectedMainImageName(file.name)
                     setMainImageFile(file)
-                    setMainImagePreviewUrl(URL.createObjectURL(file))
+                    setMainPreviewFromFile(file)
                   }
                 }}
               />
@@ -331,7 +303,7 @@ export default function ExhibitionUploadModal({
                   if (files.length === 0) return
 
                   const oversizedFiles = files.filter(
-                    (file) => file.size > MAX_FILE_SIZE,
+                    (file) => file.size > maxFileSizeBytes,
                   )
                   if (oversizedFiles.length > 0) {
                     const fileList = oversizedFiles
@@ -341,7 +313,7 @@ export default function ExhibitionUploadModal({
                       )
                       .join(", ")
                     showError(
-                      `아래 파일(들)의 용량이 너무 큽니다: ${fileList}. 최대 용량인 ${formatFileSize(MAX_FILE_SIZE)} 이하의 이미지(들)로 다시 업로드 해주세요.`,
+                      `아래 파일(들)의 용량이 너무 큽니다: ${fileList}. 최대 용량인 ${formatFileSize(maxFileSizeBytes)} 이하의 이미지(들)로 다시 업로드 해주세요.`,
                     )
                     event.target.value = ""
                     return
@@ -363,67 +335,17 @@ export default function ExhibitionUploadModal({
                     event.target.value = ""
                     return
                   }
-                  const newPreviews = newFiles.map((file) =>
-                    URL.createObjectURL(file),
-                  )
                   setAdditionalImages((prev) => [...prev, ...newFiles])
-                  setAdditionalPreviewUrls((prev) => [...prev, ...newPreviews])
+                  appendAdditionalPreviews(newFiles)
                   event.target.value = ""
                 }}
               />
-              {existingAdditionalImages.length > 0 ||
-              additionalPreviewUrls.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {existingAdditionalImages.map((item, index) => (
-                    <div
-                      key={`${item.url}-existing-${index}`}
-                      className="relative h-12 w-12 rounded-md border border-border"
-                    >
-                      <Image
-                        src={item.url}
-                        alt={`Additional image ${index + 1}`}
-                        width={48}
-                        height={48}
-                        className="h-full w-full object-cover overflow-hidden rounded-md"
-                        unoptimized
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleRemoveExistingAdditionalImage(item.id)
-                        }
-                        className="absolute -right-2 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-white text-[10px] leading-none shadow text-red-400"
-                        aria-label={`Remove additional image ${index + 1}`}
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                  {additionalPreviewUrls.map((url, index) => (
-                    <div
-                      key={`${url}-${index}`}
-                      className="relative h-12 w-12 rounded-md border border-border"
-                    >
-                      <Image
-                        src={url}
-                        alt={`Additional preview ${index + 1}`}
-                        width={48}
-                        height={48}
-                        className="h-full w-full object-cover rounded-md"
-                        unoptimized
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveAdditionalImage(index)}
-                        className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-white text-[10px] leading-none shadow text-red-400"
-                        aria-label={`Remove additional image ${index + 1}`}
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
+              <ExhibitionAdditionalImagesPreview
+                existingAdditionalImages={existingAdditionalImages}
+                additionalPreviewUrls={additionalPreviewUrls}
+                onRemoveExistingAdditionalImage={handleRemoveExistingAdditionalImage}
+                onRemoveAdditionalPreviewImage={handleRemoveAdditionalImage}
+              />
             </div>
           </div>
 
