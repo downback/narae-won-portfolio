@@ -7,19 +7,13 @@ import {
   siteAssetsBucketName,
 } from "@/lib/constants"
 import { insertActivityLog, requireAdminUser } from "@/lib/server/adminRoute"
+import { toSlug } from "@/lib/utils"
 import { executeExhibitionCreateFlow } from "@/lib/server/exhibitionCreate"
 import { supabaseServer } from "@/lib/server"
 import { validateImageUploadFile } from "@/lib/uploadValidation"
 
 const bucketName = siteAssetsBucketName
 
-const toSlug = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
 
 export async function POST(request: Request) {
   try {

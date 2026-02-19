@@ -6,6 +6,7 @@ import {
 } from "@/lib/constants"
 import { buildStoragePathWithPrefix } from "@/lib/storage"
 import { insertActivityLog, requireAdminUser } from "@/lib/server/adminRoute"
+import { toSlug } from "@/lib/utils"
 import {
   insertAdditionalExhibitionImages,
   removeAdditionalExhibitionImages,
@@ -25,13 +26,6 @@ type RouteContext = {
   params: Promise<{ id: string }>
 }
 
-const toSlug = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
 
 export async function PATCH(request: Request, { params }: RouteContext) {
   try {
