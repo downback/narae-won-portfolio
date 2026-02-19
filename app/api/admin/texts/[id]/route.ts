@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 import {
   createBadRequestResponse,
+  createMappedSupabaseErrorResponse,
   createServerErrorResponse,
   insertActivityLog,
-  mapSupabaseErrorMessage,
   parseJsonBody,
   requireAdminUser,
 } from "@/lib/server/adminRoute"
@@ -62,16 +62,11 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       .single()
 
     if (updateError || !updated) {
-      return NextResponse.json(
-        {
-          error: mapSupabaseErrorMessage({
-            message: updateError?.message || "",
-            tableHint: "texts",
-            fallbackMessage: "Unable to update text entry.",
-          }),
-        },
-        { status: 500 }
-      )
+      return createMappedSupabaseErrorResponse({
+        message: updateError?.message || "",
+        tableHint: "texts",
+        fallbackMessage: "Unable to update text entry.",
+      })
     }
 
     await insertActivityLog(supabase, {
@@ -108,16 +103,11 @@ export async function DELETE(_: Request, { params }: RouteContext) {
       .eq("id", id)
 
     if (deleteError) {
-      return NextResponse.json(
-        {
-          error: mapSupabaseErrorMessage({
-            message: deleteError.message,
-            tableHint: "texts",
-            fallbackMessage: "Unable to update text entry.",
-          }),
-        },
-        { status: 500 }
-      )
+      return createMappedSupabaseErrorResponse({
+        message: deleteError.message,
+        tableHint: "texts",
+        fallbackMessage: "Unable to update text entry.",
+      })
     }
 
     await insertActivityLog(supabase, {

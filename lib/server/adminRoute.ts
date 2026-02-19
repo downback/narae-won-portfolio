@@ -125,3 +125,24 @@ export const mapSupabaseErrorMessage = ({
   }
   return fallbackMessage
 }
+
+type MappedSupabaseErrorResponseOptions = SupabaseErrorMessageOptions & {
+  status?: number
+}
+
+export const createMappedSupabaseErrorResponse = ({
+  message,
+  tableHint,
+  fallbackMessage,
+  status = 500,
+}: MappedSupabaseErrorResponseOptions) =>
+  NextResponse.json(
+    {
+      error: mapSupabaseErrorMessage({
+        message,
+        tableHint,
+        fallbackMessage,
+      }),
+    },
+    { status },
+  )

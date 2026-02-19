@@ -6,7 +6,7 @@ import {
   type WorkMetadataValidationData,
 } from "@/lib/requestValidation"
 import {
-  mapSupabaseErrorMessage,
+  createMappedSupabaseErrorResponse,
   requireAdminUser,
 } from "@/lib/server/adminRoute"
 import {
@@ -93,16 +93,11 @@ export async function POST(request: Request) {
         storagePaths: [storagePath],
         logContext: "Work create rollback",
       })
-      return NextResponse.json(
-        {
-          error: mapSupabaseErrorMessage({
-            message: latestError.message,
-            tableHint: "artworks",
-            fallbackMessage: "Unable to save work entry.",
-          }),
-        },
-        { status: 500 },
-      )
+      return createMappedSupabaseErrorResponse({
+        message: latestError.message,
+        tableHint: "artworks",
+        fallbackMessage: "Unable to save work entry.",
+      })
     }
 
     const nextDisplayOrder = (latestArtwork?.display_order ?? -1) + 1
@@ -126,16 +121,11 @@ export async function POST(request: Request) {
         storagePaths: [storagePath],
         logContext: "Work create rollback",
       })
-      return NextResponse.json(
-        {
-          error: mapSupabaseErrorMessage({
-            message: artworkError?.message || "",
-            tableHint: "artworks",
-            fallbackMessage: "Unable to save work entry.",
-          }),
-        },
-        { status: 500 },
-      )
+      return createMappedSupabaseErrorResponse({
+        message: artworkError?.message || "",
+        tableHint: "artworks",
+        fallbackMessage: "Unable to save work entry.",
+      })
     }
 
     const { error: activityError } = await supabase

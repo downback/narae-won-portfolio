@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { usePreviewUrlRegistry } from "@/components/admin/shared/usePreviewUrlRegistry"
 import type { WorkFormValues } from "@/components/admin/works/WorkUploadModal"
 import {
   siteAssetsBucketName,
@@ -30,24 +31,14 @@ export const useWorksPanelData = () => {
   const [selectedYear, setSelectedYear] = useState<string>("")
   const [selectedYearCategory, setSelectedYearCategory] = useState<string>("")
   const [isYearDialogOpen, setIsYearDialogOpen] = useState(false)
-  const previewUrlsRef = useRef<string[]>([])
+  const { registerPreviewUrl, revokeRegisteredPreviewUrls } =
+    usePreviewUrlRegistry()
 
   const supabase = useMemo(() => supabaseBrowser(), [])
   const bucketName = siteAssetsBucketName
   const rangeLabel = worksYearRangeValue
   const rangeStart = worksYearRangeStart
   const rangeEnd = worksYearRangeEnd
-
-  const revokePendingPreviewUrls = useCallback(() => {
-    previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
-    previewUrlsRef.current = []
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      revokePendingPreviewUrls()
-    }
-  }, [revokePendingPreviewUrls])
 
   const loadPreviewItems = useCallback(async () => {
     const { data, error } = await supabase
@@ -175,7 +166,7 @@ export const useWorksPanelData = () => {
         }
 
         if (previewUrl) {
-          previewUrlsRef.current.push(previewUrl)
+          registerPreviewUrl(previewUrl)
         }
         if (!isEditMode && previewUrl) {
           setPreviewItems((prev) => [
@@ -213,7 +204,7 @@ export const useWorksPanelData = () => {
         }
       } finally {
         if (shouldRevokePendingUrls) {
-          revokePendingPreviewUrls()
+          revokeRegisteredPreviewUrls()
         }
         setIsUploading(false)
       }
@@ -222,7 +213,8 @@ export const useWorksPanelData = () => {
       editingItem,
       loadPreviewItems,
       rangeLabel,
-      revokePendingPreviewUrls,
+      registerPreviewUrl,
+      revokeRegisteredPreviewUrls,
       selectedYear,
       selectedYearCategory,
     ],

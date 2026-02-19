@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 import {
   createBadRequestResponse,
+  createMappedSupabaseErrorResponse,
   createServerErrorResponse,
   insertActivityLog,
-  mapSupabaseErrorMessage,
   parseJsonBody,
   requireAdminUser,
 } from "@/lib/server/adminRoute"
@@ -50,16 +50,11 @@ export async function POST(request: Request) {
       .single()
 
     if (insertError || !text) {
-      return NextResponse.json(
-        {
-          error: mapSupabaseErrorMessage({
-            message: insertError?.message || "",
-            tableHint: "texts",
-            fallbackMessage: "Unable to save text entry.",
-          }),
-        },
-        { status: 500 }
-      )
+      return createMappedSupabaseErrorResponse({
+        message: insertError?.message || "",
+        tableHint: "texts",
+        fallbackMessage: "Unable to save text entry.",
+      })
     }
 
     await insertActivityLog(supabase, {

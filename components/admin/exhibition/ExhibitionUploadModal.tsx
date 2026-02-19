@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import AdminDialog from "@/components/admin/shared/AdminDialog"
 import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
+import { useSingleImageInput } from "@/components/admin/shared/useSingleImageInput"
 import ExhibitionAdditionalImagesPreview from "@/components/admin/exhibition/ExhibitionAdditionalImagesPreview"
 import { useExhibitionImagePreviews } from "@/components/admin/exhibition/hooks/useExhibitionImagePreviews"
 import { useModalOpenTransition } from "@/components/admin/shared/useModalOpenTransition"
@@ -128,21 +129,27 @@ export default function ExhibitionUploadModal({
     )
   }
 
-  const handleMainImageDrop = (event: React.DragEvent<HTMLLabelElement>) => {
-    event.preventDefault()
-    const file = event.dataTransfer.files?.[0]
-    if (file) {
-      if (file.size > maxFileSizeBytes) {
-        showError(
-          `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(maxFileSizeBytes)}.`,
-        )
-        return
-      }
-      setSelectedMainImageName(file.name)
-      setMainImageFile(file)
-      setMainPreviewFromFile(file)
-    }
-  }
+  const handleAcceptedMainImage = useCallback((file: File) => {
+    setSelectedMainImageName(file.name)
+    setMainImageFile(file)
+    setMainPreviewFromFile(file)
+  }, [setMainPreviewFromFile])
+
+  const handleOversizeMainImage = useCallback((file: File) => {
+    showError(
+      `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(maxFileSizeBytes)}.`,
+    )
+  }, [formatFileSize, maxFileSizeBytes])
+
+  const {
+    handleDragOver: handleMainImageDragOver,
+    handleDrop: handleMainImageDrop,
+    handleInputChange: handleMainImageInputChange,
+  } = useSingleImageInput({
+    maxFileSizeBytes,
+    onFileAccepted: handleAcceptedMainImage,
+    onFileOversize: handleOversizeMainImage,
+  })
 
   useModalOpenTransition({ open, onOpen: applyInitialValues })
 
@@ -162,10 +169,6 @@ export default function ExhibitionUploadModal({
     }
 
     onOpenChange(nextOpen)
-  }
-
-  const handleDragOver = (event: React.DragEvent<HTMLLabelElement>) => {
-    event.preventDefault()
   }
 
   const initialExhibitionTitle = initialValues?.exhibitionTitle ?? ""
@@ -201,7 +204,7 @@ export default function ExhibitionUploadModal({
                 htmlFor="upload-main-image"
                 className="flex min-h-[120px] w-full cursor-pointer items-center justify-center rounded-md border border-dashed border-border bg-muted/20 px-4 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
                 onDrop={handleMainImageDrop}
-                onDragOver={handleDragOver}
+                onDragOver={handleMainImageDragOver}
               >
                 <span>
                   Drop image here or click to upload
@@ -217,21 +220,7 @@ export default function ExhibitionUploadModal({
                 type="file"
                 accept="image/png, image/jpeg, image/jpg"
                 className="sr-only"
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  if (file) {
-                    if (file.size > maxFileSizeBytes) {
-                      showError(
-                        `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(maxFileSizeBytes)}.`,
-                      )
-                      event.target.value = ""
-                      return
-                    }
-                    setSelectedMainImageName(file.name)
-                    setMainImageFile(file)
-                    setMainPreviewFromFile(file)
-                  }
-                }}
+                onChange={handleMainImageInputChange}
               />
               {mainImagePreviewUrl || initialMainImageUrl ? (
                 <div className="overflow-hidden rounded-md border border-border">

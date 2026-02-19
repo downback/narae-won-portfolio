@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { usePreviewUrlRegistry } from "@/components/admin/shared/usePreviewUrlRegistry"
 import type {
   ExhibitionCategory,
   ExhibitionFormValues,
@@ -23,20 +24,9 @@ export const useExhibitionsPanelData = () => {
   const [resetSignal, setResetSignal] = useState(0)
   const [selectedCategory, setSelectedCategory] =
     useState<ExhibitionCategory>("solo-exhibitions")
-
-  const previewUrlsRef = useRef<string[]>([])
+  const { registerPreviewUrl, revokeRegisteredPreviewUrls } =
+    usePreviewUrlRegistry()
   const supabase = useMemo(() => supabaseBrowser(), [])
-
-  const revokePendingPreviewUrls = useCallback(() => {
-    previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
-    previewUrlsRef.current = []
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      revokePendingPreviewUrls()
-    }
-  }, [revokePendingPreviewUrls])
 
   const loadPreviewItems = useCallback(async () => {
     const { data, error } = await supabase
@@ -141,7 +131,7 @@ export const useExhibitionsPanelData = () => {
           ? URL.createObjectURL(values.mainImageFile)
           : ""
         if (previewUrl) {
-          previewUrlsRef.current.push(previewUrl)
+          registerPreviewUrl(previewUrl)
         }
 
         const formData = new FormData()
@@ -242,12 +232,12 @@ export const useExhibitionsPanelData = () => {
         }
       } finally {
         if (shouldRevokePendingUrls) {
-          revokePendingPreviewUrls()
+          revokeRegisteredPreviewUrls()
         }
         setIsUploading(false)
       }
     },
-    [editingItem, loadPreviewItems, revokePendingPreviewUrls],
+    [editingItem, loadPreviewItems, registerPreviewUrl, revokeRegisteredPreviewUrls],
   )
 
   const handleDelete = useCallback(

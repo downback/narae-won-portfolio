@@ -1,14 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-
-const maxFileSizeBytes = Math.floor(1.5 * 1024 * 1024)
-
-const formatFileSize = (bytes: number): string => {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
+import { formatFileSize, maxImageFileSizeBytes } from "@/lib/fileUpload"
 
 export const useExhibitionImagePreviews = () => {
   const [mainImagePreviewUrl, setMainImagePreviewUrl] = useState("")
@@ -61,7 +54,7 @@ export const useExhibitionImagePreviews = () => {
   }, [clearPreviews])
 
   return {
-    maxFileSizeBytes,
+    maxFileSizeBytes: maxImageFileSizeBytes,
     formatFileSize,
     mainImagePreviewUrl,
     additionalPreviewUrls,

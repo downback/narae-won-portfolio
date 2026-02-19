@@ -23,15 +23,9 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import AdminDialog from "@/components/admin/shared/AdminDialog"
 import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
+import { useSingleImageInput } from "@/components/admin/shared/useSingleImageInput"
 import { useModalOpenTransition } from "@/components/admin/shared/useModalOpenTransition"
-
-const MAX_FILE_SIZE = 1.5 * 1024 * 1024 // 1.5MB in bytes
-
-const formatFileSize = (bytes: number): string => {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
+import { formatFileSize, maxImageFileSizeBytes } from "@/lib/fileUpload"
 
 export type WorkFormValues = {
   imageFile: File | null
@@ -106,21 +100,36 @@ export default function WorkUploadModal({
     setInitialImageUrl(initialValues?.imageUrl ?? "")
   }, [initialValues])
 
-  const handleImageDrop = (event: React.DragEvent<HTMLLabelElement>) => {
-    event.preventDefault()
-    const file = event.dataTransfer.files?.[0]
-    if (file) {
-      if (file.size > MAX_FILE_SIZE) {
+  const handleAcceptedImageFile = useCallback((file: File) => {
+    setSelectedImageName(file.name)
+    setImageFile(file)
+    setImagePreviewUrl(URL.createObjectURL(file))
+  }, [])
+
+  const handleOversizeImageFile = useCallback(
+    (file: File, source: "drop" | "input") => {
+      if (source === "input") {
         showError(
-          `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(MAX_FILE_SIZE)}.`,
+          `해당 파일의 용량이 너무 큽니다: "${file.name}" (${formatFileSize(file.size)}). 최대 용량인 ${formatFileSize(maxImageFileSizeBytes)} 이하의 이미지(들)로 다시 업로드 해주세요.`,
         )
         return
       }
-      setSelectedImageName(file.name)
-      setImageFile(file)
-      setImagePreviewUrl(URL.createObjectURL(file))
-    }
-  }
+      showError(
+        `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(maxImageFileSizeBytes)}.`,
+      )
+    },
+    [],
+  )
+
+  const {
+    handleDragOver: handleImageDragOver,
+    handleDrop: handleImageDrop,
+    handleInputChange: handleImageInputChange,
+  } = useSingleImageInput({
+    maxFileSizeBytes: maxImageFileSizeBytes,
+    onFileAccepted: handleAcceptedImageFile,
+    onFileOversize: handleOversizeImageFile,
+  })
 
   useEffect(() => {
     return () => {
@@ -171,10 +180,6 @@ export default function WorkUploadModal({
     onOpenChange(nextOpen)
   }
 
-  const handleDragOver = (event: React.DragEvent<HTMLLabelElement>) => {
-    event.preventDefault()
-  }
-
   const initialYear = initialValues?.year ?? ""
   const initialTitle = initialValues?.title ?? ""
   const initialCaption = initialValues?.caption ?? ""
@@ -206,7 +211,7 @@ export default function WorkUploadModal({
                 htmlFor="upload-image"
                 className="flex min-h-[120px] w-full cursor-pointer items-center justify-center rounded-md border border-dashed border-border bg-muted/20 px-4 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
                 onDrop={handleImageDrop}
-                onDragOver={handleDragOver}
+                onDragOver={handleImageDragOver}
               >
                 <span>
                   Drop image here or click to upload
@@ -222,21 +227,7 @@ export default function WorkUploadModal({
                 type="file"
                 accept="image/png, image/jpeg, image/jpg"
                 className="sr-only"
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  if (file) {
-                    if (file.size > MAX_FILE_SIZE) {
-                      showError(
-                        `해당 파일의 용량이 너무 큽니다: "${file.name}" (${formatFileSize(file.size)}). 최대 용량인 ${formatFileSize(MAX_FILE_SIZE)} 이하의 이미지(들)로 다시 업로드 해주세요.`,
-                      )
-                      event.target.value = ""
-                      return
-                    }
-                    setSelectedImageName(file.name)
-                    setImageFile(file)
-                    setImagePreviewUrl(URL.createObjectURL(file))
-                  }
-                }}
+                onChange={handleImageInputChange}
               />
               {imagePreviewUrl || initialImageUrl ? (
                 <div className="overflow-hidden rounded-md border border-border">
