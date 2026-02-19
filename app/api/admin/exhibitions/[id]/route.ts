@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server"
-import { exhibitionCategories, type ExhibitionCategory, siteAssetsBucketName } from "@/lib/constants"
-import { buildStoragePathWithPrefix } from "@/lib/storage"
 import {
-  requireAdminUser,
-} from "@/lib/server/adminRoute"
+  exhibitionCategories,
+  type ExhibitionCategory,
+  siteAssetsBucketName,
+} from "@/lib/constants"
+import { buildStoragePathWithPrefix } from "@/lib/storage"
+import { insertActivityLog, requireAdminUser } from "@/lib/server/adminRoute"
 import {
   insertAdditionalExhibitionImages,
   removeAdditionalExhibitionImages,
@@ -83,9 +85,13 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       (additional) => validateImageUploadFile(additional) !== null,
     )
     if (invalidAdditionalImage) {
-      const additionalValidationError = validateImageUploadFile(invalidAdditionalImage)
+      const additionalValidationError = validateImageUploadFile(
+        invalidAdditionalImage,
+      )
       return NextResponse.json(
-        { error: additionalValidationError || "Only image uploads are allowed." },
+        {
+          error: additionalValidationError || "Only image uploads are allowed.",
+        },
         { status: 400 },
       )
     }
@@ -153,7 +159,10 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     if (file instanceof File) {
       const mainImageValidationError = validateImageUploadFile(file)
       if (mainImageValidationError) {
-        return NextResponse.json({ error: mainImageValidationError }, { status: 400 })
+        return NextResponse.json(
+          { error: mainImageValidationError },
+          { status: 400 },
+        )
       }
       nextStoragePath = buildStoragePathWithPrefix({
         prefix: `${category}/${slug}`,
@@ -228,16 +237,17 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       }
 
       const baseDisplayOrder = (latestImage?.display_order ?? -1) + 1
-      const additionalImageInsertResult = await insertAdditionalExhibitionImages({
-        supabase,
-        bucketName,
-        exhibitionId: imageRow.exhibition_id,
-        caption,
-        category,
-        slug,
-        additionalFiles,
-        startDisplayOrder: baseDisplayOrder,
-      })
+      const additionalImageInsertResult =
+        await insertAdditionalExhibitionImages({
+          supabase,
+          bucketName,
+          exhibitionId: imageRow.exhibition_id,
+          caption,
+          category,
+          slug,
+          additionalFiles,
+          startDisplayOrder: baseDisplayOrder,
+        })
       if (additionalImageInsertResult.errorMessage) {
         await rollbackExhibitionUpdate(supabase, exhibition)
         return NextResponse.json(
@@ -263,23 +273,14 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       }
     }
 
-    const { error: activityError } = await supabase
-      .from("activity_log")
-      .insert({
-        admin_id: user.id,
-        action_type: "update",
-        entity_type: "exhibition",
-        entity_id: updated.id,
-        metadata: { category },
-      })
-
-    if (activityError) {
-      console.warn("Activity log insert failed", {
-        message: activityError.message,
-        details: activityError.details,
-        hint: activityError.hint,
-      })
-    }
+    await insertActivityLog(supabase, {
+      adminId: user.id,
+      actionType: "update",
+      entityType: "exhibition",
+      entityId: updated.id,
+      metadata: { category },
+      logContext: "Exhibition update",
+    })
 
     return NextResponse.json({ ok: true, createdAt: updated.created_at })
   } catch (error) {
@@ -344,20 +345,22 @@ export async function DELETE(_: Request, { params }: RouteContext) {
 
       await supabase.storage.from(bucketName).remove([imageRow.storage_path])
 
-      const { error: activityError } = await supabase.from("activity_log").insert({
-        admin_id: user.id,
-        action_type: "delete",
-        entity_type: "exhibition_image",
-        entity_id: id,
-        metadata: {
-          category:
-            exhibitionRow?.type === "solo"
-              ? "solo-exhibitions"
-              : exhibitionRow?.type === "group"
-                ? "group-exhibitions"
-                : "exhibitions",
-        },
-      })
+      const { error: activityError } = await supabase
+        .from("activity_log")
+        .insert({
+          admin_id: user.id,
+          action_type: "delete",
+          entity_type: "exhibition_image",
+          entity_id: id,
+          metadata: {
+            category:
+              exhibitionRow?.type === "solo"
+                ? "solo-exhibitions"
+                : exhibitionRow?.type === "group"
+                  ? "group-exhibitions"
+                  : "exhibitions",
+          },
+        })
 
       if (activityError) {
         console.warn("Activity log insert failed", {
@@ -409,35 +412,29 @@ export async function DELETE(_: Request, { params }: RouteContext) {
 
     if (exhibitionDeleteError) {
       return NextResponse.json(
-        { error: exhibitionDeleteError.message || "Unable to delete exhibition." },
+        {
+          error:
+            exhibitionDeleteError.message || "Unable to delete exhibition.",
+        },
         { status: 500 },
       )
     }
 
-    const { error: activityError } = await supabase
-      .from("activity_log")
-      .insert({
-        admin_id: user.id,
-        action_type: "delete",
-        entity_type: "exhibition",
-        entity_id: id,
-        metadata: {
-          category:
-            exhibitionRow?.type === "solo"
-              ? "solo-exhibitions"
-              : exhibitionRow?.type === "group"
-                ? "group-exhibitions"
-                : "exhibitions",
-        },
-      })
-
-    if (activityError) {
-      console.warn("Activity log insert failed", {
-        message: activityError.message,
-        details: activityError.details,
-        hint: activityError.hint,
-      })
-    }
+    await insertActivityLog(supabase, {
+      adminId: user.id,
+      actionType: "delete",
+      entityType: "exhibition",
+      entityId: id,
+      metadata: {
+        category:
+          exhibitionRow?.type === "solo"
+            ? "solo-exhibitions"
+            : exhibitionRow?.type === "group"
+              ? "group-exhibitions"
+              : "exhibitions",
+      },
+      logContext: "Exhibition delete",
+    })
 
     return NextResponse.json({ ok: true })
   } catch (error) {

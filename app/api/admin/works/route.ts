@@ -7,6 +7,7 @@ import {
 } from "@/lib/requestValidation"
 import {
   createMappedSupabaseErrorResponse,
+  insertActivityLog,
   requireAdminUser,
 } from "@/lib/server/adminRoute"
 import {
@@ -49,16 +50,25 @@ export async function POST(request: Request) {
       title: title ?? "",
       caption: caption ?? "",
     })
-    if (!metadataValidationResult.data || metadataValidationResult.errorMessage) {
+    if (
+      !metadataValidationResult.data ||
+      metadataValidationResult.errorMessage
+    ) {
       return NextResponse.json(
-        { error: metadataValidationResult.errorMessage || "Invalid request body." },
+        {
+          error:
+            metadataValidationResult.errorMessage || "Invalid request body.",
+        },
         { status: 400 },
       )
     }
     const validatedData =
       metadataValidationResult.data as WorkMetadataValidationData
-    const { year, title: normalizedTitle, caption: normalizedCaption } =
-      validatedData
+    const {
+      year,
+      title: normalizedTitle,
+      caption: normalizedCaption,
+    } = validatedData
 
     const storagePath = buildStoragePathWithPrefix({
       prefix: "works",
@@ -128,23 +138,14 @@ export async function POST(request: Request) {
       })
     }
 
-    const { error: activityError } = await supabase
-      .from("activity_log")
-      .insert({
-        admin_id: user.id,
-        action_type: "add",
-        entity_type: "artwork",
-        entity_id: artwork.id,
-        metadata: { category: "works" },
-      })
-
-    if (activityError) {
-      console.warn("Activity log insert failed", {
-        message: activityError.message,
-        details: activityError.details,
-        hint: activityError.hint,
-      })
-    }
+    await insertActivityLog(supabase, {
+      adminId: user.id,
+      actionType: "add",
+      entityType: "artwork",
+      entityId: artwork.id,
+      metadata: { category: "works" },
+      logContext: "Work create",
+    })
 
     return NextResponse.json({ ok: true, createdAt: artwork.created_at })
   } catch (error) {

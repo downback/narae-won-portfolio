@@ -27,15 +27,13 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     const supabase = await supabaseServer()
-    console.log("Solo show update request", { id })
     const { user, errorResponse } = await requireAdminUser(supabase)
     if (!user || errorResponse) {
       return errorResponse
     }
 
-    const { data: body, errorResponse: parseErrorResponse } = await parseJsonBody<BioPayload>(
-      request,
-    )
+    const { data: body, errorResponse: parseErrorResponse } =
+      await parseJsonBody<BioPayload>(request)
     if (!body || parseErrorResponse) {
       return parseErrorResponse
     }
@@ -64,7 +62,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       })
       return NextResponse.json(
         { error: error?.message || "Unable to update solo show entry." },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -92,7 +90,6 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     }
 
     const supabase = await supabaseServer()
-    console.log("Solo show delete request", { id })
     const { user, errorResponse } = await requireAdminUser(supabase)
     if (!user || errorResponse) {
       return errorResponse
@@ -111,7 +108,7 @@ export async function DELETE(_: Request, { params }: RouteContext) {
       })
       return NextResponse.json(
         { error: error.message || "Unable to delete solo show entry." },
-        { status: 500 }
+        { status: 500 },
       )
     }
 

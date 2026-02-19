@@ -27,7 +27,6 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     const supabase = await supabaseServer()
-    console.log("Group show update request", { id })
     const { user, errorResponse } = await requireAdminUser(supabase)
     if (!user || errorResponse) {
       return errorResponse
@@ -90,7 +89,6 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     }
 
     const supabase = await supabaseServer()
-    console.log("Group show delete request", { id })
     const { user, errorResponse } = await requireAdminUser(supabase)
     if (!user || errorResponse) {
       return errorResponse

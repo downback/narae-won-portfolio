@@ -1,10 +1,12 @@
 "use server"
 
 import { NextResponse } from "next/server"
-import { exhibitionCategories, type ExhibitionCategory, siteAssetsBucketName } from "@/lib/constants"
 import {
-  requireAdminUser,
-} from "@/lib/server/adminRoute"
+  exhibitionCategories,
+  type ExhibitionCategory,
+  siteAssetsBucketName,
+} from "@/lib/constants"
+import { insertActivityLog, requireAdminUser } from "@/lib/server/adminRoute"
 import { executeExhibitionCreateFlow } from "@/lib/server/exhibitionCreate"
 import { supabaseServer } from "@/lib/server"
 import { validateImageUploadFile } from "@/lib/uploadValidation"
@@ -53,16 +55,23 @@ export async function POST(request: Request) {
 
     const mainImageValidationError = validateImageUploadFile(file)
     if (mainImageValidationError) {
-      return NextResponse.json({ error: mainImageValidationError }, { status: 400 })
+      return NextResponse.json(
+        { error: mainImageValidationError },
+        { status: 400 },
+      )
     }
 
     const invalidAdditionalImage = additionalFiles.find(
       (additional) => validateImageUploadFile(additional) !== null,
     )
     if (invalidAdditionalImage) {
-      const additionalValidationError = validateImageUploadFile(invalidAdditionalImage)
+      const additionalValidationError = validateImageUploadFile(
+        invalidAdditionalImage,
+      )
       return NextResponse.json(
-        { error: additionalValidationError || "Only image uploads are allowed." },
+        {
+          error: additionalValidationError || "Only image uploads are allowed.",
+        },
         { status: 400 },
       )
     }
@@ -108,21 +117,14 @@ export async function POST(request: Request) {
       )
     }
 
-    const { error: activityError } = await supabase.from("activity_log").insert({
-      admin_id: user.id,
-      action_type: "add",
-      entity_type: "exhibition",
-      entity_id: createResult.imageId,
+    await insertActivityLog(supabase, {
+      adminId: user.id,
+      actionType: "add",
+      entityType: "exhibition",
+      entityId: createResult.imageId,
       metadata: { category },
+      logContext: "Exhibition create",
     })
-
-    if (activityError) {
-      console.warn("Activity log insert failed", {
-        message: activityError.message,
-        details: activityError.details,
-        hint: activityError.hint,
-      })
-    }
 
     return NextResponse.json({ ok: true, createdAt: createResult.createdAt })
   } catch (error) {

@@ -5,9 +5,7 @@ import {
   type WorkMetadataValidationData,
 } from "@/lib/requestValidation"
 import { buildStoragePathWithPrefix } from "@/lib/storage"
-import {
-  requireAdminUser,
-} from "@/lib/server/adminRoute"
+import { insertActivityLog, requireAdminUser } from "@/lib/server/adminRoute"
 import {
   removeStoragePathsSafely,
   uploadStorageFile,
@@ -46,16 +44,25 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       title: title ?? "",
       caption: caption ?? "",
     })
-    if (!metadataValidationResult.data || metadataValidationResult.errorMessage) {
+    if (
+      !metadataValidationResult.data ||
+      metadataValidationResult.errorMessage
+    ) {
       return NextResponse.json(
-        { error: metadataValidationResult.errorMessage || "Invalid request body." },
+        {
+          error:
+            metadataValidationResult.errorMessage || "Invalid request body.",
+        },
         { status: 400 },
       )
     }
     const validatedData =
       metadataValidationResult.data as WorkMetadataValidationData
-    const { year, title: normalizedTitle, caption: normalizedCaption } =
-      validatedData
+    const {
+      year,
+      title: normalizedTitle,
+      caption: normalizedCaption,
+    } = validatedData
 
     const { data: artwork, error: artworkError } = await supabase
       .from("artworks")
@@ -64,17 +71,17 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       .maybeSingle()
 
     if (artworkError || !artwork?.storage_path) {
-      return NextResponse.json(
-        { error: "Work not found." },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Work not found." }, { status: 404 })
     }
 
     let nextStoragePath = artwork.storage_path
     if (file instanceof File) {
       const fileValidationError = validateImageUploadFile(file)
       if (fileValidationError) {
-        return NextResponse.json({ error: fileValidationError }, { status: 400 })
+        return NextResponse.json(
+          { error: fileValidationError },
+          { status: 400 },
+        )
       }
       nextStoragePath = buildStoragePathWithPrefix({
         prefix: "works",
@@ -90,7 +97,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       if (uploadError) {
         return NextResponse.json(
           { error: "Upload failed. Please try again." },
-          { status: 500 }
+          { status: 500 },
         )
       }
     }
@@ -119,7 +126,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       }
       return NextResponse.json(
         { error: updateError?.message || "Unable to update work." },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -132,30 +139,21 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       })
     }
 
-    const { error: activityError } = await supabase
-      .from("activity_log")
-      .insert({
-        admin_id: user.id,
-        action_type: "update",
-        entity_type: "artwork",
-        entity_id: updated.id,
-        metadata: { category: "works" },
-      })
-
-    if (activityError) {
-      console.warn("Activity log insert failed", {
-        message: activityError.message,
-        details: activityError.details,
-        hint: activityError.hint,
-      })
-    }
+    await insertActivityLog(supabase, {
+      adminId: user.id,
+      actionType: "update",
+      entityType: "artwork",
+      entityId: updated.id,
+      metadata: { category: "works" },
+      logContext: "Work update",
+    })
 
     return NextResponse.json({ ok: true, createdAt: updated.created_at })
   } catch (error) {
     console.error("Work update failed", { error })
     return NextResponse.json(
       { error: "Server error while updating work." },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -180,10 +178,7 @@ export async function DELETE(_: Request, { params }: RouteContext) {
       .maybeSingle()
 
     if (artworkError || !artwork?.storage_path) {
-      return NextResponse.json(
-        { error: "Work not found." },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Work not found." }, { status: 404 })
     }
 
     const { error: deleteError } = await supabase
@@ -194,7 +189,7 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     if (deleteError) {
       return NextResponse.json(
         { error: deleteError.message || "Unable to delete work." },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -205,30 +200,21 @@ export async function DELETE(_: Request, { params }: RouteContext) {
       logContext: "Work delete storage cleanup",
     })
 
-    const { error: activityError } = await supabase
-      .from("activity_log")
-      .insert({
-        admin_id: user.id,
-        action_type: "delete",
-        entity_type: "artwork",
-        entity_id: id,
-        metadata: { category: "works" },
-      })
-
-    if (activityError) {
-      console.warn("Activity log insert failed", {
-        message: activityError.message,
-        details: activityError.details,
-        hint: activityError.hint,
-      })
-    }
+    await insertActivityLog(supabase, {
+      adminId: user.id,
+      actionType: "delete",
+      entityType: "artwork",
+      entityId: id,
+      metadata: { category: "works" },
+      logContext: "Work delete",
+    })
 
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("Work delete failed", { error })
     return NextResponse.json(
       { error: "Server error while deleting work." },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
