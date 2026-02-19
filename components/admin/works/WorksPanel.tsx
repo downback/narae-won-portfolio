@@ -1,10 +1,9 @@
 "use client"
 
-import WorkUploadModal, {
-} from "@/components/admin/works/WorkUploadModal"
-import WorksYearSection from "@/components/admin/works/WorksYearSection"
+import WorkUploadModal from "@/components/admin/works/WorkUploadModal"
+import WorksCardByYear from "@/components/admin/works/WorksCardByYear"
 import { useWorksPanelData } from "@/components/admin/works/hooks/useWorksPanelData"
-import YearInputDialog from "@/components/admin/shared/YearInputDialog"
+import AddYearCard from "@/components/admin/works/AddYearCard"
 import { Plus } from "lucide-react"
 
 export default function WorksPanel() {
@@ -37,15 +36,13 @@ export default function WorksPanel() {
       ) : (
         <div className="space-y-4">
           {Array.from(groupedByYear.entries()).map(([year, items]) => (
-            <WorksYearSection
+            <WorksCardByYear
               key={year}
               yearLabel={year}
               items={items}
               onAdd={() => handleAdd(year)}
               onEdit={handleEdit}
-              onDelete={(item) => {
-                void handleDelete(item)
-              }}
+              onDelete={(item) => handleDelete(item)}
               onReorder={(orderedItems) => {
                 void handleReorder(year, orderedItems)
               }}
@@ -70,7 +67,7 @@ export default function WorksPanel() {
         isSubmitting={isUploading}
         errorMessage={errorMessage}
       />
-      <YearInputDialog
+      <AddYearCard
         open={isYearDialogOpen}
         onOpenChange={setIsYearDialogOpen}
         onConfirm={handleYearConfirm}

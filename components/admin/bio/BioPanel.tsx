@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import BioSectionCard, {
   type BioItem,
-  type BioSectionConfig,
-} from "@/components/admin/bio/BioSectionCard"
+  type BioCardConfig,
+} from "@/components/admin/bio/BioCardByCategory"
 import { supabaseBrowser } from "@/lib/client"
 
 const formatBioItems = (
@@ -20,7 +20,7 @@ const formatBioItems = (
     description_kr: row.description_kr ?? "",
   }))
 
-export default function AdminBioSectionPanel() {
+export default function BioPanel() {
   const [soloItems, setSoloItems] = useState<BioItem[]>([])
   const [groupItems, setGroupItems] = useState<BioItem[]>([])
   const [residencyItems, setResidencyItems] = useState<BioItem[]>([])
@@ -98,7 +98,7 @@ export default function AdminBioSectionPanel() {
     return () => clearTimeout(loadTimeout)
   }, [loadBioItems])
 
-  const sections = useMemo<BioSectionConfig[]>(
+  const sections = useMemo<BioCardConfig[]>(
     () => [
       {
         title: "Education",
@@ -151,6 +151,6 @@ export default function AdminBioSectionPanel() {
           kind={section.kind}
         />
       ))}
-          </div>
+    </div>
   )
 }

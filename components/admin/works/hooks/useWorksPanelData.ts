@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { usePreviewUrlRegistry } from "@/components/admin/shared/usePreviewUrlRegistry"
+import { usePreviewUrlRegistry } from "@/components/admin/shared/hooks/usePreviewUrlRegistry"
 import type { WorkFormValues } from "@/components/admin/works/WorkUploadModal"
 import {
   siteAssetsBucketName,
@@ -43,7 +43,9 @@ export const useWorksPanelData = () => {
   const loadPreviewItems = useCallback(async () => {
     const { data, error } = await supabase
       .from("artworks")
-      .select("id, storage_path, title, caption, year, display_order, created_at")
+      .select(
+        "id, storage_path, title, caption, year, display_order, created_at",
+      )
       .eq("category", "works")
       .order("display_order", { ascending: false })
       .order("created_at", { ascending: false })
@@ -118,7 +120,9 @@ export const useWorksPanelData = () => {
       let shouldRevokePendingUrls = true
 
       try {
-        const previewUrl = values.imageFile ? URL.createObjectURL(values.imageFile) : ""
+        const previewUrl = values.imageFile
+          ? URL.createObjectURL(values.imageFile)
+          : ""
         const formData = new FormData()
         if (values.imageFile) {
           formData.append("file", values.imageFile)
@@ -128,7 +132,9 @@ export const useWorksPanelData = () => {
         formData.append("caption", values.caption)
 
         const response = await fetch(
-          isEditMode ? `/api/admin/works/${editingItem?.id}` : "/api/admin/works",
+          isEditMode
+            ? `/api/admin/works/${editingItem?.id}`
+            : "/api/admin/works",
           {
             method: isEditMode ? "PATCH" : "POST",
             body: formData,
@@ -191,7 +197,9 @@ export const useWorksPanelData = () => {
         console.error("Failed to save work entry", { error })
         if (error instanceof Error) {
           if (error.message.includes("fetch failed")) {
-            setErrorMessage("Network error. Please check your connection and try again.")
+            setErrorMessage(
+              "Network error. Please check your connection and try again.",
+            )
           } else if (error.message.includes("timeout")) {
             setErrorMessage(
               "Request timeout. Please check your connection or try with a smaller file.",
@@ -247,7 +255,9 @@ export const useWorksPanelData = () => {
       const numeric = Number(year)
       return Number.isNaN(numeric) || numeric < rangeStart || numeric > rangeEnd
     })
-    const merged = Array.from(new Set([rangeLabel, ...filteredYears, ...filteredManualYears]))
+    const merged = Array.from(
+      new Set([rangeLabel, ...filteredYears, ...filteredManualYears]),
+    )
     const sortValue = (label: string) => {
       if (label === rangeLabel) return rangeEnd
       const numeric = Number(label)
@@ -338,7 +348,10 @@ export const useWorksPanelData = () => {
   const handleReorder = useCallback(
     async (yearLabel: string, orderedItems: WorkPreviewItem[]) => {
       const nextOrderMap = new Map(
-        orderedItems.map((item, index) => [item.id, orderedItems.length - index]),
+        orderedItems.map((item, index) => [
+          item.id,
+          orderedItems.length - index,
+        ]),
       )
       setPreviewItems((prev) =>
         prev.map((item) =>
@@ -372,7 +385,9 @@ export const useWorksPanelData = () => {
 
   const handleYearConfirm = useCallback((nextYear: string) => {
     setErrorMessage("")
-    setManualYears((prev) => (prev.includes(nextYear) ? prev : [...prev, nextYear]))
+    setManualYears((prev) =>
+      prev.includes(nextYear) ? prev : [...prev, nextYear],
+    )
   }, [])
 
   return {

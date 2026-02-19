@@ -16,23 +16,23 @@ type WorkPreviewItem = {
   createdAt: string
 }
 
-type WorksYearSectionProps = {
+type WorksCardByYearProps = {
   yearLabel: string
   items: WorkPreviewItem[]
   onAdd: () => void
   onEdit: (item: WorkPreviewItem) => void
-  onDelete: (item: WorkPreviewItem) => void
+  onDelete: (item: WorkPreviewItem) => Promise<void>
   onReorder?: (items: WorkPreviewItem[]) => void
 }
 
-export default function WorksYearSection({
+export default function WorksCardByYear({
   yearLabel,
   items,
   onAdd,
   onEdit,
   onDelete,
   onReorder,
-}: WorksYearSectionProps) {
+}: WorksCardByYearProps) {
   const [orderedItems, setOrderedItems] = useState(items)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)

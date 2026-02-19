@@ -1,4 +1,4 @@
-import AdminExhibitionsPanel from "@/components/admin/exhibition/AdminExhibitionsPanel"
+import AdminExhibitionsPanel from "@/components/admin/exhibition/ExhibitionsPanel"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export const dynamic = "force-dynamic"

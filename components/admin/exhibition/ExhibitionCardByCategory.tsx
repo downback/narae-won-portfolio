@@ -8,7 +8,7 @@ import ImageCaptionPreview from "@/components/admin/shared/ImageCaptionPreview"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-type ExhibitionCategorySectionProps = {
+type ExhibitionCardByCategoryProps = {
   title: string
   category: ExhibitionCategory
   items: ExhibitionPreviewItem[]
@@ -16,7 +16,7 @@ type ExhibitionCategorySectionProps = {
   dragCategory: ExhibitionCategory | null
   onAdd: (category: ExhibitionCategory) => void
   onEdit: (item: ExhibitionPreviewItem) => void
-  onDelete: (item: ExhibitionPreviewItem) => void
+  onDelete: (item: ExhibitionPreviewItem) => Promise<void>
   onDragStart: (category: ExhibitionCategory, index: number) => void
   onDragOver: (
     category: ExhibitionCategory,
@@ -27,7 +27,7 @@ type ExhibitionCategorySectionProps = {
   onDrop: (category: ExhibitionCategory, index: number) => void
 }
 
-export default function ExhibitionCategorySection({
+export default function ExhibitionCardByCategory({
   title,
   category,
   items,
@@ -40,19 +40,25 @@ export default function ExhibitionCategorySection({
   onDragOver,
   onDragLeave,
   onDrop,
-}: ExhibitionCategorySectionProps) {
+}: ExhibitionCardByCategoryProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{title}</CardTitle>
-        <Button type="button" variant="highlight" onClick={() => onAdd(category)}>
+        <Button
+          type="button"
+          variant="highlight"
+          onClick={() => onAdd(category)}
+        >
           <span className="hidden md:inline">Add</span>
           <span className="md:hidden">Add</span>
         </Button>
       </CardHeader>
       <CardContent className="space-y-2 text-sm text-muted-foreground">
         {items.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No exhibition previews yet.</p>
+          <p className="text-xs text-muted-foreground">
+            No exhibition previews yet.
+          </p>
         ) : (
           <div className="flex flex-col gap-2">
             {items.map((item, index) => (
@@ -88,7 +94,9 @@ export default function ExhibitionCategorySection({
           </div>
         )}
         {items.length > 0 ? (
-          <p className="text-xs text-left text-muted-foreground">Drag rows to reorder</p>
+          <p className="text-xs text-left text-muted-foreground">
+            Drag rows to reorder
+          </p>
         ) : null}
       </CardContent>
     </Card>

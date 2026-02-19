@@ -13,7 +13,7 @@ export type BioItem = {
   description_kr: string
 }
 
-export type BioSectionKind =
+export type BioCardKind =
   | "education"
   | "solo"
   | "group"
@@ -21,17 +21,17 @@ export type BioSectionKind =
   | "awards"
   | "collections"
 
-export type BioSectionConfig = {
+export type BioCardConfig = {
   title: string
   items: BioItem[]
-  kind: BioSectionKind
+  kind: BioCardKind
 }
 
-export default function BioSectionCard({
+export default function BioCardByCategory({
   title,
   items,
   kind,
-}: BioSectionConfig) {
+}: BioCardConfig) {
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [currentItems, setCurrentItems] = useState(items)
   const [errorMessage, setErrorMessage] = useState("")

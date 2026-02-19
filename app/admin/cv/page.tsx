@@ -1,4 +1,4 @@
-import AdminBioSectionPanel from "@/components/admin/bio/AdminBioSectionPanel"
+import AdminBioSectionPanel from "@/components/admin/bio/BioPanel"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export const dynamic = "force-dynamic"

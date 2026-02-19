@@ -1,12 +1,11 @@
 "use client"
 
-import ExhibitionUploadModal, {
-} from "@/components/admin/exhibition/ExhibitionUploadModal"
-import ExhibitionCategorySection from "@/components/admin/exhibition/ExhibitionCategorySection"
+import ExhibitionUploadModal from "@/components/admin/exhibition/ExhibitionUploadModal"
+import ExhibitionCardByCategory from "@/components/admin/exhibition/ExhibitionCardByCategory"
 import { useExhibitionsPanelData } from "@/components/admin/exhibition/hooks/useExhibitionsPanelData"
 import { useExhibitionsReorder } from "@/components/admin/exhibition/hooks/useExhibitionsReorder"
 
-export default function AdminExhibitionsPanel() {
+export default function ExhibitionsPanel() {
   const {
     isUploadOpen,
     setIsUploadOpen,
@@ -44,7 +43,7 @@ export default function AdminExhibitionsPanel() {
 
   return (
     <div className="space-y-6">
-      <ExhibitionCategorySection
+      <ExhibitionCardByCategory
         title="Solo exhibitions"
         category="solo-exhibitions"
         items={soloItems}
@@ -54,15 +53,13 @@ export default function AdminExhibitionsPanel() {
         onEdit={(item) => {
           void handleEdit(item)
         }}
-        onDelete={(item) => {
-          void handleDelete(item)
-        }}
+        onDelete={(item) => handleDelete(item)}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       />
-      <ExhibitionCategorySection
+      <ExhibitionCardByCategory
         title="Group exhibitions"
         category="group-exhibitions"
         items={groupItems}
@@ -72,9 +69,7 @@ export default function AdminExhibitionsPanel() {
         onEdit={(item) => {
           void handleEdit(item)
         }}
-        onDelete={(item) => {
-          void handleDelete(item)
-        }}
+        onDelete={(item) => handleDelete(item)}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}

@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-type YearInputDialogProps = {
+type AddYearCardProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: (year: string) => void
@@ -33,7 +33,7 @@ const defaultValidate = (value: string) => {
   return null
 }
 
-export default function YearInputDialog({
+export default function AddYearCard({
   open,
   onOpenChange,
   onConfirm,
@@ -44,7 +44,7 @@ export default function YearInputDialog({
   placeholder = "ex. 2027",
   confirmLabel = "Add year",
   validate = defaultValidate,
-}: YearInputDialogProps) {
+}: AddYearCardProps) {
   const [yearInput, setYearInput] = useState("")
   const [error, setError] = useState("")
 

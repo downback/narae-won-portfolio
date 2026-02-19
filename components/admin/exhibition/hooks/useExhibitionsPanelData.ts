@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { usePreviewUrlRegistry } from "@/components/admin/shared/usePreviewUrlRegistry"
+import { usePreviewUrlRegistry } from "@/components/admin/shared/hooks/usePreviewUrlRegistry"
 import type {
   ExhibitionCategory,
   ExhibitionFormValues,
@@ -17,7 +17,9 @@ export const useExhibitionsPanelData = () => {
   const [isUploading, setIsUploading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
   const [previewItems, setPreviewItems] = useState<ExhibitionPreviewItem[]>([])
-  const [editingItem, setEditingItem] = useState<ExhibitionPreviewItem | null>(null)
+  const [editingItem, setEditingItem] = useState<ExhibitionPreviewItem | null>(
+    null,
+  )
   const [editingAdditionalImages, setEditingAdditionalImages] = useState<
     { id: string; url: string }[]
   >([])
@@ -58,7 +60,9 @@ export const useExhibitionsPanelData = () => {
           imageUrl: publicData.publicUrl,
           caption: item.caption ?? "",
           category:
-            exhibition.type === "solo" ? "solo-exhibitions" : "group-exhibitions",
+            exhibition.type === "solo"
+              ? "solo-exhibitions"
+              : "group-exhibitions",
           description: exhibition.description ?? "",
           exhibitionTitle: exhibition.title ?? "",
           exhibitionOrder: exhibition.display_order ?? 0,
@@ -237,7 +241,12 @@ export const useExhibitionsPanelData = () => {
         setIsUploading(false)
       }
     },
-    [editingItem, loadPreviewItems, registerPreviewUrl, revokeRegisteredPreviewUrls],
+    [
+      editingItem,
+      loadPreviewItems,
+      registerPreviewUrl,
+      revokeRegisteredPreviewUrls,
+    ],
   )
 
   const handleDelete = useCallback(

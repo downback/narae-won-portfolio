@@ -16,10 +16,10 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import AdminDialog from "@/components/admin/shared/AdminDialog"
 import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
-import { useSingleImageInput } from "@/components/admin/shared/useSingleImageInput"
+import { useSingleImageInput } from "@/components/admin/shared/hooks/useSingleImageInput"
 import ExhibitionAdditionalImagesPreview from "@/components/admin/exhibition/ExhibitionAdditionalImagesPreview"
 import { useExhibitionImagePreviews } from "@/components/admin/exhibition/hooks/useExhibitionImagePreviews"
-import { useModalOpenTransition } from "@/components/admin/shared/useModalOpenTransition"
+import { useModalOpenTransition } from "@/components/admin/shared/hooks/useModalOpenTransition"
 import { exhibitionCategories } from "@/lib/constants"
 export type { ExhibitionCategory } from "@/lib/constants"
 import type { ExhibitionCategory } from "@/lib/constants"
@@ -71,8 +71,9 @@ export default function ExhibitionUploadModal({
   const [selectedMainImageName, setSelectedMainImageName] = useState("")
   const [mainImageFile, setMainImageFile] = useState<File | null>(null)
   const [initialMainImageUrl, setInitialMainImageUrl] = useState("")
-  const [category, setCategory] =
-    useState<ExhibitionCategory>(exhibitionCategories[0])
+  const [category, setCategory] = useState<ExhibitionCategory>(
+    exhibitionCategories[0],
+  )
   const [exhibitionTitle, setExhibitionTitle] = useState("")
   const [caption, setCaption] = useState("")
   const [details, setDetails] = useState("")
@@ -129,17 +130,23 @@ export default function ExhibitionUploadModal({
     )
   }
 
-  const handleAcceptedMainImage = useCallback((file: File) => {
-    setSelectedMainImageName(file.name)
-    setMainImageFile(file)
-    setMainPreviewFromFile(file)
-  }, [setMainPreviewFromFile])
+  const handleAcceptedMainImage = useCallback(
+    (file: File) => {
+      setSelectedMainImageName(file.name)
+      setMainImageFile(file)
+      setMainPreviewFromFile(file)
+    },
+    [setMainPreviewFromFile],
+  )
 
-  const handleOversizeMainImage = useCallback((file: File) => {
-    showError(
-      `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(maxFileSizeBytes)}.`,
-    )
-  }, [formatFileSize, maxFileSizeBytes])
+  const handleOversizeMainImage = useCallback(
+    (file: File) => {
+      showError(
+        `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(maxFileSizeBytes)}.`,
+      )
+    },
+    [formatFileSize, maxFileSizeBytes],
+  )
 
   const {
     handleDragOver: handleMainImageDragOver,
@@ -332,7 +339,9 @@ export default function ExhibitionUploadModal({
               <ExhibitionAdditionalImagesPreview
                 existingAdditionalImages={existingAdditionalImages}
                 additionalPreviewUrls={additionalPreviewUrls}
-                onRemoveExistingAdditionalImage={handleRemoveExistingAdditionalImage}
+                onRemoveExistingAdditionalImage={
+                  handleRemoveExistingAdditionalImage
+                }
                 onRemoveAdditionalPreviewImage={handleRemoveAdditionalImage}
               />
             </div>

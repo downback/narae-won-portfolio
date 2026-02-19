@@ -20,7 +20,7 @@ const buildPreviewText = (entry: TextEntry) => {
   return `${entry.body.slice(0, 140)}...`
 }
 
-export default function AdminTextPanel() {
+export default function TextPanel() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [textEntries, setTextEntries] = useState<TextEntry[]>([])
   const [editingEntry, setEditingEntry] = useState<TextEntry | null>(null)

@@ -23,8 +23,8 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import AdminDialog from "@/components/admin/shared/AdminDialog"
 import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
-import { useSingleImageInput } from "@/components/admin/shared/useSingleImageInput"
-import { useModalOpenTransition } from "@/components/admin/shared/useModalOpenTransition"
+import { useSingleImageInput } from "@/components/admin/shared/hooks/useSingleImageInput"
+import { useModalOpenTransition } from "@/components/admin/shared/hooks/useModalOpenTransition"
 import { formatFileSize, maxImageFileSizeBytes } from "@/lib/fileUpload"
 
 export type WorkFormValues = {
