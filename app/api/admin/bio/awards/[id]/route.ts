@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import {
   createBadRequestResponse,
   createServerErrorResponse,
+  createUnauthorizedResponse,
   insertActivityLog,
   parseJsonBody,
   requireAdminUser,
@@ -27,16 +28,20 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     const supabase = await supabaseServer()
-    const { user, errorResponse } = await requireAdminUser(supabase)
-    if (!user || errorResponse) {
-      return errorResponse
+    const adminUserResult = await requireAdminUser(supabase)
+    if (adminUserResult.errorResponse) {
+      return adminUserResult.errorResponse
     }
+    if (!adminUserResult.user) {
+      return createUnauthorizedResponse()
+    }
+    const user = adminUserResult.user
 
-    const { data: body, errorResponse: parseErrorResponse } =
-      await parseJsonBody<BioPayload>(request)
-    if (!body || parseErrorResponse) {
-      return parseErrorResponse
+    const parseResult = await parseJsonBody<BioPayload>(request)
+    if (parseResult.errorResponse) {
+      return parseResult.errorResponse
     }
+    const body = parseResult.data
 
     const description = body.description?.trim()
     const descriptionKr = body.description_kr?.trim()
@@ -89,10 +94,14 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     }
 
     const supabase = await supabaseServer()
-    const { user, errorResponse } = await requireAdminUser(supabase)
-    if (!user || errorResponse) {
-      return errorResponse
+    const adminUserResult = await requireAdminUser(supabase)
+    if (adminUserResult.errorResponse) {
+      return adminUserResult.errorResponse
     }
+    if (!adminUserResult.user) {
+      return createUnauthorizedResponse()
+    }
+    const user = adminUserResult.user
 
     const { error } = await supabase.from("bio_awards").delete().eq("id", id)
 

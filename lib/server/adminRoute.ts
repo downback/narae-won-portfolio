@@ -33,10 +33,24 @@ export const getAuthenticatedUser = async (supabase: ServerSupabaseClient) => {
   }
 }
 
-export const requireAdminUser = async (supabase: ServerSupabaseClient) => {
+type AuthenticatedUser = NonNullable<
+  Awaited<ReturnType<typeof getAuthenticatedUser>>["user"]
+>
+
+type RequireAdminUserResult = {
+  user: AuthenticatedUser
+  errorResponse: NextResponse
+}
+
+export const requireAdminUser = async (
+  supabase: ServerSupabaseClient,
+): Promise<RequireAdminUserResult> => {
   const { user, userError } = await getAuthenticatedUser(supabase)
   if (userError || !user) {
-    return { user: null, errorResponse: createUnauthorizedResponse() }
+    return {
+      user: null as never,
+      errorResponse: createUnauthorizedResponse(),
+    }
   }
 
   const { data: adminRow, error: adminError } = await supabase
@@ -47,25 +61,30 @@ export const requireAdminUser = async (supabase: ServerSupabaseClient) => {
 
   if (adminError || !adminRow || adminRow.admin_user_id !== user.id) {
     return {
-      user: null,
+      user: null as never,
       errorResponse: createForbiddenResponse(),
     }
   }
 
-  return { user, errorResponse: null as NextResponse | null }
+  return { user, errorResponse: null as never }
+}
+
+type ParsedJsonBodyResult<T> = {
+  data: T
+  errorResponse: NextResponse
 }
 
 export const parseJsonBody = async <T>(
   request: Request,
   invalidBodyMessage = "Invalid request body.",
-) => {
+): Promise<ParsedJsonBodyResult<T>> => {
   try {
     const data = (await request.json()) as T
-    return { data, errorResponse: null as NextResponse | null }
+    return { data, errorResponse: null as never }
   } catch (error) {
     console.error("Failed to parse JSON body", { error })
     return {
-      data: null as T | null,
+      data: null as never,
       errorResponse: createBadRequestResponse(invalidBodyMessage),
     }
   }
