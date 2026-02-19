@@ -1,165 +1,146 @@
-## Development task breakdown
-
-### 0 Project setup (foundation)
-
-1. **Repo setup**
-   - Initialize Next.js (App Router)
-   - Configure TailwindCSS
-   - Initialize ShadCN and add baseline components needed for forms/layout (as required by the existing design)
-   - Add Supabase client setup (env vars, helper modules)
-
-2. **Supabase project setup**
-   - Create Supabase project
-   - Configure Auth (email/password)
-   - Create the single admin user (manual setup in Supabase)
-   - Store required env vars for local + deployment
+## Tech Lead Guide
 
 ---
 
-### 1 Supabase backend (minimal + secure)
+## 1) System Scope (Current)
 
-3. **Storage**
-   - Create Storage buckets (e.g., `hero`, `works`) or a single bucket with folders
-   - Define object naming strategy for “replace” behavior (replace-in-place vs new key per upload)
+### Public surface
 
-4. **Database**
-   - Create minimal tables for:
-     - Hero media metadata (type, storage path, updated timestamp)
-     - Works PDF metadata (storage path, updated timestamp)
-     - Bio structured fields (matching PRD’s existing structure)
+- `/` (empty landing shell)
+- `/works/[year]`
+- `/exhibitions/solo/[slug]`
+- `/exhibitions/group/[slug]`
+- `/texts`
+- `/cv`
 
-   - Seed initial rows so public pages always have content to render
+### Admin surface
 
-5. **Security / RLS**
-   - Enable RLS on tables
-   - Policies:
-     - Public read for current content rows (needed by public pages)
-     - Admin-only insert/update (restricted to the single admin user)
+- `/admin` dashboard
+- `/admin/works`
+- `/admin/exhibitions`
+- `/admin/text`
+- `/admin/cv`
 
-   - Storage policies:
-     - Public read or signed URL approach (per chosen access model)
-     - Admin-only upload/update/delete
+No hero media flow and no works PDF flow are currently in project scope.
 
 ---
 
-### 2 Public pages (preserve existing design)
+## 2) Runtime Boundaries
 
-6. **Route scaffolding (Next.js App Router)**
-   - Implement public routes:
-     - Home
-     - Works (PDF viewer)
-     - Bio
-     - Contact
+### `app/(public)`
 
-   - Create shared public layout(s) consistent with the existing design
+- Server Components for public reads
+- Uses `supabaseServer()` for database and storage URL reads
 
-7. **Supabase read integration**
-   - Server-side reads for hero media, works PDF metadata, bio content
-   - Implement caching strategy to satisfy “immediate reflection” (no stale content)
+### `app/admin`
 
-8. **Home page: hero media rendering**
-   - Render image or looped video based on stored metadata
-   - Ensure responsive behavior
+- Client-side auth gate in `app/admin/layout.tsx`
+- Verifies logged-in user against `app_admin.admin_user_id`
+- Renders admin panels only for authorized user
 
-9. **Works page: PDF viewing**
-   - Implement PDF display behavior per existing design constraints
-   - Provide mobile-safe fallback behavior (if embedded PDF is unreliable)
+### `app/api/admin`
 
-10. **Bio page: structured content rendering**
+- Mutation boundary for all admin writes
+- Shared helpers in `lib/server/adminRoute.ts`
+- Enforces auth, validation, and normalized error responses
 
-- Render structured fields exactly as defined (no schema/structure redesign)
-- Ensure responsive behavior
+### Shared infra
 
-11. **Contact page**
-
-- Implement required content (static contact info/links unless PRD indicates form handling)
+- `lib/server.ts`: server Supabase client
+- `lib/client.ts`: browser Supabase client
+- `lib/constants.ts`: storage bucket and shared enum-like constants
 
 ---
 
-### 3 Admin authentication + protected area
+## 3) Data and Content Model (Implemented)
 
-12. **Admin login**
+- Works: `artworks` (`category='works'`)
+- Exhibitions metadata: `exhibitions`
+- Exhibition images: `exhibition_images`
+- CV: `bio_solo_exhibitions`, `bio_group_exhibitions`, `bio_education`, `bio_residency`, `bio_awards`, `bio_collections`
+- Text archive: `texts`
+- Audit trail: `activity_log`
+- Admin singleton: `app_admin`
 
-- Create admin login route
-- Implement Supabase Auth sign-in
-- Use ShadCN form components for inputs, validation feedback, and submit actions
+Storage bucket: `site-assets`
 
-13. **Admin route protection**
-
-- Restrict `/admin/**` routes to authenticated sessions
-- Redirect unauthenticated users to admin login
-- Add server-side session checks where needed
-
-14. **Admin layout + navigation**
-
-- Create admin layout wrapper
-- Add minimal navigation to dashboard sections (no UX redesign; just structure)
+- `works/*`
+- `solo-exhibitions/{slug}/*`
+- `group-exhibitions/{slug}/*`
 
 ---
 
-### 4) Admin dashboard (content management)
+## 4) Security Model
 
-15. **Dashboard overview**
+### Identity and admin authorization
 
-- Display current hero media + last updated timestamp
-- Display current works PDF + last updated timestamp
-- Display current bio content snapshot (or key fields)
+- Supabase Auth session required for admin mutations
+- API routes call `requireAdminUser()` before write operations
+- `app_admin` table anchors one allowed admin user ID
 
-16. **Hero media upload & replace**
+### Database protections
 
-- Upload image/video to Supabase Storage
-- Update DB metadata record after successful upload
-- Provide preview + success/error states (ShadCN alert/toast patterns)
+- RLS enabled for core tables in `docs/schema.sql`
+- Public read policies on portfolio-facing tables
+- Admin-only write policies tied to `app_admin`
 
-17. **Works PDF upload & replace**
+### API safety patterns
 
-- Upload PDF to Supabase Storage
-- Update DB metadata record after successful upload
-- Provide link/preview + success/error states
-
-18. **Bio structured editor**
-
-- Implement form fields matching existing bio structure
-- Save updates to DB
-- Provide save confirmation + validation errors (ShadCN form components)
-
-19. **Immediate public reflection validation**
-
-- Confirm public pages show updates without manual cache clears
-- Add explicit revalidation logic if required by chosen caching approach
+- Input validation before DB writes (`zod` + route-level checks)
+- UUID validation on ID-based routes
+- Safe rollback paths for storage+DB multi-step writes
 
 ---
 
-### 5 Reliability, QA, and release
+## 5) Mutation Reliability Patterns
 
-20. **Validation & constraints**
+- Upload first, then DB insert/update
+- On DB failure, remove newly uploaded files
+- On image replacement, delete old storage object after DB success
+- Log admin mutation attempts in `activity_log` (best effort, non-blocking)
 
-- Client-side file validation (type + size) for hero media and PDF
-- Prevent DB updates when uploads fail
+These patterns are implemented in:
 
-21. **Error handling & observability**
+- `lib/server/storageTransaction.ts`
+- `lib/server/exhibitionCreate.ts`
+- `lib/server/exhibitionMutation.ts`
+- `lib/server/adminRoute.ts`
 
-- User-friendly admin errors (unauthorized, upload failure, invalid file)
-- Minimal logging strategy (client + server) for troubleshooting
+---
 
-22. **Security verification**
+## 6) Review and Change Guardrails
 
-- Confirm public cannot write to DB or Storage
-- Confirm only admin can upload/replace/edit
-- Confirm no accidental exposure of admin-only routes/data
+- Keep mutation logic in API routes and server helpers, not UI components
+- Keep `app/(public)` read-only and server-driven
+- Reuse shared validators and response helpers for consistency
+- Avoid changing DB shape without updating:
+  - `docs/schema.sql`
+  - related API routes
+  - public/admin readers
 
-23. **Responsive QA**
+---
 
-- Verify all public pages across mobile/tablet/desktop
-- Verify admin flows are usable on common screen sizes (at least tablet+)
+## 7) Ongoing Operational Checklist
 
-24. **Deployment**
+### Before release
 
-- Deploy Next.js app
-- Configure production env vars
-- Run smoke tests in production:
-  - Admin login
-  - Upload hero
-  - Upload PDF
-  - Edit bio
-  - Confirm public pages reflect changes immediately
+- Verify admin login and session persistence
+- Verify CRUD + reorder in Works, Exhibitions, Text, CV
+- Verify storage cleanup on update/delete flows
+- Verify recent activity panel still renders after mutations
+- Verify public pages reflect updates and render on mobile/tablet/desktop
+
+### When schema changes
+
+- Update `docs/schema.sql` first
+- Re-check RLS and index coverage
+- Re-run manual smoke tests on all admin sections
+
+---
+
+## 8) Known Product Direction Constraints
+
+- Image-first portfolio and exhibition model is intentional
+- CV is structured and bilingual (`description`, `description_kr`)
+- Single-admin model remains the security baseline
+- Prefer incremental improvements over broad rewrites

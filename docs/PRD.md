@@ -1,9 +1,9 @@
 # Product Requirements Document (PRD)
 
-**Project:** Artist Portfolio Website with Admin Content Management
-**Owner:** Product
-**Stakeholders:** Artist (Client), Developer, Tech Lead, Designer, DBA
-**Status:** Planning
+**Project:** Narae Won Portfolio Website + Admin CMS  
+**Owner:** Product  
+**Stakeholders:** Artist (Client), Developer, Tech Lead, Designer, DBA  
+**Status:** Active implementation baseline
 
 ---
 
@@ -11,260 +11,195 @@
 
 ### Purpose
 
-This project enhances an existing artist portfolio website by introducing an **admin interface** that allows the artist (non-technical user) to independently manage key site content without developer involvement. The public-facing site must preserve the existing visual identity, layout, and behavior while modernizing the implementation for maintainability and scalability.
+Provide a maintainable portfolio site where a single authenticated admin can manage works, exhibitions, texts, and CV content without code changes.
 
-### Background
+### Current Product Shape
 
-The current website is built using vanilla HTML, CSS, and JavaScript. Content updates (hero image, portfolio PDF, bio text) currently require developer intervention. These updates occur frequently and are time-sensitive (e.g., exhibitions, portfolio updates).
+The current implementation is an image/text portfolio, not a PDF/hero workflow:
 
-### Problem Statement
-
-- The artist cannot update portfolio or bio content independently.
-- Content updates are costly and slow due to developer dependency.
-- Existing architecture does not support structured content management.
+- Public routes are centered on `works`, `exhibitions`, `texts`, and `cv`
+- Admin routes are centered on dashboard + content CRUD/reorder
+- Content is managed via Supabase DB + Storage with API routes
 
 ### Value Proposition
 
-- Empowers the artist to manage their own content safely.
-- Preserves the existing aesthetic and user experience.
-- Introduces a maintainable system without adopting a full CMS.
-- Supports responsive viewing across all device sizes.
+- Artist can update portfolio content independently
+- Public site remains clean, fast, and responsive
+- Data model stays structured and predictable
+- Team avoids introducing a full generic CMS
 
 ---
 
-## 2. Goals & Non-Goals
+## 2. Goals and Non-Goals
 
 ### Goals
 
-- Enable non-technical admin users to manage site content.
-- Maintain design consistency with the existing website.
-- Ensure responsive design across mobile, tablet, and desktop.
-- Keep the system simple to operate and maintain.
+- Keep the public portfolio stable while content updates happen frequently
+- Provide clear, safe admin workflows for create/update/delete/reorder
+- Enforce single-admin security model across DB, API, and UI
+- Preserve bilingual CV content (Korean + English fields)
 
 ### Non-Goals
 
-- This is **not** a general-purpose CMS.
-- No content versioning, publishing workflows, or role hierarchies beyond admin.
-- No redesign or rebranding of the website.
-- No admin management for the contact page.
+- No hero media management
+- No works PDF management
+- No contact form CMS
+- No role hierarchy beyond one admin user
+- No drafts, approvals, or version history
 
 ---
 
 ## 3. Target Users
 
-### 1) Artist (Admin User)
+### Artist (Admin)
 
-The artist needs a minimal, intuitive interface to update images, PDFs, and text content. They value simplicity, clarity, and confidence that updates will not break the site.
+Uses `/admin` to manage:
 
-### 2) Website Visitors
+- Works images by year
+- Solo/group exhibitions and images
+- Text entries
+- CV rows across six sections
 
-Visitors include curators, galleries, collectors, and the general public. They expect fast loading, readable layouts, and consistent behavior across devices.
+### Public Visitors
 
-### 3) Internal Team (Developer / Maintainers)
+Consume portfolio content through:
 
-The internal team requires a clean separation between content and presentation, minimal operational overhead, and predictable data structures.
+- Works pages by year range
+- Exhibition detail pages (solo/group)
+- Text archive page
+- CV page
 
----
+### Internal Maintainers
 
-## 4. User Experience & Responsive Design Requirements
-
-### Responsive Design (Mandatory)
-
-- All public pages must be fully usable on:
-
-  - Mobile (≥ 320px width)
-  - Tablet
-  - Desktop
-
-- Layouts should adapt without horizontal scrolling.
-- Navigation must remain accessible on all screen sizes.
-- PDF viewing experience must remain functional on mobile devices.
-
-**Design Responsibility:**
-The Designer is responsible for defining responsive behavior, breakpoints, and layout adjustments while maintaining the original visual language.
+Need reliable schema constraints, simple operational flows, and low-risk extensibility.
 
 ---
 
-## 5. User Flows
+## 4. Public Experience Requirements
 
-### Public Visitor Flow
+- Public pages must remain usable on mobile, tablet, and desktop
+- Sidebar navigation must adapt to available works years and exhibition slugs
+- Exhibition pages must support primary image + additional detail images
+- CV page must support bilingual descriptions across all CV sections
 
-1. Visitor lands on **Home**
-2. Sees navigation bar and animated hero image
-3. Navigates to:
+---
 
-   - **Works** → views embedded PDF portfolio
-   - **Bio** → reads structured biographical information
-   - **Contact** → sees static contact information
+## 5. Admin Experience Requirements
 
-### Admin Flow
+### Authentication and Access
 
-1. Admin navigates to `/admin`
-2. Authenticates via email login through supabase auth
-3. Lands on **Admin Dashboard**
-4. Selects content area in tabs layout to manage:
-   - Home Hero Image
-   - Works PDF
-   - Bio Content
-5. Makes updates and saves changes
-6. Changes are reflected immediately on the public site
+- Admin enters through `/admin`
+- Session is checked against `app_admin.singleton_id=true`
+- Non-admin or unauthenticated users are blocked from mutations
+
+### Content Management Areas
+
+- Dashboard with quick preview + recent activity
+- Works management (`/admin/works`)
+- Exhibitions management (`/admin/exhibitions`)
+- Text management (`/admin/text`)
+- CV management (`/admin/cv`)
+
+### Feedback and Safety
+
+- Validation errors must be shown for invalid inputs/files
+- Successful updates should be reflected in public pages without manual migration work
+- Failed write flows should avoid partial broken states (storage rollback where applicable)
 
 ---
 
 ## 6. Functional Requirements
 
-### FR1 — Public Website Pages
+### FR1 - Works Management
 
-**Description:**
-The system must support four public pages: Home, Works, Bio, and Contact. Content for Home, Works, and Bio must be dynamically driven by managed content.
+- Admin can create, update, delete, and reorder works
+- Works include image, year, title, caption, and display order
+- Works render by year/year-range in public routes
 
-- **Priority:** High
-- **Complexity:** Moderate
+### FR2 - Exhibitions Management
 
----
+- Admin can create/update exhibition metadata (type, title, slug, description)
+- Admin can manage primary + additional exhibition images
+- Admin can delete individual additional images or full exhibitions
 
-### FR2 — Admin Authentication
+### FR3 - Text Management
 
-**Description:**
-The system must provide a secure login mechanism for admin access. Only authenticated users may access admin pages.
+- Admin can create, edit, and delete text entries
+- Required fields: title, year, body
+- Public texts are ordered by year and created time
 
-- **Priority:** High
-- **Complexity:** Moderate
+### FR4 - CV Management
 
----
+- Admin can create, edit, delete, and reorder CV rows in six sections:
+  - Solo exhibitions
+  - Group exhibitions
+  - Education
+  - Residency
+  - Awards
+  - Collections
+- Each row contains `description` and `description_kr`
 
-### FR3 — Admin Dashboard
+### FR5 - Auditability
 
-**Description:**
-Provide a simple dashboard that clearly presents editable content sections and their last update time.
+- Content mutations should record activity in `activity_log`
+- Dashboard should show recent content activity for operations visibility
 
-- **Priority:** High
-- **Complexity:** Easy
+### FR6 - Security and Integrity
 
----
-
-### FR4 — Home Hero Media Management
-
-**Description:**
-Admin must be able to upload and replace the hero image or animated media displayed on the homepage.
-
-**Constraints:**
-
-- Media replacement should not require code changes.
-
-- System must prevent unsupported file types.
-
-- **Priority:** High
-
-- **Complexity:** Moderate
+- All admin mutation routes require authenticated admin validation
+- Public reads are allowed only for required portfolio tables
+- DB remains source of truth; storage objects map to DB references
 
 ---
 
-### FR5 — Works PDF Management
+## 7. Data and Storage Requirements
 
-**Description:**
-Admin must be able to upload and replace the portfolio PDF displayed on the Works page.
+### Storage
 
-**Constraints:**
+- Bucket: `site-assets`
+- Image paths under:
+  - `works/`
+  - `solo-exhibitions/{slug}/`
+  - `group-exhibitions/{slug}/`
 
-- Only PDF format is supported.
+### Database Domains
 
-- PDF must be viewable on mobile and desktop.
-
-- **Priority:** High
-
-- **Complexity:** Moderate
-
----
-
-### FR6 — Bio Content Management
-
-**Description:**
-Admin must be able to edit biographical content including:
-
-- Introductory text
-- Artist statement
-- Structured lists (e.g., exhibitions, education)
-
-Content must be structured to ensure consistent presentation.
-
-- **Priority:** High
-- **Complexity:** Moderate
+- Admin singleton: `app_admin`
+- Works: `artworks` (category fixed to `works`)
+- Exhibitions: `exhibitions` + `exhibition_images`
+- CV: six `bio_*` tables
+- Text pages: `texts`
+- Audit log: `activity_log`
 
 ---
 
-### FR7 — Data Integrity & Safety
+## 8. Roles and Responsibilities
 
-**Description:**
-The system must prevent incomplete or invalid content states (e.g., deleting hero image without replacement).
+### Product
 
-- **Priority:** High
-- **Complexity:** Moderate
-
----
-
-### FR8 — Admin Usability & Feedback
-
-**Description:**
-Admin actions must provide clear success/error feedback (e.g., “Upload successful”).
-
-- **Priority:** Medium
-- **Complexity:** Easy
-
----
-
-## 7. Data & Storage Requirements (Non-Implementation)
-
-> This section defines **what data is needed**, not how it is implemented.
-
-### Content Data
-
-- Hero media reference
-- Portfolio PDF reference
-- Bio text and structured sections
-- Timestamps for last update
-
-### Storage Requirements
-
-- Support for binary file storage (images, PDFs)
-- Support for structured text content
-- Ability to restrict write access to authenticated admin users
-
-**DBA Responsibility:**
-Design schemas, constraints, and access policies that support the above requirements while ensuring data safety and maintainability.
-
----
-
-## 8. Roles & Responsibilities
-
-### Product (PM)
-
-- Define scope, priorities, and success criteria
-- Ensure alignment with client goals
-
-### Designer
-
-- Preserve visual identity of existing site
-- Define responsive behavior and layouts
-- Design admin UI for clarity and simplicity
+- Keep scope aligned to current portfolio workflow
+- Prioritize reliability over feature breadth
 
 ### Tech Lead
 
-- Choose implementation approach consistent with requirements
-- Ensure maintainability, performance, and security
-- Plan integration of auth, storage, and content rendering
+- Guard architecture boundaries (`app/(public)`, `app/admin`, `app/api/admin`)
+- Ensure auth, validation, and rollback behavior remain consistent
 
 ### DBA
 
-- Design data models and access controls
-- Ensure data integrity and secure content updates
-- Plan backup and recovery strategy
+- Maintain schema, policies, constraints, and indexes
+- Keep RLS/storage policy alignment with single-admin model
+
+### Designer
+
+- Preserve public visual language and responsive behavior
+- Keep admin UX clear and low-friction for a non-technical editor
 
 ---
 
 ## 9. Success Metrics
 
-- Admin can update hero image, PDF, and bio without developer help
-- Content updates appear correctly on all device sizes
-- No regression in public site usability or performance
-- Zero production incidents caused by content updates
+- Admin can manage works, exhibitions, texts, and CV without developer intervention
+- Public pages reflect admin updates reliably
+- No unauthorized mutation access in production
+- No recurring content integrity incidents (orphan records/files, invalid references)
