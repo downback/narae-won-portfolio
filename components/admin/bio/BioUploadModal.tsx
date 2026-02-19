@@ -58,11 +58,11 @@ export default function BioUploadModal({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="upload-description-kr">Description (Korean)</Label>
+            <Label htmlFor="upload-description-kr">약력 및 이력 (한글)</Label>
             <Input
               id="upload-description-kr"
               type="text"
-              placeholder="전시 설명"
+              placeholder="ex. 2022 | 전시 타이틀 | 전시장명 | 도시, 국가"
               value={values.description_kr}
               onChange={(event) =>
                 onValuesChange({
@@ -71,11 +71,11 @@ export default function BioUploadModal({
                 })
               }
             />
-            <Label htmlFor="upload-description">Description</Label>
+            <Label htmlFor="upload-description">약력 및 이력 (영문)</Label>
             <Input
               id="upload-description"
               type="text"
-              placeholder="Exhibition description"
+              placeholder="ex. 2022 | Exhibition Title | Exhibition Space | City, Country"
               value={values.description}
               onChange={(event) =>
                 onValuesChange({

@@ -1,33 +1,16 @@
 import { NextResponse } from "next/server"
-import { requireAdminUser } from "@/lib/server/adminRoute"
+import {
+  createBadRequestResponse,
+  createServerErrorResponse,
+  insertActivityLog,
+  parseJsonBody,
+  requireAdminUser,
+} from "@/lib/server/adminRoute"
 import { supabaseServer } from "@/lib/server"
 
 type BioPayload = {
   description?: string
   description_kr?: string
-}
-
-const logActivity = async (
-  supabase: Awaited<ReturnType<typeof supabaseServer>>,
-  userId: string,
-  action: "add" | "update" | "delete",
-  entityId: string
-) => {
-  const { error } = await supabase.from("activity_log").insert({
-    admin_id: userId,
-    action_type: action,
-    entity_type: "cv_detail",
-    entity_id: entityId,
-    metadata: { section: "collection" },
-  })
-
-  if (error) {
-    console.warn("Activity log insert failed", {
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-    })
-  }
 }
 
 export async function POST(request: Request) {
@@ -38,14 +21,18 @@ export async function POST(request: Request) {
       return errorResponse
     }
 
-    const body = (await request.json()) as BioPayload
+    const { data: body, errorResponse: parseErrorResponse } =
+      await parseJsonBody<BioPayload>(request)
+    if (!body || parseErrorResponse) {
+      return parseErrorResponse
+    }
+
     const description = body.description?.trim()
     const descriptionKr = body.description_kr?.trim()
 
     if (!description || !descriptionKr) {
-      return NextResponse.json(
-        { error: "Description and Korean description are required." },
-        { status: 400 }
+      return createBadRequestResponse(
+        "Description and Korean description are required.",
       )
     }
 
@@ -60,19 +47,23 @@ export async function POST(request: Request) {
       .single()
 
     if (error || !data) {
-      return NextResponse.json(
-        { error: "Unable to create collection entry." },
-        { status: 500 }
-      )
+      console.error("Collection create error", { message: error?.message })
+      return createServerErrorResponse("Unable to create collection entry.")
     }
 
-    await logActivity(supabase, user.id, "add", data.id)
+    await insertActivityLog(supabase, {
+      adminId: user.id,
+      actionType: "add",
+      entityType: "cv_detail",
+      entityId: data.id,
+      metadata: { section: "collection" },
+      logContext: "Collection create",
+    })
     return NextResponse.json(data)
   } catch (error) {
     console.error("Collection create failed", { error })
-    return NextResponse.json(
-      { error: "Server error while creating collection entry." },
-      { status: 500 }
+    return createServerErrorResponse(
+      "Server error while creating collection entry.",
     )
   }
 }

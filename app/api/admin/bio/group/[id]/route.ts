@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server"
-import { requireAdminUser } from "@/lib/server/adminRoute"
+import {
+  createBadRequestResponse,
+  createServerErrorResponse,
+  insertActivityLog,
+  parseJsonBody,
+  requireAdminUser,
+} from "@/lib/server/adminRoute"
 import { supabaseServer } from "@/lib/server"
 import { isUuid } from "@/lib/validation"
 
@@ -12,35 +18,12 @@ type RouteContext = {
   params: Promise<{ id: string }>
 }
 
-const logActivity = async (
-  supabase: Awaited<ReturnType<typeof supabaseServer>>,
-  userId: string,
-  action: "add" | "update" | "delete",
-  entityId: string
-) => {
-  const { error } = await supabase.from("activity_log").insert({
-    admin_id: userId,
-    action_type: action,
-    entity_type: "cv_detail",
-    entity_id: entityId,
-    metadata: { section: "group exhibition" },
-  })
-
-  if (error) {
-    console.warn("Activity log insert failed", {
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-    })
-  }
-}
-
 export async function PATCH(request: Request, { params }: RouteContext) {
   try {
     const { id } = await params
     if (!isUuid(id)) {
       console.error("Invalid group show id", { id })
-      return NextResponse.json({ error: "Invalid id." }, { status: 400 })
+      return createBadRequestResponse("Invalid id.")
     }
 
     const supabase = await supabaseServer()
@@ -50,23 +33,18 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       return errorResponse
     }
 
-    let body: BioPayload
-    try {
-      body = (await request.json()) as BioPayload
-    } catch (error) {
-      console.error("Group show update invalid JSON", { error })
-      return NextResponse.json(
-        { error: "Invalid request body." },
-        { status: 400 }
-      )
+    const { data: body, errorResponse: parseErrorResponse } =
+      await parseJsonBody<BioPayload>(request)
+    if (!body || parseErrorResponse) {
+      return parseErrorResponse
     }
+
     const description = body.description?.trim()
     const descriptionKr = body.description_kr?.trim()
 
     if (!description || !descriptionKr) {
-      return NextResponse.json(
-        { error: "Description and Korean description are required." },
-        { status: 400 }
+      return createBadRequestResponse(
+        "Description and Korean description are required.",
       )
     }
 
@@ -83,20 +61,23 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         details: error?.details,
         hint: error?.hint,
       })
-      return NextResponse.json(
-        { error: error?.message || "Unable to update group show entry." },
-        { status: 500 }
+      return createServerErrorResponse(
+        error?.message || "Unable to update group show entry.",
       )
     }
 
-    await logActivity(supabase, user.id, "update", id)
+    await insertActivityLog(supabase, {
+      adminId: user.id,
+      actionType: "update",
+      entityType: "cv_detail",
+      entityId: id,
+      metadata: { section: "group exhibition" },
+      logContext: "Group show update",
+    })
     return NextResponse.json(data)
   } catch (error) {
     console.error("Group show update failed", { error })
-    return NextResponse.json(
-      { error: "Server error while updating group show." },
-      { status: 500 }
-    )
+    return createServerErrorResponse("Server error while updating group show.")
   }
 }
 
@@ -105,7 +86,7 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     const { id } = await params
     if (!isUuid(id)) {
       console.error("Invalid group show id", { id })
-      return NextResponse.json({ error: "Invalid id." }, { status: 400 })
+      return createBadRequestResponse("Invalid id.")
     }
 
     const supabase = await supabaseServer()
@@ -126,19 +107,22 @@ export async function DELETE(_: Request, { params }: RouteContext) {
         details: error.details,
         hint: error.hint,
       })
-      return NextResponse.json(
-        { error: error.message || "Unable to delete group show entry." },
-        { status: 500 }
+      return createServerErrorResponse(
+        error.message || "Unable to delete group show entry.",
       )
     }
 
-    await logActivity(supabase, user.id, "delete", id)
+    await insertActivityLog(supabase, {
+      adminId: user.id,
+      actionType: "delete",
+      entityType: "cv_detail",
+      entityId: id,
+      metadata: { section: "group exhibition" },
+      logContext: "Group show delete",
+    })
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("Group show delete failed", { error })
-    return NextResponse.json(
-      { error: "Server error while deleting group show." },
-      { status: 500 }
-    )
+    return createServerErrorResponse("Server error while deleting group show.")
   }
 }

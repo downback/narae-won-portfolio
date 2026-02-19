@@ -41,7 +41,7 @@ export default function YearInputDialog({
   title = "Add year",
   description = "Create a new year category for works.",
   label = "Year",
-  placeholder = "2027",
+  placeholder = "ex. 2027",
   confirmLabel = "Add year",
   validate = defaultValidate,
 }: YearInputDialogProps) {
