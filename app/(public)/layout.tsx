@@ -25,10 +25,9 @@ export default async function PublicLayout({
   ] = await Promise.all([
     supabase
       .from("artworks")
-      .select("year")
+      .select("year_category")
       .eq("category", "works")
-      .not("year", "is", null)
-      .order("year", { ascending: false }),
+      .not("year_category", "is", null),
     supabase
       .from("exhibitions")
       .select("title, slug")
@@ -49,13 +48,14 @@ export default async function PublicLayout({
     })
   }
 
+  const getSortKey = (label: string) => Number(label.split("-")[0]) || 0
   const worksYears = Array.from(
     new Set(
       (worksRows ?? [])
-        .map((row) => (row.year ? String(row.year) : ""))
-        .filter((year) => year.length > 0),
+        .map((row) => row.year_category ?? "")
+        .filter((cat) => cat.length > 0),
     ),
-  )
+  ).sort((a, b) => getSortKey(b) - getSortKey(a))
 
   const buildExhibitions = (
     rows: { title?: string | null; slug?: string | null }[],
@@ -96,8 +96,15 @@ export default async function PublicLayout({
           navLinks={navLinks}
         />
       </div>
-      <main className="flex-auto md:w-auto">
-        <div className="px-6 mb-32  md:py-0 md:mt-28 md:pr-8">{children}</div>
+      <main className="flex-auto md:w-auto ">
+        <div className="px-6 md:py-0 md:mt-28 md:pr-8 mb-60 md:mb-32">
+          {children}
+        </div>
+        <footer className=" px-6">
+          <div className="text-xs text-muted-foreground mb-12 md:mb-6 text-right">
+            <p>© {new Date().getFullYear()} Narae Won. All rights reserved.</p>
+          </div>
+        </footer>
       </main>
     </div>
   )

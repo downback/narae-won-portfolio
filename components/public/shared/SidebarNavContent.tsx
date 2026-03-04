@@ -1,12 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import {
-  worksYearRangeDisplay,
-  worksYearRangeEnd,
-  worksYearRangeStart,
-  worksYearRangeValue,
-} from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 type ExhibitionItem = {
@@ -38,37 +32,13 @@ export default function SidebarNavContent({
   className,
   onNavigate,
 }: SidebarNavContentProps) {
-  const rangeStart = worksYearRangeStart
-  const rangeEnd = worksYearRangeEnd
-  const rangeLabel = worksYearRangeDisplay
-  const rangeSlug = worksYearRangeValue
   const workLinks = worksYears
-    .filter((year) => year.trim().length > 0)
-    .reduce<{ label: string; href: string; key: string }[]>((acc, year) => {
-      const yearValue = Number(year)
-      if (
-        Number.isInteger(yearValue) &&
-        yearValue >= rangeStart &&
-        yearValue <= rangeEnd
-      ) {
-        const alreadyAdded = acc.some((item) => item.key === rangeSlug)
-        if (!alreadyAdded) {
-          acc.push({
-            label: rangeLabel,
-            href: `/works/${rangeSlug}`,
-            key: rangeSlug,
-          })
-        }
-        return acc
-      }
-
-      acc.push({
-        label: year,
-        href: `/works/${year}`,
-        key: year,
-      })
-      return acc
-    }, [])
+    .filter((cat) => cat.trim().length > 0)
+    .map((cat) => ({
+      label: cat,
+      href: `/works/${cat}`,
+      key: cat,
+    }))
 
   return (
     <nav className={cn("flex flex-col justify-between h-full", className)}>

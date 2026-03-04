@@ -14,9 +14,7 @@ export default function WorksPanel() {
     errorMessage,
     yearOptions,
     groupedByYear,
-    yearSelectOptions,
     selectedYearCategory,
-    rangeLabel,
     editingItem,
     modalInitialValues,
     isYearDialogOpen,
@@ -56,8 +54,6 @@ export default function WorksPanel() {
         onOpenChange={setIsUploadOpen}
         title={editingItem ? "Edit work" : "Add work"}
         description="작업 이미지와 캡션 텍스트를 업로드 및 수정할 수 있습니다"
-        yearOptions={yearSelectOptions}
-        isYearSelectDisabled={selectedYearCategory !== rangeLabel}
         selectedYearCategory={selectedYearCategory}
         onSave={handleSave}
         initialValues={modalInitialValues}

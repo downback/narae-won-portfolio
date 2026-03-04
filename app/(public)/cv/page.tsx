@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { Instagram } from "lucide-react"
 import DetailSubHeader from "@/components/public/shared/DetailSubHeader"
 import { supabaseServer } from "@/lib/server"
 import CvList from "@/components/public/CvList"
@@ -95,7 +94,6 @@ export default async function Bio() {
             className="mt-3 inline-flex items-center gap-1 text-xs text-black hover:text-red-500 transition-colors"
             aria-label="Visit Instagram profile"
           >
-            <Instagram className="h-4 w-4" strokeWidth={1} />
             <span>@naraeworks</span>
           </Link>
         </div>

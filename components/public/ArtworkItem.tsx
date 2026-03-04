@@ -31,7 +31,7 @@ export default function ArtworkItem({
           imageClassName="h-auto w-full object-cover md:h-auto md:w-full"
         />
       </div>
-      <div className="px-1 mt-2 md:mt-4 flex md:flex-row flex-col justify-between w-full md:gap-4">
+      <div className="px-1 mt-4 flex md:flex-row flex-col justify-between w-full gap-1">
         <p className="md:font-light font-base md:flex-1 text-sm md:text-[13px] whitespace-pre-wrap">
           {title}
         </p>

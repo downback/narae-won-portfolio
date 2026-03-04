@@ -6,8 +6,3 @@ export const exhibitionCategories = [
 ] as const
 
 export type ExhibitionCategory = (typeof exhibitionCategories)[number]
-
-export const worksYearRangeStart = 2018
-export const worksYearRangeEnd = 2021
-export const worksYearRangeValue = `${worksYearRangeStart}-${worksYearRangeEnd}`
-export const worksYearRangeDisplay = `${worksYearRangeStart} - ${worksYearRangeEnd}`

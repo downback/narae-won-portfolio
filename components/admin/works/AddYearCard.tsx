@@ -27,9 +27,18 @@ type AddYearCardProps = {
   validate?: (value: string) => string | null
 }
 
+const singleYearPattern = /^\d{4}$/
+const yearRangePattern = /^(\d{4})-(\d{4})$/
+
 const defaultValidate = (value: string) => {
-  if (!value) return "Enter a year."
-  if (!/^\d{4}$/.test(value)) return "Year must be a 4-digit number."
+  if (!value) return "Enter a year or year range."
+  if (!singleYearPattern.test(value) && !yearRangePattern.test(value)) {
+    return "단일 연도(예. 2027) 또는 연도 범위를 포멧에 맞게 업로드해주세요.(예. 2022-2025 또는 2022~2025)."
+  }
+  const rangeMatch = value.match(yearRangePattern)
+  if (rangeMatch && Number(rangeMatch[1]) >= Number(rangeMatch[2])) {
+    return "연도 카테고리의 시작년도가 종료년도보다 클 수 없습니다."
+  }
   return null
 }
 
@@ -40,8 +49,8 @@ export default function AddYearCard({
   trigger,
   title = "Add year",
   description = "Create a new year category for works.",
-  label = "Year",
-  placeholder = "ex. 2027",
+  label = "Year or range",
+  placeholder = "ex. 2027 또는 2022-2025",
   confirmLabel = "Add year",
   validate = defaultValidate,
 }: AddYearCardProps) {
@@ -83,7 +92,7 @@ export default function AddYearCard({
             value={yearInput}
             onChange={(event) => setYearInput(event.target.value)}
             placeholder={placeholder}
-            inputMode="numeric"
+            inputMode="text"
           />
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         </div>

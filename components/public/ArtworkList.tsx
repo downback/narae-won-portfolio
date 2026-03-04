@@ -14,7 +14,7 @@ type ArtworkListProps = {
 
 export default function ArtworkList({ items = [] }: ArtworkListProps) {
   return (
-    <div className="w-full flex flex-col justify-center items-center gap-14">
+    <div className="w-full flex flex-col justify-center items-center gap-12">
       {items.map((item) => (
         <ArtworkItem
           key={item.id}

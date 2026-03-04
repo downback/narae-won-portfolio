@@ -3,12 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { usePreviewUrlRegistry } from "@/components/admin/shared/hooks/usePreviewUrlRegistry"
 import type { WorkFormValues } from "@/components/admin/works/WorkUploadModal"
-import {
-  siteAssetsBucketName,
-  worksYearRangeEnd,
-  worksYearRangeStart,
-  worksYearRangeValue,
-} from "@/lib/constants"
+import { siteAssetsBucketName } from "@/lib/constants"
 import { supabaseBrowser } from "@/lib/client"
 
 export type WorkPreviewItem = {
@@ -17,9 +12,12 @@ export type WorkPreviewItem = {
   title: string
   caption: string
   year: number | null
+  yearCategory: string
   displayOrder: number
   createdAt: string
 }
+
+const getSortKey = (label: string) => Number(label.split("-")[0]) || 0
 
 export const useWorksPanelData = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false)
@@ -28,7 +26,6 @@ export const useWorksPanelData = () => {
   const [previewItems, setPreviewItems] = useState<WorkPreviewItem[]>([])
   const [editingItem, setEditingItem] = useState<WorkPreviewItem | null>(null)
   const [manualYears, setManualYears] = useState<string[]>([])
-  const [selectedYear, setSelectedYear] = useState<string>("")
   const [selectedYearCategory, setSelectedYearCategory] = useState<string>("")
   const [isYearDialogOpen, setIsYearDialogOpen] = useState(false)
   const { registerPreviewUrl, revokeRegisteredPreviewUrls } =
@@ -36,15 +33,12 @@ export const useWorksPanelData = () => {
 
   const supabase = useMemo(() => supabaseBrowser(), [])
   const bucketName = siteAssetsBucketName
-  const rangeLabel = worksYearRangeValue
-  const rangeStart = worksYearRangeStart
-  const rangeEnd = worksYearRangeEnd
 
   const loadPreviewItems = useCallback(async () => {
     const { data, error } = await supabase
       .from("artworks")
       .select(
-        "id, storage_path, title, caption, year, display_order, created_at",
+        "id, storage_path, title, caption, year, year_category, display_order, created_at",
       )
       .eq("category", "works")
       .order("display_order", { ascending: false })
@@ -68,6 +62,7 @@ export const useWorksPanelData = () => {
           title: item.title ?? "",
           caption: item.caption ?? "",
           year: item.year ?? null,
+          yearCategory: item.year_category ?? "",
           displayOrder: item.display_order ?? 0,
           createdAt: item.created_at ?? new Date().toISOString(),
         }
@@ -97,21 +92,8 @@ export const useWorksPanelData = () => {
         setErrorMessage("Caption is required.")
         return
       }
-
-      const isYearSelectEnabled = selectedYearCategory === rangeLabel
-      let resolvedYear = ""
-
-      if (isYearSelectEnabled) {
-        resolvedYear = values.year.trim()
-      } else {
-        resolvedYear =
-          values.year.trim() ||
-          (editingItem?.year ? String(editingItem.year) : "") ||
-          selectedYear
-      }
-
-      if (!resolvedYear) {
-        setErrorMessage("Select year is required.")
+      if (!selectedYearCategory) {
+        setErrorMessage("Year category is required.")
         return
       }
 
@@ -127,7 +109,7 @@ export const useWorksPanelData = () => {
         if (values.imageFile) {
           formData.append("file", values.imageFile)
         }
-        formData.append("year", resolvedYear)
+        formData.append("year_category", selectedYearCategory)
         formData.append("title", values.title)
         formData.append("caption", values.caption)
 
@@ -181,7 +163,8 @@ export const useWorksPanelData = () => {
               imageUrl: previewUrl,
               title: values.title,
               caption: values.caption,
-              year: Number(resolvedYear),
+              year: null,
+              yearCategory: selectedYearCategory,
               displayOrder: 0,
               createdAt: new Date().toISOString(),
             },
@@ -192,7 +175,7 @@ export const useWorksPanelData = () => {
         shouldRevokePendingUrls = didReloadPreviewItems
         setIsUploadOpen(false)
         setEditingItem(null)
-        setSelectedYear("")
+        setSelectedYearCategory("")
       } catch (error) {
         console.error("Failed to save work entry", { error })
         if (error instanceof Error) {
@@ -220,10 +203,8 @@ export const useWorksPanelData = () => {
     [
       editingItem,
       loadPreviewItems,
-      rangeLabel,
       registerPreviewUrl,
       revokeRegisteredPreviewUrls,
-      selectedYear,
       selectedYearCategory,
     ],
   )
@@ -232,98 +213,57 @@ export const useWorksPanelData = () => {
     if (editingItem) {
       return {
         imageUrl: editingItem.imageUrl,
-        year: editingItem.year ? String(editingItem.year) : "",
+        year: editingItem.yearCategory,
         title: editingItem.title,
         caption: editingItem.caption,
       }
     }
-    if (selectedYear) {
-      return { year: selectedYear }
+    if (selectedYearCategory) {
+      return { year: selectedYearCategory }
     }
     return undefined
-  }, [editingItem, selectedYear])
+  }, [editingItem, selectedYearCategory])
 
   const yearOptions = useMemo(() => {
-    const yearsFromItems = previewItems
-      .map((item) => (item.year ? String(item.year) : null))
-      .filter((value): value is string => Boolean(value))
-    const filteredYears = yearsFromItems.filter((year) => {
-      const numeric = Number(year)
-      return Number.isNaN(numeric) || numeric < rangeStart || numeric > rangeEnd
-    })
-    const filteredManualYears = manualYears.filter((year) => {
-      const numeric = Number(year)
-      return Number.isNaN(numeric) || numeric < rangeStart || numeric > rangeEnd
-    })
-    const merged = Array.from(
-      new Set([rangeLabel, ...filteredYears, ...filteredManualYears]),
-    )
-    const sortValue = (label: string) => {
-      if (label === rangeLabel) return rangeEnd
-      const numeric = Number(label)
-      return Number.isNaN(numeric) ? Number.NEGATIVE_INFINITY : numeric
-    }
-    return merged.sort((a, b) => sortValue(b) - sortValue(a))
-  }, [manualYears, previewItems, rangeEnd, rangeLabel, rangeStart])
-
-  const yearSelectOptions = useMemo(
-    () =>
-      Array.from({ length: rangeEnd - rangeStart + 1 }, (_, index) =>
-        String(rangeStart + index),
-      ),
-    [rangeEnd, rangeStart],
-  )
+    const fromItems = previewItems
+      .map((item) => item.yearCategory)
+      .filter(Boolean)
+    const merged = Array.from(new Set([...fromItems, ...manualYears]))
+    return merged.sort((a, b) => getSortKey(b) - getSortKey(a))
+  }, [manualYears, previewItems])
 
   const groupedByYear = useMemo(() => {
     const grouped = new Map<string, WorkPreviewItem[]>()
-    yearOptions.forEach((year) => grouped.set(year, []))
+    yearOptions.forEach((cat) => grouped.set(cat, []))
     previewItems.forEach((item) => {
-      const numericYear = item.year ?? null
-      if (numericYear && numericYear >= rangeStart && numericYear <= rangeEnd) {
-        grouped.get(rangeLabel)?.push(item)
-        return
-      }
-      const year = numericYear ? String(numericYear) : "Unknown"
-      if (!grouped.has(year)) grouped.set(year, [])
-      grouped.get(year)?.push(item)
+      const cat = item.yearCategory || "Unknown"
+      if (!grouped.has(cat)) grouped.set(cat, [])
+      grouped.get(cat)?.push(item)
     })
-    grouped.forEach((items, year) => {
+    grouped.forEach((items, cat) => {
       items.sort(
         (a, b) =>
           b.displayOrder - a.displayOrder ||
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       )
-      grouped.set(year, items)
+      grouped.set(cat, items)
     })
     return grouped
-  }, [previewItems, rangeEnd, rangeLabel, rangeStart, yearOptions])
+  }, [previewItems, yearOptions])
 
-  const handleAdd = useCallback(
-    (year: string) => {
-      setErrorMessage("")
-      setEditingItem(null)
-      setSelectedYear(year === rangeLabel ? String(rangeEnd) : year)
-      setSelectedYearCategory(year)
-      setIsUploadOpen(true)
-    },
-    [rangeEnd, rangeLabel],
-  )
+  const handleAdd = useCallback((yearCategory: string) => {
+    setErrorMessage("")
+    setEditingItem(null)
+    setSelectedYearCategory(yearCategory)
+    setIsUploadOpen(true)
+  }, [])
 
-  const handleEdit = useCallback(
-    (item: WorkPreviewItem) => {
-      setEditingItem(item)
-      const nextYear = item.year ? String(item.year) : ""
-      const nextCategory =
-        item.year && item.year >= rangeStart && item.year <= rangeEnd
-          ? rangeLabel
-          : nextYear
-      setSelectedYear(nextYear)
-      setSelectedYearCategory(nextCategory)
-      setErrorMessage("")
-      setIsUploadOpen(true)
-    },
-    [rangeEnd, rangeLabel, rangeStart],
-  )
+  const handleEdit = useCallback((item: WorkPreviewItem) => {
+    setEditingItem(item)
+    setSelectedYearCategory(item.yearCategory)
+    setErrorMessage("")
+    setIsUploadOpen(true)
+  }, [])
 
   const handleDelete = useCallback(
     async (item: WorkPreviewItem) => {
@@ -397,9 +337,7 @@ export const useWorksPanelData = () => {
     errorMessage,
     yearOptions,
     groupedByYear,
-    yearSelectOptions,
     selectedYearCategory,
-    rangeLabel,
     editingItem,
     modalInitialValues,
     isYearDialogOpen,

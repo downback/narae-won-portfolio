@@ -45,18 +45,21 @@ const textPayloadSchema = z
     year: payload.year as number,
   }))
 
+const singleYearPattern = /^\d{4}$/
+const yearRangePattern = /^(\d{4})-(\d{4})$/
+
 const workMetadataSchema = z
   .object({
-    yearRaw: z.string(),
+    yearCategory: z.string(),
     title: z.string(),
     caption: z.string(),
   })
   .superRefine((input, context) => {
-    const yearRaw = input.yearRaw.trim()
+    const yearCategory = input.yearCategory.trim()
     const title = input.title.trim()
     const caption = input.caption.trim()
 
-    if (!yearRaw) {
+    if (!yearCategory) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Year is required.",
@@ -64,16 +67,31 @@ const workMetadataSchema = z
       return
     }
 
-    const year = Number(yearRaw)
-    if (Number.isNaN(year)) {
+    const isSingleYear = singleYearPattern.test(yearCategory)
+    const rangeMatch = yearCategory.match(yearRangePattern)
+
+    if (!isSingleYear && !rangeMatch) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Year must be a number.",
+        message: "Year must be in YYYY or YYYY-YYYY format.",
       })
       return
     }
 
-    if (year < minimumYear || year > maximumYear) {
+    if (rangeMatch) {
+      const start = Number(rangeMatch[1])
+      const end = Number(rangeMatch[2])
+      if (start >= end) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Range start year must be less than end year.",
+        })
+        return
+      }
+    }
+
+    const startYear = rangeMatch ? Number(rangeMatch[1]) : Number(yearCategory)
+    if (startYear < minimumYear || startYear > maximumYear) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: `Year must be between ${minimumYear} and ${maximumYear}.`,
@@ -96,11 +114,17 @@ const workMetadataSchema = z
       })
     }
   })
-  .transform((input) => ({
-    year: Number(input.yearRaw.trim()),
-    title: input.title.trim(),
-    caption: input.caption.trim(),
-  }))
+  .transform((input) => {
+    const yearCategory = input.yearCategory.trim()
+    const rangeMatch = yearCategory.match(yearRangePattern)
+    const year = rangeMatch ? Number(rangeMatch[1]) : Number(yearCategory)
+    return {
+      year,
+      yearCategory,
+      title: input.title.trim(),
+      caption: input.caption.trim(),
+    }
+  })
 
 type ValidationResult<T> =
   | { data: T; errorMessage: null }
@@ -114,6 +138,7 @@ export type TextPayloadValidationData = {
 
 export type WorkMetadataValidationData = {
   year: number
+  yearCategory: string
   title: string
   caption: string
 }
@@ -136,7 +161,7 @@ export const validateTextPayload = (
 }
 
 export const validateWorkMetadata = (input: {
-  yearRaw: string
+  yearCategory: string
   title: string
   caption: string
 }): ValidationResult<WorkMetadataValidationData> => {

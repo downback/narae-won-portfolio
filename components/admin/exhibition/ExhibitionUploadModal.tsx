@@ -243,13 +243,15 @@ export default function ExhibitionUploadModal({
               ) : null}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="exhibition-title">Exhibition title *</Label>
-              <Textarea
+              <Label htmlFor="exhibition-title">
+                Exhibition title (영문) *
+              </Label>
+              <Input
                 id="exhibition-title"
                 value={exhibitionTitle}
                 onChange={(event) => setExhibitionTitle(event.target.value)}
-                placeholder="메뉴바에 들어갈 전시 타이틀을 입력해주세요"
-                className="min-h-[60px]"
+                placeholder="메뉴바에 들어갈 전시 타이틀을 영문으로 입력해주세요"
+                className=""
                 disabled={isEditMode}
               />
               <div className="flex flex-col gap-0">
@@ -257,19 +259,19 @@ export default function ExhibitionUploadModal({
                   *위 타이틀은 최초 업로드 후 수정이 불가능 합니다.
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  가능한 간결하게 띄어쓰기에 유의하여 작성해주세요.
+                  ** 띄어쓰기에 유의하여 특수문자 없이 영문으로 작성해주세요.
                 </div>
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="exhibition-caption">
-                Exhibition information *
+                Exhibition title 및 세부정보 *
               </Label>
               <Textarea
                 id="exhibition-caption"
                 value={caption}
                 onChange={(event) => setCaption(event.target.value)}
-                placeholder="전시 메인 이미지 하단에 들어갈 전시 설명 텍스트를 입력해주세요"
+                placeholder="전시 메인 이미지 하단에 들어갈 텍스트를 입력해주세요 (영문, 한글, 줄바꿈 모두 가능)"
                 className="min-h-[60px]"
               />
             </div>
@@ -281,7 +283,7 @@ export default function ExhibitionUploadModal({
                 id="exhibition-description"
                 value={details}
                 onChange={(event) => setDetails(event.target.value)}
-                placeholder="전시 상세설명을 입력해주세요(선택사항)"
+                placeholder="전시 텍스트를 입력해주세요(선택사항)"
                 className="min-h-[120px]"
               />
             </div>

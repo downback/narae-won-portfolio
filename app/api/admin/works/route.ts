@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     const formData = await request.formData()
     const file = formData.get("file")
-    const yearRaw = formData.get("year")?.toString().trim()
+    const yearCategory = formData.get("year_category")?.toString().trim()
     const title = formData.get("title")?.toString().trim()
     const caption = formData.get("caption")?.toString().trim()
 
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     const metadataValidationResult = validateWorkMetadata({
-      yearRaw: yearRaw ?? "",
+      yearCategory: yearCategory ?? "",
       title: title ?? "",
       caption: caption ?? "",
     })
@@ -66,6 +66,7 @@ export async function POST(request: Request) {
       metadataValidationResult.data as WorkMetadataValidationData
     const {
       year,
+      yearCategory: normalizedYearCategory,
       title: normalizedTitle,
       caption: normalizedCaption,
     } = validatedData
@@ -117,6 +118,7 @@ export async function POST(request: Request) {
         storage_path: storagePath,
         category: "works",
         year,
+        year_category: normalizedYearCategory,
         title: normalizedTitle,
         caption: normalizedCaption,
         display_order: nextDisplayOrder,

@@ -56,15 +56,16 @@ with check ((select auth.uid()) = admin_user_id);
 -- Artworks (Works Only)
 -- ------------------------------------------------------------
 create table if not exists public.artworks (
-  id           uuid        primary key default gen_random_uuid(),
-  storage_path text        not null unique,
-  category     text        not null check (category = 'works'),
-  year         int         check (year between 1900 and 2100),
-  title        text,
-  caption      text        not null,
-  display_order int        not null default 0 check (display_order >= 0),
-  created_at   timestamptz not null default now(),
-  updated_at   timestamptz not null default now()
+  id            uuid        primary key default gen_random_uuid(),
+  storage_path  text        not null unique,
+  category      text        not null check (category = 'works'),
+  year          int         check (year between 1900 and 2100),
+  year_category text        not null,
+  title         text,
+  caption       text        not null,
+  display_order int         not null default 0 check (display_order >= 0),
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
 );
 
 alter table public.artworks enable row level security;

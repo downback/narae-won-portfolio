@@ -13,13 +13,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import AdminDialog from "@/components/admin/shared/AdminDialog"
 import SavingDotsLabel from "@/components/admin/shared/SavingDotsLabel"
@@ -40,8 +33,6 @@ type WorkUploadModalProps = {
   title?: string
   description?: string
   onSave?: (values: WorkFormValues) => void
-  yearOptions?: string[]
-  isYearSelectDisabled?: boolean
   selectedYearCategory?: string
   initialValues?: {
     imageUrl?: string
@@ -62,8 +53,6 @@ export default function WorkUploadModal({
   title = "Update Content",
   description = "Upload a work image and add metadata.",
   onSave,
-  yearOptions = [],
-  isYearSelectDisabled = false,
   selectedYearCategory,
   initialValues,
   isEditMode = false,
@@ -243,30 +232,13 @@ export default function WorkUploadModal({
               ) : null}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="work-year">
-                Year{isYearSelectDisabled ? "" : " *"}
-              </Label>
-              {isYearSelectDisabled ? (
-                <div
-                  id="work-year"
-                  className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground"
-                >
-                  {selectedYearCategory || "-"}
-                </div>
-              ) : (
-                <Select value={year || undefined} onValueChange={setYear}>
-                  <SelectTrigger id="work-year">
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {yearOptions.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+              <Label htmlFor="work-year">Year</Label>
+              <div
+                id="work-year"
+                className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground"
+              >
+                {selectedYearCategory || "-"}
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="work-title">Title *</Label>
