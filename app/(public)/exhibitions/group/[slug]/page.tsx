@@ -84,15 +84,13 @@ export default async function GroupExhibitionPage({
       ]
     : []
   return (
-    <div className="flex flex-col min-h-[calc(100dvh-7rem)]">
-      <div className="space-y-4">
-        <DetailSubHeader
-          segments={[{ label: "group exhibition", value: formatSlug(slug) }]}
-        />
-        <ExhibitionList items={items} />
-      </div>
-      <footer className="mb-12 md:mb-6 mt-60 md:mt-32">
-        <div className="text-xs text-black/20 text-right">
+    <div className="space-y-4">
+      <DetailSubHeader
+        segments={[{ label: "group exhibition", value: formatSlug(slug) }]}
+      />
+      <ExhibitionList items={items} />
+      <footer className="">
+        <div className="text-xs text-muted-foreground mt-60 md:mt-32 mb-12 md:mb-6 text-right">
           <p>© {new Date().getFullYear()} Narae Won. All rights reserved.</p>
         </div>
       </footer>
