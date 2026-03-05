@@ -97,14 +97,7 @@ export default async function PublicLayout({
         />
       </div>
       <main className="flex-auto md:w-auto ">
-        <div className="px-6 md:py-0 md:mt-28 md:pr-8 mb-60 md:mb-32">
-          {children}
-        </div>
-        <footer className=" px-6">
-          <div className="text-xs text-muted-foreground mb-12 md:mb-6 text-right">
-            <p>© {new Date().getFullYear()} Narae Won. All rights reserved.</p>
-          </div>
-        </footer>
+        <div className="px-6 md:py-0 md:mt-28 md:pr-8 ">{children}</div>
       </main>
     </div>
   )

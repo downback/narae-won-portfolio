@@ -23,7 +23,10 @@ export default async function SoloExhibitionPage({
     .maybeSingle()
 
   if (exhibitionError) {
-    console.error("Failed to load solo exhibition", { slug, error: exhibitionError })
+    console.error("Failed to load solo exhibition", {
+      slug,
+      error: exhibitionError,
+    })
   }
 
   const { data: imageRows, error: imagesError } = await supabase
@@ -85,6 +88,11 @@ export default async function SoloExhibitionPage({
         segments={[{ label: "solo exhibition", value: formatSlug(slug) }]}
       />
       <ExhibitionList items={items} />
+      <footer className="">
+        <div className="text-xs text-muted-foreground mt-60 md:mt-32 mb-12 md:mb-6 text-right">
+          <p>© {new Date().getFullYear()} Narae Won. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   )
 }

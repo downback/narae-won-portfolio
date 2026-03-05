@@ -48,6 +48,11 @@ export default async function WorksByYearPage({
     <div className="space-y-4">
       <DetailSubHeader segments={[{ label: "work", value: year }]} />
       <ArtworkList items={items} />
+      <footer className="">
+        <div className="text-xs text-muted-foreground mt-60 md:mt-32 mb-12 md:mb-6 text-right">
+          <p>© {new Date().getFullYear()} Narae Won. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   )
 }

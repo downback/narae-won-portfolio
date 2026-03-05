@@ -125,14 +125,13 @@ export default function SidebarNavMobile({
             </Button>
           </div>
 
-          {/* Scrollable Nav Content (ONLY SCROLL AREA) */}
           <div
             className={cn(
               "flex-1",
               "overflow-y-auto",
               "hide-scrollbar",
-              "overscroll-contain", // prevents scroll chaining
-              "px-8 pb-6",
+              "overscroll-contain",
+              "px-6 pb-6",
             )}
           >
             <SidebarNavContent
