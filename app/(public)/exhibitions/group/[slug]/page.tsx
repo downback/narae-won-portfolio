@@ -90,7 +90,7 @@ export default async function GroupExhibitionPage({
       />
       <ExhibitionList items={items} />
       <footer className="">
-        <div className="text-xs text-muted-foreground mt-60 md:mt-32 mb-12 md:mb-6 text-right">
+        <div className="text-xs text-black/20 mt-60 md:mt-32 mb-12 md:mb-6 text-right">
           <p>© {new Date().getFullYear()} Narae Won. All rights reserved.</p>
         </div>
       </footer>
