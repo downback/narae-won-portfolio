@@ -22,7 +22,7 @@ const pageConfigs: Record<string, PageConfig> = {
     title: "Works",
     description:
       "Works page에 새로운 작품을 추가하거나 수정, 삭제하실 수 있습니다",
-    viewLink: "/works/2018-2021",
+    viewLink: "/",
   },
   "/admin/exhibitions": {
     title: "Exhibitions",

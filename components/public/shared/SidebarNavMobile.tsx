@@ -79,12 +79,8 @@ export default function SidebarNavMobile({
     <div className="w-full md:hidden flex flex-col justify-between">
       {/* Header */}
       <header className="flex items-start pl-6 pt-8 pb-6">
-        <Link
-          className="text-base font-medium"
-          href="/"
-          onClick={closeMobileNav}
-        >
-          NARAE WON
+        <Link className="text-base" href="/" onClick={closeMobileNav}>
+          Narae Won
         </Link>
 
         <Button
@@ -110,7 +106,7 @@ export default function SidebarNavMobile({
         >
           {/* Overlay Header */}
           <div className="flex items-start justify-between pl-6 pt-8 pb-6 shrink-0">
-            <div className="text-base font-medium">NARAE WON</div>
+            <div className="text-base">Narae Won</div>
             <Button
               variant="default"
               size="icon"
